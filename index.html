@@ -394,7 +394,6 @@ function renderBody(content,mode,css){
 function codeFrame(html,css=''){
  const id='cf'+uid();
  let source=String(html||''),head='',body=source;
- // Accept either a fragment or a complete HTML document.
  const fullDoc=/<html[\s>]/i.test(source)||/<!doctype\s+html/i.test(source);
  if(fullDoc){
   const hm=source.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
@@ -404,7 +403,43 @@ function codeFrame(html,css=''){
  }
  const doc=\`<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-<style>:root{--pri:\${S.pri};--sec:\${S.sec}}html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow-wrap:anywhere}img,video,iframe{max-width:100%}a{color:\${S.pri}}*,*::before,*::after{box-sizing:border-box}</style>
+<style>
+:root{--pri:\${S.pri};--sec:\${S.sec};--profile-accent:#998BA5}
+html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow-wrap:anywhere}
+img,video,iframe{max-width:100%}a{color:\${S.pri}}*,*::before,*::after{box-sizing:border-box}
+.profile-container{width:100%;max-width:920px;margin:0 auto;background:#17151d;color:#eeeaf2;border:1px solid #3b3542;border-radius:14px;overflow:hidden;font-family:'Prompt',sans-serif}
+.profile-container .banner{height:230px;overflow:hidden;background:#292330}
+.profile-container .banner img{display:block;width:100%;height:100%;object-fit:cover}
+.profile-header-section{padding:0 24px 20px;background:linear-gradient(180deg,#211c28,#17151d)}
+.profile-header-section .avatar-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:-55px;position:relative}
+.profile-header-section .avatar{width:116px;height:116px;flex:0 0 116px;padding:5px;border-radius:50%;background:#17151d;border:1px solid #665a70;overflow:hidden}
+.profile-header-section .avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+.profile-header-section .action-buttons{display:flex;gap:8px;padding-bottom:8px;color:#eee}
+.profile-header-section .action-buttons{font-size:12px}
+.profile-header-section .action-buttons>*{border:1px solid #998ba5;border-radius:20px;padding:5px 13px}
+.profile-header-section .user-names{padding-top:12px}
+.profile-header-section h1{font-size:clamp(23px,4vw,32px);line-height:1.25;margin:0;color:#f4eff8}
+.profile-header-section .handle{margin:4px 0 0;color:#bcb0c7;font-size:13px}
+.profile-container .nav-tabs{display:flex;gap:0;overflow-x:auto;padding:0 20px;background:#17151d;border-top:1px solid #39313f;border-bottom:1px solid #39313f}
+.profile-container .nav-tab{display:block;white-space:nowrap;padding:13px 15px;text-decoration:none;color:#bdb3c7;font-size:13px;border-bottom:2px solid transparent}
+.profile-container .nav-tab.active,.profile-container .nav-tab:hover{color:#e8dcef;border-bottom-color:#998ba5}
+.profile-container .content-body{padding:22px 24px 26px}
+.profile-container .section-title{font-size:15px;font-weight:600;letter-spacing:.04em;color:#d9c9e4;margin:0 0 13px}
+.profile-container .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 12px;margin-bottom:24px}
+.profile-container .info-row{min-width:0;padding:10px 12px;border:1px solid #39313f;background:#211d27;border-radius:8px}
+.profile-container .info-label{font-size:11px;color:#aa9eb5;margin-bottom:3px}
+.profile-container .info-value{font-size:13px;color:#f0eaf4;overflow-wrap:anywhere}
+.profile-container .gallery-section{margin:22px 0}
+.profile-container .gallery-header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.profile-container .gallery-header a{font-size:11px;color:#b9a4c8;text-decoration:none}
+.profile-container .gallery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.profile-container .gallery-item{height:150px;overflow:hidden;border-radius:8px;background:#292330}
+.profile-container .gallery-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+.profile-container .gallery-item img:hover{transform:scale(1.04)}
+.profile-container .text-block{font-size:13px;line-height:1.95;color:#ded6e5;margin:0 0 24px;white-space:pre-wrap}
+.profile-container .divider{height:1px;background:#39313f;margin:24px 0}
+@media(max-width:560px){.profile-container .banner{height:160px}.profile-header-section{padding:0 15px 17px}.profile-header-section .avatar-row{margin-top:-42px}.profile-header-section .avatar{width:86px;height:86px;flex-basis:86px}.profile-header-section .action-buttons{font-size:10px;gap:5px}.profile-container .content-body{padding:18px 14px}.profile-container .info-grid{grid-template-columns:1fr}.profile-container .gallery-grid{gap:6px}.profile-container .gallery-item{height:100px}.profile-container .nav-tabs{padding:0 8px}.profile-container .nav-tab{padding:11px 10px}}
+</style>
 \${head}
 <style>\${css||''}</style></head><body>\${body||''}
 <script>(function(){function report(){try{var b=document.body,d=document.documentElement;var h=Math.max(b?b.scrollHeight:0,b?b.offsetHeight:0,d?d.scrollHeight:0,d?d.offsetHeight:0);parent.postMessage({cf:'\${id}',h:h+8},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>\`;
