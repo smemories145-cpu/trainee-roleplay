@@ -393,12 +393,22 @@ function renderBody(content,mode,css){
 }
 function codeFrame(html,css=''){
  const id='cf'+uid();
- const doc=`<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank">
+ let source=String(html||''),head='',body=source;
+ // Accept either a fragment or a complete HTML document.
+ const fullDoc=/<html[\s>]/i.test(source)||/<!doctype\s+html/i.test(source);
+ if(fullDoc){
+  const hm=source.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+  const bm=source.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  head=hm?hm[1]:'';
+  body=bm?bm[1]:source.replace(/<!doctype[^>]*>/ig,'').replace(/<\/?html[^>]*>/ig,'').replace(/<head[^>]*>[\s\S]*?<\/head>/ig,'');
+ }
+ const doc=\`<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-<style>:root{--pri:${S.pri};--sec:${S.sec}}html,body{margin:0;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow:hidden}img,video,iframe{max-width:100%}a{color:${S.pri}}</style>
-<style>${css||''}</style></head><body>${html||''}
-<script>(function(){var f=function(){parent.postMessage({cf:'${id}',h:document.documentElement.scrollHeight},'*')};try{new ResizeObserver(f).observe(document.documentElement)}catch(e){setInterval(f,1000)}addEventListener('load',f);f()})()<\/script></body></html>`;
- return `<iframe class="cf" id="${id}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" srcdoc="${esc(doc)}"></iframe>`;
+<style>:root{--pri:\${S.pri};--sec:\${S.sec}}html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow-wrap:anywhere}img,video,iframe{max-width:100%}a{color:\${S.pri}}*,*::before,*::after{box-sizing:border-box}</style>
+\${head}
+<style>\${css||''}</style></head><body>\${body||''}
+<script>(function(){function report(){try{var b=document.body,d=document.documentElement;var h=Math.max(b?b.scrollHeight:0,b?b.offsetHeight:0,d?d.scrollHeight:0,d?d.offsetHeight:0);parent.postMessage({cf:'\${id}',h:h+8},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>\`;
+ return \`<iframe class="cf" id="\${id}" title="พรีวิวโค้ดโปรไฟล์" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" style="display:block;width:100%;min-height:120px;border:0;background:transparent" srcdoc="\${esc(doc)}"></iframe>\`;
 }
 addEventListener('message',e=>{const d=e.data;if(!d||!d.cf)return;const f=document.getElementById(d.cf);if(f&&e.source===f.contentWindow&&d.h>0)f.style.height=Math.min(d.h,20000)+'px'});
 document.addEventListener('keydown',e=>{if(e.key==='Tab'&&e.target.classList?.contains('code')){e.preventDefault();const t=e.target;t.setRangeText('  ',t.selectionStart,t.selectionEnd,'end')}});
