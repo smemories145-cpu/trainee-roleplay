@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trainee Roleplay</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0b1a;--card:#18142b;--card2:#221c3d;--line:#2f2752;--pri:#ff5fa2;--sec:#8b7bff;--txt:#ece9f7;--mut:#9d96bd;--ok:#3ddc97;--warn:#ffc857;--bad:#ff6b6b}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Prompt',sans-serif;background:radial-gradient(circle at 20% 0,color-mix(in srgb,var(--sec) 22%,var(--bg)) 0,var(--bg) 55%) fixed;background-color:var(--bg);color:var(--txt);line-height:1.6;min-height:100vh}
+a{color:var(--pri);text-decoration:none;cursor:pointer}
+nav{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:10px 24px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{font-weight:600;font-size:1.3rem;background:linear-gradient(90deg,var(--pri),var(--sec));-webkit-background-clip:text;background-clip:text;color:transparent}
+.links{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.links a{color:var(--txt)}.links a:hover{color:var(--pri)}
+.dot{background:var(--bad);color:#fff;border-radius:99px;padding:0 7px;font-size:.75rem}
+.me-pill{display:flex;align-items:center;gap:8px;background:var(--card2);padding:3px 14px 3px 3px;border-radius:99px;border:1px solid var(--line)}
+.me-pill select{background:transparent;border:0;color:var(--txt);padding:0;margin:0;width:auto;font-size:.85rem;font-weight:600;cursor:pointer}
+.me-pill option{background:var(--card)}
+main{max-width:1150px;margin:0 auto;padding:24px 16px 60px}
+h2{margin-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.btn{display:inline-block;border:0;cursor:pointer;font:inherit;padding:9px 18px;border-radius:10px;background:linear-gradient(90deg,var(--pri),var(--sec));color:#fff!important;font-weight:600}
+.btn.sm{padding:4px 12px;font-size:.85rem}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.ok{background:var(--ok);color:#06281a!important}
+.btn.bad{background:var(--bad)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+input,select,textarea{width:100%;padding:10px 12px;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--txt);font:inherit;margin:4px 0 14px}
+input[type=color]{padding:3px;height:44px}
+textarea{resize:vertical}
+.code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.85rem;tab-size:2;white-space:pre;overflow-x:auto}
+label{font-size:.9rem;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.f1{flex:1;min-width:180px}
+.mut{color:var(--mut);font-size:.88rem}
+.won{color:var(--warn);font-weight:600}
+.badge{display:inline-block;padding:1px 10px;border-radius:99px;font-size:.78rem;border:1px solid var(--c,#888);color:var(--c,#888);white-space:nowrap}
+.av{width:var(--s,48px);height:var(--s,48px);border-radius:50%;object-fit:cover;flex-shrink:0;display:grid;place-items:center;background:linear-gradient(135deg,var(--pri),var(--sec));font-weight:600;color:#fff;font-size:calc(var(--s,48px)*.4)}
+.hero{text-align:center;padding:40px 20px 20px}
+.hero h1{font-size:2.4rem;margin:0;background:linear-gradient(90deg,var(--pri),var(--sec));-webkit-background-clip:text;background-clip:text;color:transparent}
+.rules{background:#2a1f12;border-left:4px solid var(--warn);padding:12px 16px;border-radius:8px}
+.bar{position:relative;height:8px;background:var(--card2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--pri),var(--sec))}
+.bar u{position:absolute;top:0;bottom:0;width:2px;background:var(--warn)}
+.stat{display:grid;grid-template-columns:105px 1fr 34px;gap:10px;align-items:center;margin:7px 0}
+.radar{max-width:100%;height:auto}
+.radar text{fill:var(--mut);font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tabs a{padding:6px 14px;border-radius:10px;background:var(--card);color:var(--txt);border:1px solid var(--line);font-size:.9rem}
+.tabs a.on{background:var(--pri);border-color:var(--pri)}
+.item{display:block;color:var(--txt);transition:.2s}.item:hover{border-color:var(--pri)}
+.chk{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.chk label{display:flex;gap:6px;align-items:center;background:var(--card2);padding:6px 12px;border-radius:8px;color:var(--txt);cursor:pointer}
+.chk input{width:auto;margin:0}
+.cf{width:100%;border:0;display:block;height:40px;background:transparent}
+.preview{border:1px dashed var(--pri);border-radius:10px;padding:12px;margin-top:12px}
+details{margin:6px 0 14px;background:var(--card2);border-radius:10px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600}
+
+/* ---------- เนื้อหาโพสต์ ---------- */
+.rich{line-height:1.75;word-wrap:break-word}
+.rich p{margin:0 0 .6em}
+.rich img{max-width:100%;border-radius:8px}
+.rich h2,.rich h3{margin:.4em 0}
+.rich blockquote{border-left:3px solid var(--sec);margin:10px 0;padding:6px 14px;background:color-mix(in srgb,var(--sec) 10%,transparent);border-radius:0 8px 8px 0}
+.rich details{background:var(--card2);padding:8px 12px;border-radius:8px;margin:8px 0}
+.rich summary{color:var(--warn)}
+.rich iframe{max-width:100%;border-radius:10px;border:0}
+.rich hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+.rich pre{background:var(--card2);padding:10px;border-radius:8px;overflow:auto}
+
+/* ---------- กล่องเขียนข้อความ ---------- */
+.ed{border:1px solid var(--line);border-radius:12px;background:var(--card2);margin:6px 0 14px;overflow:hidden}
+.ed:focus-within{border-color:var(--pri)}
+.ed [hidden]{display:none!important}
+.ed-tabs{display:flex;gap:2px;align-items:flex-end;padding:6px 8px 0;background:var(--card)}
+.ed-tabs button{background:transparent;border:0;color:var(--mut);font:inherit;font-size:.85rem;padding:7px 14px;border-radius:9px 9px 0 0;cursor:pointer}
+.ed-tabs button.on{background:var(--card2);color:var(--txt);font-weight:600}
+.ed-count{margin-left:auto;font-size:.78rem;color:var(--mut);padding:0 6px 6px}
+.ed-bar{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:1px solid var(--line);position:sticky;top:58px;background:var(--card2);z-index:3}
+.ed-g{display:flex;gap:2px;align-items:center;padding-right:6px;border-right:1px solid var(--line)}
+.ed-g:last-child{border:0}
+.ed-bar button,.ed-c{height:32px;min-width:32px;background:transparent;border:1px solid transparent;border-radius:7px;color:var(--txt);font:inherit;font-size:.88rem;cursor:pointer;display:inline-grid;place-items:center;padding:0 7px;margin:0}
+.ed-bar button:hover,.ed-c:hover{background:var(--line)}
+.ed-bar select{height:32px;width:auto;margin:0;padding:0 6px;font-size:.82rem;background:var(--card);border-radius:7px}
+.ed-c{position:relative;overflow:hidden}
+.ed-c input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;margin:0;padding:0}
+.ed-area{min-height:220px;max-height:65vh;overflow:auto;padding:14px 16px;outline:0}
+.ed-area:empty:before{content:attr(data-ph);color:var(--mut);pointer-events:none}
+.ed textarea{border:0;border-radius:0;margin:0;min-height:240px;background:#120f22}
+.ed-foot{display:flex;justify-content:space-between;gap:10px;padding:6px 12px;font-size:.76rem;color:var(--mut);border-top:1px solid var(--line);background:var(--card)}
+.seg{display:flex;gap:3px;background:var(--card2);padding:3px;border-radius:99px;border:1px solid var(--line)}
+.seg input{display:none}
+.seg span{display:block;padding:4px 14px;border-radius:99px;cursor:pointer;font-size:.85rem;color:var(--txt)}
+.seg input:checked+span{background:var(--pri);color:#fff}
+.as-card{display:flex;gap:10px;align-items:center;background:var(--card2);padding:8px 12px;border-radius:12px;margin:12px 0}
+
+/* ---------- หน้าโปรไฟล์ตามโครงสร้างที่วาด ---------- */
+.profile-wrap{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:20px}
+.profile-banner{position:relative;height:240px;background:linear-gradient(135deg,var(--sec),var(--pri));overflow:hidden}
+.profile-banner img{width:100%;height:100%;object-fit:cover}
+.profile-avatar-row{position:relative;display:flex;justify-content:center;margin-top:-60px;margin-bottom:12px}
+.profile-avatar-row .av{width:120px;height:120px;border:4px solid var(--card);box-shadow:0 8px 24px #0008;font-size:42px}
+.profile-info{text-align:center;padding:0 20px 20px;border-bottom:1px solid var(--line)}
+.profile-info h2{margin:0 0 4px;font-size:1.8rem}
+.profile-main-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;padding:20px;align-items:start}
+@media(max-width:850px){.profile-main-layout{grid-template-columns:1fr}}
+
+/* ---------- ซับฟอรั่มแบบมีรูปพื้นหลัง Banner ---------- */
+.forum-card-banner{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px;transition:.2s}
+.forum-card-banner:hover{border-color:var(--pri)}
+.forum-card-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.28}
+.forum-card-overlay{position:absolute;inset:0;background:linear-gradient(90deg,var(--card) 0%,color-mix(in srgb,var(--card) 70%,transparent) 100%)}
+.forum-card-content{position:relative;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+
+/* ---------- รูปข้างแบบยาว ---------- */
+.post-layout{display:grid;grid-template-columns:240px 1fr;gap:18px;align-items:start}
+.side{--ac:var(--pri);background:var(--card2);border:1px solid var(--line);border-radius:14px;overflow:hidden;position:sticky;top:72px}
+.side-por{position:relative;aspect-ratio:3/5;background:linear-gradient(160deg,var(--ac),var(--sec));overflow:hidden}
+.side-por .ini{position:absolute;inset:0;display:grid;place-items:center;font-size:4.5rem;font-weight:600;color:#fff9}
+.side-por img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.side-por:hover img{transform:scale(1.05)}
+.side-name{position:absolute;left:0;right:0;top:0;padding:14px 10px 46px;text-align:center;background:linear-gradient(#000d,transparent)}
+.side-name small{display:block;font-size:.62rem;letter-spacing:3px;opacity:.85}
+.side-name b{display:block;font-size:1.3rem;color:var(--ac);text-shadow:0 2px 10px #000;line-height:1.25}
+.side-name span{font-size:.78rem;opacity:.9}
+.side-hover{position:absolute;left:0;right:0;bottom:0;padding:40px 10px 14px;text-align:center;font-size:.85rem;background:linear-gradient(transparent,#000e);opacity:0;transition:.3s}
+.side-por:hover .side-hover{opacity:1}
+.side-body{padding:12px;display:grid;gap:10px;text-align:center}
+.side-btn{display:block;padding:6px;border:1px solid var(--ac);border-radius:99px;color:var(--txt);font-size:.85rem;transition:.2s}
+.side-btn:hover{background:var(--ac);color:#fff}
+.side-row{display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
+.side-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.side-stats div{background:var(--card);border-radius:8px;padding:4px}
+.side-stats b{display:block;font-size:.95rem}
+.side-stats small{font-size:.68rem;color:var(--mut)}
+.side-box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px}
+.side-box-t{font-size:.75rem;color:var(--mut);margin-bottom:6px;letter-spacing:.5px}
+.side-box img{width:100%;border-radius:8px;display:block;margin-bottom:4px}
+.side-box b{font-size:.85rem}
+.post.gm{border-color:var(--warn)}
+.post-top{border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:14px}
+.edit-grid{display:grid;grid-template-columns:1fr 250px;gap:18px;align-items:start}
+@media(max-width:820px){.post-layout,.edit-grid{grid-template-columns:1fr}.side{position:static;max-width:280px;margin:0 auto;width:100%}}
+
+/* ---------- ฟอรั่ม / ร้านค้า ---------- */
+.cat-title{font-size:1.15rem;font-weight:600;margin:20px 0 10px;color:var(--sec)}
+.forum-row{display:grid;grid-template-columns:1fr auto auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;transition:.2s}
+.forum-row:hover{border-color:var(--pri)}
+.forum-row h4{margin:0 0 4px;font-size:1rem}
+.forum-stat{background:var(--card2);border-radius:10px;padding:6px 14px;text-align:center;min-width:70px;font-size:.85rem}
+.forum-stat b{display:block;font-size:1rem;color:var(--pri)}
+.recent-box{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:10px 14px;border:1px solid var(--line);background:var(--card);border-radius:10px;margin-bottom:8px}
+.shop-item{text-align:center;display:flex;flex-direction:column;gap:6px}
+.shop-item .pic{aspect-ratio:1;border-radius:10px;background:var(--card2);display:grid;place-items:center;font-size:3rem;overflow:hidden}
+.shop-item .pic img{width:100%;height:100%;object-fit:cover}
+
+#dlg{position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:100;padding:16px}
+#dlg[hidden]{display:none}
+.dlg-box{max-width:440px;width:100%;margin:0}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:10px;background:var(--ok);color:#06281a;font-weight:600;opacity:0;transition:.3s;pointer-events:none;z-index:99;max-width:90%}
+#toast.show{opacity:1}#toast.bad{background:var(--bad);color:#fff}
+</style>
+<style id="customCss"></style>
+</head>
+<body>
+<nav id="nav"></nav>
+<main id="app"></main>
+<div id="toast"></div>
+<div id="dlg" hidden></div>
+
+<script>
+window.onerror=(m,s,l)=>{const a=document.getElementById('app');if(a)a.innerHTML=`<div class="card" style="border-color:var(--bad)">⚠️ เกิดข้อผิดพลาด: ${String(m).replace(/</g,'&lt;')} (บรรทัด ${l})<br><br><button class="btn sm" onclick="localStorage.clear();location.reload()">ล้างข้อมูลและรีเซ็ตเว็บ</button></div>`};
+const store=(()=>{try{const s=window.localStorage;s.setItem('sa__t','1');s.removeItem('sa__t');return s}catch(e){const m={};return{temp:true,getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]}}}})();
+
+/* ================= CONFIG ================= */
+const DEFAULT_STAGES=[
+ {n:'ผู้สมัครออดิชั่น',en:'Applicant',exp:0,c:'#9d96bd'},
+ {n:'เด็กฝึกระดับ D',en:'Trainee D',exp:30,c:'#7fb8ff'},
+ {n:'เด็กฝึกระดับ C',en:'Trainee C',exp:100,c:'#5fe0c8'},
+ {n:'เด็กฝึกระดับ B',en:'Trainee B',exp:200,c:'#8be37a'},
+ {n:'เด็กฝึกระดับ A',en:'Trainee A',exp:350,c:'#ffc857'},
+ {n:'เตรียมเดบิวต์',en:'Pre-debut',exp:550,c:'#ff9f5f'},
+ {n:'ศิลปินหน้าใหม่',en:'Rookie Artist',exp:800,c:'#ff5fa2'},
+ {n:'ซูเปอร์สตาร์',en:'Superstar',exp:1200,c:'#c77dff'}
+];
+const STATS=[
+ {k:'vocal',n:'ร้อง',e:'🎤',role:'Main Vocal'},
+ {k:'dance',n:'เต้น',e:'💃',role:'Main Dancer'},
+ {k:'rap',n:'แร็ป',e:'🎧',role:'Main Rapper'},
+ {k:'visual',n:'วิชวล',e:'✨',role:'Visual / Center'},
+ {k:'acting',n:'การแสดง',e:'🎭',role:'Performer'},
+ {k:'produce',n:'แต่งเพลง',e:'🎼',role:'Producer'}
+];
+const TYPES={
+ notice:{n:'📢 ประกาศ/กฎ',c:'#bbb'},
+ main:{n:'📖 เนื้อเรื่องหลัก',c:'#ff5fa2'},
+ audition:{n:'🎤 ออดิชั่น',c:'#ffc857'},
+ mission:{n:'🎯 ภารกิจ/ประเมินผล',c:'#8b7bff'},
+ event:{n:'🎉 อีเวนต์',c:'#3ddc97'},
+ daily:{n:'☕ ชีวิตประจำวัน',c:'#5fc8ff'}
+};
+const POSITIONS=['ร้องนำ (Vocal)','เต้น (Dance)','แร็ป (Rap)','วิชวล (Visual)','แต่งเพลง (Producing)','การแสดง (Acting)'];
+const GROUP_TYPES=['บอยกรุ๊ป','เกิร์ลกรุ๊ป','วงผสม','ยูนิต','ศิลปินเดี่ยว'];
+const GST={planning:['🛠 เตรียมเดบิวต์','var(--warn)'],debuted:['🌟 เดบิวต์แล้ว','var(--ok)'],disbanded:['💤 ยุบวงแล้ว','var(--mut)']};
+const ITEM_CATS=['ชุดตัวละคร','เครื่องประดับ','สมบัติชิ้นเอก','ยานพาหนะ','ความสามารถพิเศษ','อื่น ๆ'];
+const MAX_CHARS=3,MIN_POST=50,STAT_BASE=10,STAT_POOL=30,STAT_PER=20,DEBUT_STAGE=5,ARTIST_STAGE=6,PRACTICE_CD=20*3600e3,PRACTICE_EXP=3;
+const START_WON=10000,SALARY_CD=20*3600e3,MAX_SHOW=8;
+const salaryOf=st=>1000+st*500;
+const statCap=st=>Math.min(100,30+st*10);
+const DEFAULT_SETTINGS={siteName:'STARLIGHT ACADEMY',tagline:'เว็บโรลเพลย์เส้นทางเด็กฝึก — จากผู้สมัครออดิชั่น สู่ซูเปอร์สตาร์',logo:'✦',pri:'#ff5fa2',sec:'#8b7bff',bg:'#0e0b1a',homeHtml:'',customCss:'',allowPlayerCode:true,gmName:'ผู้ดำเนินเรื่อง',gmImg:'',stages:[]};
+const DEFAULT_CATEGORIES=[
+ {id:'cat_1',name:'📢 ประกาศและกฎระเบียบ',order:1},
+ {id:'cat_2',name:'📖 เนื้อเรื่องและภารกิจหลัก',order:2},
+ {id:'cat_3',name:'☕ ชีวิตประจำวันและคอมมูนิตี้',order:3}
+];
+const DEFAULT_FORUMS=[
+ {id:'f_1',catId:'cat_1',name:'ประกาศจากแอดมินและกฎบอร์ด',desc:'รวมกฎกติกาและประกาศสำคัญทั้งหมด',banner:'',order:1},
+ {id:'f_2',catId:'cat_2',name:'คลังประวัติตัวละคร',desc:'พื้นที่รวบรวมประวัติและเรื่องราวของเด็กฝึก',banner:'',order:2},
+ {id:'f_3',catId:'cat_3',name:'ห้องซ้อมและสังสรรค์',desc:'พูดคุยและโรลเพลย์ชีวิตประจำวันของเด็กฝึก',banner:'',order:3}
+];
+const SAMPLE_CSS=`.sheet{background:linear-gradient(135deg,#2b1640,#13213f);border:1px solid #ff5fa2;border-radius:16px;padding:18px 20px;box-shadow:0 0 24px #ff5fa244}
+.sheet .tag{display:inline-block;background:#ff5fa2;color:#fff;border-radius:99px;padding:0 10px;font-size:12px;letter-spacing:1px}
+.sheet h2{margin:6px 0;color:#ffc857}
+.sheet i{color:#c9bfff}
+.sheet blockquote{border-left:3px solid #8b7bff;margin:10px 0;padding-left:12px}`;
+const SAMPLE_TPL=`<div class="sheet">
+  <span class="tag">TRAINEE LOG</span>
+  <h2>ชื่อตัวละคร</h2>
+  <p><i>บรรยายการกระทำของตัวละคร...</i></p>
+  <blockquote>"บทพูดของตัวละคร"</blockquote>
+</div>`;
+const BOXES={
+ act:'<div style="padding:12px 16px;border-left:3px solid #8b7bff;background:rgba(139,123,255,.12);border-radius:8px;font-style:italic;color:#d6ceff">บรรยายการกระทำของตัวละคร...</div><p><br></p>',
+ talk:'<div style="padding:10px 16px;background:rgba(255,95,162,.12);border:1px solid rgba(255,95,162,.45);border-radius:16px"><b style="color:#ff5fa2">ชื่อตัวละคร :</b> "บทพูด..."</div><p><br></p>',
+ letter:'<div style="padding:22px;background:#f7efe0;color:#4a3b2a;border-radius:6px;font-family:serif;text-align:center;box-shadow:0 4px 18px #0006">ถึง ...<br><br>เนื้อความในจดหมาย...<br><br>— จาก ...</div><p><br></p>',
+ chat:'<div style="max-width:320px;margin:auto;padding:14px;background:#111;border-radius:22px;border:1px solid #333"><div style="text-align:center;font-size:12px;color:#888;margin-bottom:8px">ชื่อผู้ติดต่อ</div><div style="text-align:right;margin:4px 0"><span style="display:inline-block;background:#ff5fa2;color:#fff;padding:6px 12px;border-radius:14px">ข้อความของฉัน</span></div><div style="margin:4px 0"><span style="display:inline-block;background:#2a2a2a;color:#eee;padding:6px 12px;border-radius:14px">ข้อความตอบกลับ</span></div></div><p><br></p>',
+ card:'<div style="padding:16px 18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.15);border-radius:14px"><b>ชื่อดิสเพลย์ :</b> ...<br><b>ชื่อตัวละคร :</b> ...<br><b>ลิงก์ประวัติ :</b> ...</div><p><br></p>',
+ news:'<div style="padding:16px;border-radius:12px;background:linear-gradient(135deg,#2b1640,#13213f);border:1px solid #ffc857"><div style="font-size:12px;letter-spacing:3px;color:#ffc857">BREAKING NEWS</div><h3 style="margin:6px 0">หัวข้อข่าว</h3>เนื้อหาข่าว...</div><p><br></p>'
+};
+
+/* ================= HELPERS ================= */
+const DB={get:(k,d=[])=>{try{return JSON.parse(store.getItem('sa_'+k))??d}catch(e){return d}},set:(k,v)=>store.setItem('sa_'+k,JSON.stringify(v))};
+let S,STAGES;
+function loadSettings(){
+ S={...DEFAULT_SETTINGS,...DB.get('settings',{})};
+ STAGES=DEFAULT_STAGES.map((d,i)=>({...d,...(S.stages?.[i]||{})}));
+ const r=document.documentElement.style;if(r){r.setProperty('--pri',S.pri);r.setProperty('--sec',S.sec);r.setProperty('--bg',S.bg)}
+ const cs=document.getElementById('customCss');if(cs)cs.textContent=S.customCss||'';
+ document.title=S.siteName;
+}
+function migrate(){
+ try{
+  const users=DB.get('users');users.forEach(u=>{if(!u.avatar)u.avatar=''});DB.set('users',users);
+  const forums=DB.get('forums');forums.forEach(f=>{if(!f.banner)f.banner=''});DB.set('forums',forums);
+  const cs=DB.get('characters');
+  cs.forEach(c=>{
+   if(!c.stats)c.stats=Object.fromEntries(STATS.map(s=>[s.k,STAT_BASE]));
+   if(c.agencyId===undefined)c.agencyId='';
+   if(c.won===undefined)c.won=START_WON;
+   if(!c.banner)c.banner='';
+   if(!c.inv)c.inv=[];if(!c.ledger)c.ledger=[];if(!c.showcase)c.showcase=[];
+  });
+  DB.set('characters',cs);
+  if(!DB.get('categories').length)DB.set('categories',DEFAULT_CATEGORIES);
+  if(!DB.get('forums').length)DB.set('forums',DEFAULT_FORUMS);
+  const th=DB.get('threads');th.forEach(t=>{if(!t.forumId)t.forumId='f_1';if(t.won===undefined)t.won=t.type==='notice'?0:300});DB.set('threads',th);
+  if(store.getItem('sa_items')===null)DB.set('items',[
+   {id:uid(),name:'ชุดซ้อมเต้นสีดำ',cat:'ชุดตัวละคร',price:5000,img:'',desc:'ชุดซ้อมมาตรฐานของเด็กฝึก',stock:-1},
+   {id:uid(),name:'สร้อยเงินรูปดาว',cat:'เครื่องประดับ',price:12000,img:'',desc:'ของขวัญจากแฟนคลับคนแรก',stock:-1},
+   {id:uid(),name:'ไมค์ทองคำ',cat:'สมบัติชิ้นเอก',price:50000,img:'',desc:'มีเพียง 3 ชิ้นในค่าย',stock:3}]);
+ }catch(e){console.error(e)}
+}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=ts=>new Date(ts).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});
+const wonFmt=n=>{n=Math.round(Number(n)||0);return (n<0?'-':'')+'₩'+Math.abs(n).toLocaleString('en-US')};
+const app=h=>{const el=document.getElementById('app');if(el)el.innerHTML=h;initEditors()};
+async function hash(s){
+ try{if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(e){}
+ let h1=0xdeadbeef,h2=0x41c6ce57;for(const ch of String(s)){const c=ch.codePointAt(0);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+ h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+ return 'f'+(h2>>>0).toString(16)+(h1>>>0).toString(16);
+}
+function me(){const id=store.getItem('sa_session');return DB.get('users').find(u=>u.id===id)}
+const isAdmin=()=>me()?.role==='admin';
+const canCode=()=>S.allowPlayerCode||isAdmin();
+function update(k,id,fn){const a=DB.get(k);const o=a.find(x=>x.id===id);if(o){fn(o);DB.set(k,a)}return o}
+function toast(m,t='ok'){const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.className='show '+(t==='bad'?'bad':'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='',3500)}
+function addWon(cid,amt,note){return update('characters',cid,c=>{c.won=Math.max(0,(c.won||0)+amt);c.ledger=[{at:Date.now(),amt,note},...(c.ledger||[])].slice(0,30)})}
+
+function dialog(msg,input){
+ return new Promise(res=>{
+  const d=document.getElementById('dlg'),isIn=input!==undefined;if(!d)return res(isIn?null:false);
+  d.innerHTML=`<div class="card dlg-box"><p style="white-space:pre-wrap;margin-top:0">${esc(msg)}</p>${isIn?`<input id="dlgIn" value="${esc(input)}">`:''}
+   <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="dlgNo">ยกเลิก</button><button class="btn" id="dlgOk">ตกลง</button></div></div>`;
+  d.hidden=false;const inp=document.getElementById('dlgIn');
+  const close=v=>{d.hidden=true;d.innerHTML='';res(v)};
+  const btnNo=document.getElementById('dlgNo');if(btnNo)btnNo.onclick=()=>close(isIn?null:false);
+  const btnOk=document.getElementById('dlgOk');if(btnOk)btnOk.onclick=()=>close(isIn?inp.value:true);
+  if(inp){inp.focus();inp.select();inp.onkeydown=e=>{if(e.key==='Enter')close(inp.value)}}else if(btnOk)btnOk.focus();
+ });
+}
+const ask=m=>dialog(m);
+const askText=(m,v='')=>dialog(m,v);
+
+const pendingCount=()=>DB.get('characters').filter(c=>c.status==='pending').length;
+const stageBadge=i=>`<span class="badge" style="--c:${STAGES[i]?.c||'#888'}">${esc(STAGES[i]?.n||'-')}</span>`;
+const eligible=c=>c.stage<STAGES.length-1&&c.exp>=STAGES[c.stage+1].exp;
+const isClosed=t=>t.status==='closed'||(t.deadline&&Date.now()>new Date(t.deadline).getTime());
+const sortThreads=(a,b)=>(b.pinned-a.pinned)||(b.createdAt-a.createdAt);
+const ST={pending:['⏳ รออนุมัติ','var(--warn)'],approved:['✅ อนุมัติแล้ว','var(--ok)'],rejected:['❌ ไม่ผ่าน','var(--bad)']};
+const sum=o=>STATS.reduce((t,s)=>t+(o?.[s.k]||0),0);
+const statOf=k=>STATS.find(s=>s.k===k);
+const topStat=c=>[...STATS].sort((a,b)=>(c.stats[b.k]||0)-(c.stats[a.k]||0))[0];
+const suggestRole=c=>c?topStat(c).role:'Member';
+const agencyOf=id=>id?DB.get('agencies').find(a=>a.id===id):null;
+const groupOf=cid=>DB.get('groups').find(g=>g.status!=='disbanded'&&g.members.some(m=>m.charId===cid));
+const textLen=(s,mode)=>mode==='html'||mode==='rich'?String(s).replace(/<(style|script)[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim().length:String(s).length;
+const fmtLeft=ms=>`${Math.floor(ms/3600e3)} ชม. ${Math.ceil(ms%3600e3/60000)} นาที`;
+function canPost(c,t,u){return c&&u&&c.ownerId===u.id&&c.status==='approved'&&c.stage>=t.minStage&&c.stage<=t.maxStage&&(!t.agencyId||c.agencyId===t.agencyId)}
+function avatar(o,s=48){
+ if(o?.avatar&&/^https?:\/\//.test(o.avatar))return `<img class="av" style="--s:${s}px" src="${esc(o.avatar)}" onerror="this.style.opacity=.15">`;
+ return `<div class="av" style="--s:${s}px${o?.color?';background:'+esc(o.color):''}">${esc((o?.stageName||o?.name||o?.username||'?')[0])}</div>`;
+}
+function agencyBadge(id){const a=agencyOf(id);return a?`<a href="#agency/${a.id}" class="badge" style="--c:${esc(a.color)}">🏢 ${esc(a.name)}</a>`:''}
+function agencyOptions(sel,none,onlyRecruit){return `<option value="">${none}</option>`+DB.get('agencies').filter(a=>!onlyRecruit||a.recruiting).map(a=>`<option value="${a.id}" ${a.id===sel?'selected':''}>${esc(a.name)}</option>`).join('')}
+function forumOptions(sel){return DB.get('forums').map(f=>`<option value="${f.id}" ${f.id===sel?'selected':''}>${esc(f.name)}</option>`).join('')}
+
+/* ================= SANITIZE & RENDER ================= */
+const OK_TAGS=new Set('B STRONG I EM U S STRIKE DEL SUB SUP BR P DIV SPAN H1 H2 H3 H4 BLOCKQUOTE UL OL LI A IMG HR FONT DETAILS SUMMARY TABLE THEAD TBODY TR TD TH CENTER PRE CODE SMALL MARK IFRAME FIGURE FIGCAPTION'.split(' '));
+const OK_ATTR=['style','color','face','size','align','width','height','colspan','rowspan','alt','title','open','allowfullscreen','frameborder','class'];
+function sanitize(html){
+ const t=document.createElement('template');t.innerHTML=String(html??'');
+ const walk=n=>{[...n.childNodes].forEach(c=>{
+  if(c.nodeType===8){c.remove();return}
+  if(c.nodeType!==1)return;
+  const tag=c.tagName;
+  if(!OK_TAGS.has(tag)){if(['SCRIPT','STYLE','OBJECT','EMBED','LINK','META','TITLE','HEAD'].includes(tag)){c.remove();return}walk(c);c.replaceWith(...c.childNodes);return}
+  for(const a of [...c.attributes]){
+   const k=a.name.toLowerCase(),v=a.value.trim();
+   if(k==='href'){if(/^(https?:|mailto:|#)/i.test(v)){c.setAttribute('target','_blank');c.setAttribute('rel','noopener')}else c.removeAttribute(a.name);continue}
+   if(k==='src'){
+    if(tag==='IFRAME'){if(!/^https:\/\/(www\.)?(youtube(-nocookie)?\.com\/embed\/|open\.spotify\.com\/embed\/)/i.test(v)){c.remove();return}continue}
+    if(!/^(https?:|data:image\/)/i.test(v))c.removeAttribute(a.name);continue}
+   if(k==='style'){if(/expression|javascript:/i.test(v))c.removeAttribute(a.name);continue}
+   if(k==='target'||k==='rel')continue;
+   if(!OK_ATTR.includes(k))c.removeAttribute(a.name);
+  }
+  if(tag==='IFRAME'&&!c.getAttribute('src')){c.remove();return}
+  walk(c);
+ })};
+ walk(t.content);return t.innerHTML;
+}
+function legacyHtml(s){
+ let h=String(s??'');
+ [[/\[b\]([\s\S]*?)\[\/b\]/gi,'<b>$1</b>'],[/\[i\]([\s\S]*?)\[\/i\]/gi,'<i>$1</i>'],[/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>'],[/\[s\]([\s\S]*?)\[\/s\]/gi,'<s>$1</s>'],
+  [/\[(center|right|justify)\]([\s\S]*?)\[\/\1\]/gi,'<div style="text-align:$1">$2</div>'],
+  [/\[color=([#\w]+)\]([\s\S]*?)\[\/color\]/gi,'<span style="color:$1">$2</span>'],
+  [/\[size=(\d+)\]([\s\S]*?)\[\/size\]/gi,'<span style="font-size:$1px">$2</span>'],
+  [/\[url=(https?:[^\]]+)\]([\s\S]*?)\[\/url\]/gi,'<a href="$1">$2</a>'],
+  [/\[img\](https?:[^\[]+)\[\/img\]/gi,'<img src="$1">'],
+  [/\[youtube\]([\w-]{11})\[\/youtube\]/gi,'<iframe src="https://www.youtube-nocookie.com/embed/$1" width="100%" height="315" allowfullscreen frameborder="0"></iframe>'],
+  [/\[quote\]([\s\S]*?)\[\/quote\]/gi,'<blockquote>$1</blockquote>'],
+  [/\[code\]([\s\S]*?)\[\/code\]/gi,'<pre>$1</pre>'],
+  [/\[spoiler\]([\s\S]*?)\[\/spoiler\]/gi,'<details><summary>คลิกเพื่อเปิดสปอยล์</summary>$1</details>'],
+  [/\[details=([^\]]*)\]([\s\S]*?)\[\/details\]/gi,'<details><summary>$1</summary>$2</details>']
+ ].forEach(([r,x])=>h=h.replace(r,x));
+ return h.replace(/\*([^*\n]+)\*/g,'<i>$1</i>').replace(/\r?\n/g,'<br>');
+}
+const toRich=(v,m)=>m==='rich'?(v||''):legacyHtml(v||'');
+function renderBody(content,mode,css){
+ if(mode==='html')return codeFrame(content,css);
+ return `<div class="rich">${sanitize(toRich(content,mode))}</div>`;
+}
+function codeFrame(html,css=''){
+ const id='cf'+uid();
+ const doc=`<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+<style>:root{--pri:${S.pri};--sec:${S.sec}}html,body{margin:0;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow:hidden}img,video,iframe{max-width:100%}a{color:${S.pri}}</style>
+<style>${css||''}</style></head><body>${html||''}
+<script>(function(){var f=function(){parent.postMessage({cf:'${id}',h:document.documentElement.scrollHeight},'*')};try{new ResizeObserver(f).observe(document.documentElement)}catch(e){setInterval(f,1000)}addEventListener('load',f);f()})()<\/script></body></html>`;
+ return `<iframe class="cf" id="${id}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" srcdoc="${esc(doc)}"></iframe>`;
+}
+addEventListener('message',e=>{const d=e.data;if(!d||!d.cf)return;const f=document.getElementById(d.cf);if(f&&e.source===f.contentWindow&&d.h>0)f.style.height=Math.min(d.h,20000)+'px'});
+document.addEventListener('keydown',e=>{if(e.key==='Tab'&&e.target.classList?.contains('code')){e.preventDefault();const t=e.target;t.setRangeText('  ',t.selectionStart,t.selectionEnd,'end')}});
+
+/* ================= RICH EDITOR ================= */
+let EDN=0,SEL=null;
+try{document.execCommand('defaultParagraphSeparator',false,'p')}catch(e){}
+function richEditor(name,val='',o={}){
+ const id='ed'+(++EDN),m=o.mode==='html'?'code':'rich';
+ return `<div class="ed" id="${id}" data-name="${name}" data-mode="${m}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
+ <div class="ed-tabs">
+  <button type="button" data-t="rich" onclick="edTab('${id}','rich')">✨ เขียนง่าย</button>
+  <button type="button" data-t="src" onclick="edTab('${id}','src')">&lt;/&gt; แก้ HTML</button>
+  ${o.code&&canCode()?`<button type="button" data-t="code" onclick="edTab('${id}','code')">💻 โค้ดอิสระ</button>`:''}
+  <span class="ed-count"></span></div>
+ <div class="ed-bar">${edBar(id)}</div>
+ <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... เลือกข้อความแล้วกดปุ่มด้านบนเพื่อแต่ง ✨')}">${m==='rich'?sanitize(val):''}</div>
+ <textarea class="ed-src code" rows="12" spellcheck="false"></textarea>
+ <textarea class="ed-code code" rows="14" spellcheck="false" placeholder="<style>...</style>&#10;<div>...</div>">${m==='code'?esc(val):''}</textarea>
+ <div class="ed-foot"><span class="ed-hint"></span><span>Ctrl+Enter = ส่ง</span></div></div>`;
+}
+function edBar(id){
+ const b=(t,cmd,lbl,val)=>`<button type="button" title="${t}" onmousedown="event.preventDefault()" onclick="ex('${id}','${cmd}'${val?`,'${val}'`:''})">${lbl}</button>`;
+ const fn=(t,f,lbl)=>`<button type="button" title="${t}" onmousedown="event.preventDefault()" onclick="${f}('${id}')">${lbl}</button>`;
+ return `<div class="ed-g">${b('ย้อนกลับ','undo','↶')}${b('ทำซ้ำ','redo','↷')}</div>
+ <div class="ed-g"><select title="รูปแบบย่อหน้า" onchange="if(this.value){ex('${id}','formatBlock','<'+this.value+'>');this.value=''}"><option value="">¶ ย่อหน้า</option><option value="p">ข้อความปกติ</option><option value="h2">หัวข้อใหญ่</option><option value="h3">หัวข้อย่อย</option><option value="blockquote">กล่องอ้างอิง</option></select>
+ <select title="ขนาดตัวอักษร" onchange="if(this.value){ex('${id}','fontSize',this.value);this.value=''}"><option value="">ขนาด</option><option value="2">เล็ก</option><option value="3">ปกติ</option><option value="5">ใหญ่</option><option value="6">ใหญ่มาก</option><option value="7">ยักษ์</option></select></div>
+ <div class="ed-g">${b('ตัวหนา (Ctrl+B)','bold','<b>B</b>')}${b('ตัวเอียง (Ctrl+I)','italic','<i>I</i>')}${b('ขีดเส้นใต้ (Ctrl+U)','underline','<u>U</u>')}${b('ขีดฆ่า','strikeThrough','<s>S</s>')}
+  <label class="ed-c" title="สีตัวอักษร"><span style="border-bottom:3px solid var(--pri);line-height:1.2">A</span><input type="color" value="#ff5fa2" onchange="ex('${id}','foreColor',this.value)"></label>
+  <label class="ed-c" title="ไฮไลต์"><span style="background:#ffc85766;padding:0 4px;border-radius:3px">ab</span><input type="color" value="#ffc857" onchange="ex('${id}','hiliteColor',this.value)"></label></div>
+ <div class="ed-g">${b('ชิดซ้าย','justifyLeft','⇤')}${b('กึ่งกลาง','justifyCenter','≡')}${b('ชิดขวา','justifyRight','⇥')}${b('เต็มแนว','justifyFull','☰')}${b('รายการจุด','insertUnorderedList','•')}${b('รายการตัวเลข','insertOrderedList','1.')}</div>
+ <div class="ed-g">${fn('แทรกลิงก์','edLink','🔗')}${fn('แทรกรูปภาพ','edImg','🖼')}${fn('แทรก YouTube','edYT','▶')}${b('เส้นคั่น','insertHorizontalRule','―')}${fn('กล่องซ่อนข้อความ','edSpoiler','🙈')}</div>
+ <div class="ed-g"><select title="กล่องสำเร็จรูป" onchange="if(this.value){ins('${id}',BOXES[this.value]);this.value=''}"><option value="">✨ กล่องสำเร็จรูป</option><option value="act">🎭 กล่องบรรยาย</option><option value="talk">💬 กล่องบทพูด</option><option value="letter">💌 จดหมาย</option><option value="chat">📱 แชทโทรศัพท์</option><option value="card">🧾 การ์ดข้อมูล</option><option value="news">📰 ข่าว/ประกาศ</option></select>
+ <select title="สัญลักษณ์" onchange="if(this.value){ins('${id}',this.value);this.value=''}"><option value="">✦ สัญลักษณ์</option>${'✦ ✧ ★ ☆ ♡ ♥ ❀ ✿ ♪ ♫ ☾ ☀ ⋆ ˚ ₊ → ⟡ ❝ ❞ 「 」'.split(' ').map(x=>`<option>${x}</option>`).join('')}</select>
+ ${b('ล้างรูปแบบ','removeFormat','🧹')}</div>`;
+}
+function saveSel(){const s=getSelection();if(!s.rangeCount)return;const r=s.getRangeAt(0),n=r.startContainer,el=n.nodeType===1?n:n.parentElement;if(el?.closest('.ed-area'))SEL=r.cloneRange()}
+function edFocus(id){
+ const a=document.querySelector('#'+id+' .ed-area');if(!a)return null;a.focus();const s=getSelection();
+ if(SEL&&a.contains(SEL.startContainer)){s.removeAllRanges();s.addRange(SEL)}
+ else{const r=document.createRange();r.selectNodeContents(a);r.collapse(false);s.removeAllRanges();s.addRange(r)}
+ return a;
+}
+function ex(id,cmd,val=null){
+ edFocus(id);
+ try{document.execCommand('styleWithCSS',false,cmd==='foreColor'||cmd==='hiliteColor')}catch(e){}
+ document.execCommand(cmd,false,val);saveSel();
+ const ed=document.getElementById(id);if(ed){edCount(ed);ed.querySelector('.ed-area')?.dispatchEvent(new Event('input'))}
+}
+const ins=(id,html)=>ex(id,'insertHTML',html);
+async function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
+async function edImg(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์รูปภาพ (https://...)\n\n💡 อัปรูปฟรีที่ postimages.org หรือ imgur.com\nแล้วคัดลอก "Direct link" มาวาง','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;ins(id,`<img src="${esc(u)}" style="max-width:100%;border-radius:8px"><p><br></p>`)}
+async function edYT(id){saveSel();const r=SEL;const u=await askText('วางลิงก์ YouTube','');SEL=r;if(!u)return;const m=u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);if(!m)return toast('ลิงก์ YouTube ไม่ถูกต้อง','bad');ins(id,`<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}" width="100%" height="315" allowfullscreen frameborder="0"></iframe><p><br></p>`)}
+async function edSpoiler(id){saveSel();const r=SEL;const t=await askText('หัวข้อของกล่องซ่อน','คลิกเพื่อเปิด');SEL=r;if(t===null)return;ins(id,`<details><summary>${esc(t)}</summary><p>เนื้อหาที่ซ่อนไว้...</p></details><p><br></p>`)}
+function fmtHtml(h){return String(h||'').replace(/(<\/(p|div|h2|h3|blockquote|li|ul|ol|details)>|<br>)/g,'$1\n')}
+function edTab(id,t){
+ const ed=document.getElementById(id);if(!ed)return;
+ const a=ed.querySelector('.ed-area'),s=ed.querySelector('.ed-src'),c=ed.querySelector('.ed-code'),cur=ed.dataset.mode;
+ if(cur===t)return;
+ if(cur==='rich'&&t==='src')s.value=fmtHtml(a.innerHTML);
+ if(cur==='src'&&t==='rich')a.innerHTML=sanitize(s.value);
+ if(t==='code'&&c&&!c.value.trim()&&ed.dataset.tpl)c.value=ed.dataset.tpl;
+ ed.dataset.mode=t;edUI(ed);
+}
+function edUI(ed){
+ const t=ed.dataset.mode;
+ ed.querySelectorAll('.ed-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area'),src=ed.querySelector('.ed-src'),code=ed.querySelector('.ed-code');
+ if(bar)bar.hidden=t!=='rich';
+ if(area)area.hidden=t!=='rich';
+ if(src)src.hidden=t!=='src';
+ if(code)code.hidden=t!=='code';
+ const hint=ed.querySelector('.ed-hint');
+ if(hint)hint.textContent={rich:'💡 เลือกข้อความแล้วกดปุ่ม · วางรูป/ข้อความจากที่อื่นได้เลย',src:'แก้โค้ด HTML ได้โดยตรง (ไม่รองรับ <script>)',code:'โค้ดอิสระ: ใส่ <style> และ <script> ได้ · CSS ของกระทู้ใส่ให้อัตโนมัติ'}[t];
+ edCount(ed);
+}
+function edCount(ed){
+ if(!ed)return;const t=ed.dataset.mode;
+ const area=ed.querySelector(t==='rich'?'.ed-area':t==='src'?'.ed-src':'.ed-code');
+ const n=area?textLen(area.value||area.textContent,t==='rich'?'rich':'html'):0;
+ const cnt=ed.querySelector('.ed-count');if(cnt)cnt.textContent=n.toLocaleString()+' ตัวอักษร';
+}
+function edGet(ed){
+ if(!ed)return{mode:'rich',content:''};
+ const t=ed.dataset.mode;
+ if(t==='code')return{mode:'html',content:ed.querySelector('.ed-code')?.value.trim()||''};
+ const clean=sanitize(t==='src'?ed.querySelector('.ed-src')?.value||'':ed.querySelector('.ed-area')?.innerHTML||'').trim();
+ return{mode:'rich',content:textLen(clean,'rich')||/<(img|iframe|hr)/i.test(clean)?clean:''};
+}
+const edOf=(f,name)=>f?.querySelector(`.ed[data-name="${name}"]`);
+function initEditors(){
+ document.querySelectorAll('.ed:not([data-ok])').forEach(ed=>{
+  ed.dataset.ok=1;const a=ed.querySelector('.ed-area'),dk=ed.dataset.draft?'sa_draft_'+ed.dataset.draft:'';
+  if(dk&&a&&!a.innerHTML.trim()){const d=store.getItem(dk);if(d){a.innerHTML=sanitize(d);setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300)}}
+  if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.innerHTML)});
+  ed.querySelectorAll('textarea').forEach(x=>x.addEventListener('input',()=>edCount(ed)));
+  if(a)a.addEventListener('paste',e=>{const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();document.execCommand('insertHTML',false,h?sanitize(h):esc(tx).replace(/\n/g,'<br>'))});
+  ['keyup','mouseup','blur'].forEach(ev=>a?.addEventListener(ev,saveSel));
+  ed.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();ed.closest('form')?.requestSubmit()}});
+  edUI(ed);
+ });
+}
+function preview(f){
+ const ed=f.querySelector('.ed'),{content,mode}=edGet(ed),t=DB.get('threads').find(x=>x.id===f.dataset.tid),box=f.querySelector('.preview');
+ if(!box)return;box.hidden=false;box.innerHTML='<div class="mut">👁 พรีวิว (ยังไม่ได้โพสต์)</div><br>'+(content?renderBody(content,mode,t?.css):'<span class="mut">ยังไม่มีเนื้อหา</span>');
+}
+function pvField(f,field){const box=f.querySelector('.preview');if(box){box.hidden=false;box.innerHTML='<div class="mut">👁 พรีวิว</div>'+codeFrame(f.elements[field].value)}}
+
+/* ================= STATS UI ================= */
+function radar(stats,size=220){
+ const n=STATS.length,c=size/2,R=size/2-20;
+ const pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;return [c+Math.cos(a)*R*v,c+Math.sin(a)*R*v]};
+ const poly=fn=>STATS.map((s,i)=>pt(i,fn(s)).map(x=>x.toFixed(1)).join(',')).join(' ');
+ let g='';
+ [.25,.5,.75,1].forEach(l=>g+=`<polygon points="${poly(()=>l)}" style="fill:none;stroke:var(--line)"/>`);
+ STATS.forEach((s,i)=>{const [x,y]=pt(i,1),[lx,ly]=pt(i,1+22/R);g+=`<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" style="stroke:var(--line)"/><text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle">${s.e} ${s.n}</text>`});
+ g+=`<polygon points="${poly(s=>Math.min(1,(stats[s.k]||0)/100))}" style="fill:color-mix(in srgb,var(--pri) 35%,transparent);stroke:var(--pri);stroke-width:2"/>`;
+ return `<svg class="radar" viewBox="-45 -10 ${size+90} ${size+20}" width="${size+90}">${g}</svg>`;
+}
+function statBars(st,cap){return STATS.map(s=>`<div class="stat"><span>${s.e} ${s.n}</span><div class="bar"><i style="width:${st[s.k]||0}%"></i>${cap&&cap<100?`<u style="left:${cap}%"></u>`:''}</div><b>${st[s.k]||0}</b></div>`).join('')}
+
+/* ================= SIDE PORTRAIT ================= */
+function showcaseOf(c){
+ const items=DB.get('items');
+ return (c.showcase||[]).map(s=>{
+  if(s.inv){const iv=(c.inv||[]).find(x=>x.id===s.inv),it=iv&&items.find(x=>x.id===iv.iid);return it?{label:it.cat,img:it.img,name:it.name}:null}
+  return s.label||s.img?{label:s.label,img:s.img}:null;
+ }).filter(Boolean);
+}
+function sideCard(c,owner,count){
+ if(!c)return `<aside class="side"><div class="side-por"><div class="ini">?</div></div><div class="side-body mut">ตัวละครถูกลบ</div></aside>`;
+ const img=c.portrait||c.avatar,ag=agencyOf(c.agencyId),g=groupOf(c.id);
+ const top=[...STATS].sort((a,b)=>(c.stats?.[b.k]||0)-(c.stats?.[a.k]||0))[0];
+ const ownerName=owner?.username||'สมาชิก';
+ return `<aside class="side" style="--ac:${esc(c.sideColor||S.pri)}" ${c.hoverOwner!==false?`title="โพสต์โดย ${esc(ownerName)}"`:''}>
+  <div class="side-por"><div class="ini">${esc((c.stageName||c.name||'?')[0])}</div>
+   ${/^https?:\/\//.test(img||'')?`<img src="${esc(img)}" loading="lazy" onerror="this.remove()">`:''}
+   <div class="side-name">${c.sideTag?`<small>${esc(c.sideTag)}</small>`:''}<b><a href="#char/${c.id}" style="color:inherit">${esc(c.stageName||c.name)}</a></b><span>${esc(c.name)}</span></div>
+   ${c.hoverOwner!==false?`<div class="side-hover">✍️ <a href="#profile/${owner?.id}" style="color:#fff"><b>${esc(ownerName)}</b></a></div>`:''}
+  </div>
+  <div class="side-body">
+   <a class="side-btn" href="#char/${c.id}">ดูหน้าโปรไฟล์</a>
+   <div class="side-row">${stageBadge(c.stage)}${ag?`<span class="badge" style="--c:${esc(ag.color)}">${esc(ag.name)}</span>`:''}${g?`<span class="badge" style="--c:${esc(g.color)}">🎤 ${esc(g.name)}</span>`:''}</div>
+   <div class="side-stats"><div><b>${esc(c.age||'-')}</b><small>อายุ</small></div><div><b>${count}</b><small>โพสต์</small></div><div><b>${sum(c.stats)}</b><small>พลัง</small></div></div>
+   <div class="won">💰 ${wonFmt(c.won)}</div>
+   ${showcaseOf(c).map(x=>`<div class="side-box"><div class="side-box-t">${esc(x.label||'')}</div>${x.img?`<img src="${esc(x.img)}" loading="lazy" onerror="this.remove()">`:''}${x.name?`<b>${esc(x.name)}</b>`:''}</div>`).join('')}
+  </div></aside>`;
+}
+function gmSide(){
+ return `<aside class="side" style="--ac:var(--warn);border-color:var(--warn)"><div class="side-por" style="background:linear-gradient(160deg,#ffc857,#ff9f5f)"><div class="ini">📢</div>
+  ${/^https?:\/\//.test(S.gmImg||'')?`<img src="${esc(S.gmImg)}" onerror="this.remove()">`:''}
+  <div class="side-name"><small>GAME MASTER</small><b>${esc(S.gmName||'ผู้ดำเนินเรื่อง')}</b><span>ประกาศทางการ</span></div></div>
+  <div class="side-body"><span class="badge" style="--c:var(--warn);margin:auto">👑 GM</span></div></aside>`;
+}
+
+/* ================= ROUTER ================= */
+const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
+ chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
+ agencies:pageAgencies,agency:pageAgency,editagency:pageEditAgency,groups:pageGroups,group:pageGroup,editgroup:pageEditGroup,
+ admin:pageAdmin,editthread:pageEditThread};
+let ROUTE=(()=>{try{return location.hash.slice(1)}catch(e){return ''}})()||'home';
+function go(h){ROUTE=h||'home';try{if(location.hash.slice(1)!==ROUTE)history.pushState(null,'','#'+ROUTE)}catch(e){}render()}
+function render(){
+ try{
+  loadSettings();const [p,param,sub]=ROUTE.split('/');
+  renderNav();(routes[p]||pageHome)(param,sub);window.scrollTo(0,0);
+ }catch(e){console.error(e)}
+}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;const h=a.getAttribute('href').slice(1);e.preventDefault();if(h)go(h)});
+addEventListener('popstate',()=>{try{ROUTE=location.hash.slice(1)||'home'}catch(e){}render()});
+addEventListener('hashchange',()=>{try{const h=location.hash.slice(1)||'home';if(h!==ROUTE){ROUTE=h;render()}}catch(e){}});
+
+function getActiveChar(u){
+ if(!u)return null;
+ const chars=DB.get('characters').filter(c=>c.ownerId===u.id&&c.status==='approved');
+ if(!chars.length)return null;
+ let c=chars.find(x=>x.id===store.getItem('sa_active_char_'+u.id));
+ if(!c){c=chars[0];store.setItem('sa_active_char_'+u.id,c.id)}
+ return c;
+}
+function setActiveChar(id){const u=me();if(!u)return;store.setItem('sa_active_char_'+u.id,id);toast('สลับตัวละครแล้ว 🎭');render()}
+
+function renderNav(){
+ const u=me(),pc=pendingCount();
+ let pill='';
+ if(u){
+  const mine=DB.get('characters').filter(c=>c.ownerId===u.id&&c.status==='approved'),cur=getActiveChar(u);
+  pill=mine.length?`<div class="me-pill" title="ตัวละครที่กำลังใช้">${avatar(cur,30)}<div><select onchange="setActiveChar(this.value)">${mine.map(c=>`<option value="${c.id}" ${c.id===cur?.id?'selected':''}>${esc(c.stageName||c.name)}</option>`).join('')}</select><div class="won" style="font-size:.72rem;line-height:1">💰 ${wonFmt(cur.won)}</div></div></div>`
+   :`<a href="#newchar" class="badge" style="--c:var(--warn)">+ สร้างตัวละคร</a>`;
+ }
+ const navEl=document.getElementById('nav');
+ if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
+ <div class="links">
+  <a href="#threads">ฟอรั่ม</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a>
+  ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
+  ${u?.role==='admin'?`<a href="#admin">👑 แอดมิน ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
+  ${u?`${pill}<a href="#profile/${u.id}" class="row" style="color:var(--txt);gap:6px">${avatar(u,30)}<span>${esc(u.username)}</span></a><a href="#settings" class="btn sm ghost" style="padding:4px 8px">⚙️</a><button class="btn sm ghost" onclick="logout()">ออก</button>`
+     :'<a href="#login">เข้าสู่ระบบ</a><a href="#register" class="btn sm">สมัครสมาชิก</a>'}
+ </div>`;
+}
+
+/* ================= HOME & FORUMS ================= */
+function pageHome(){
+ const u=me(),threads=DB.get('threads'),posts=DB.get('posts'),users=DB.get('users'),cats=DB.get('categories'),forums=DB.get('forums');
+ const recent=threads.map(t=>{const pl=posts.filter(p=>p.threadId===t.id);const last=pl.sort((a,b)=>b.createdAt-a.createdAt)[0];return{...t,cnt:pl.length,lastTime:last?last.createdAt:t.createdAt,lastUser:last?last.userId:t.authorId}}).sort((a,b)=>b.lastTime-a.lastTime).slice(0,10);
+ const recentHtml=recent.length?recent.map(t=>{const ty=TYPES[t.type]||TYPES.main;return `<a class="recent-box item" href="#thread/${t.id}">
+   <div><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b><div class="mut" style="font-size:.8rem">อัปเดต ${fmt(t.lastTime)} โดย ${esc(users.find(x=>x.id===t.lastUser)?.username||'-')}</div></div>
+   <div class="forum-stat"><b>${t.cnt}</b>ตอบกลับ</div></a>`}).join(''):'<p class="mut">ยังไม่มีกระทู้</p>';
+ 
+ const forumHtml=cats.map(cat=>{
+  const sub=forums.filter(f=>f.catId===cat.id);if(!sub.length)return '';
+  return `<div class="cat-title">${esc(cat.name)}</div>`+sub.map(f=>{
+   const ft=threads.filter(t=>t.forumId===f.id);
+   const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
+   return `<div class="forum-card-banner item" onclick="go('forum/${f.id}')">
+    <div class="forum-card-bg" ${bgStyle}></div>
+    <div class="forum-card-overlay"></div>
+    <div class="forum-card-content">
+     <div><h4 style="margin:0 0 4px;font-size:1.1rem;color:var(--txt)">${esc(f.name)}</h4><div class="mut">${esc(f.desc||'')}</div></div>
+     <div class="row" style="gap:10px">
+      <div class="forum-stat"><b>${ft.length}</b>หัวข้อ</div>
+      <div class="forum-stat"><b>${posts.filter(p=>ft.some(t=>t.id===p.threadId)).length}</b>ตอบกลับ</div>
+     </div>
+    </div>
+   </div>`;
+  }).join('');
+ }).join('');
+
+ app(`<section class="hero"><h1>${esc(S.logo)} ${esc(S.siteName)} ${esc(S.logo)}</h1><p class="mut" style="font-size:1.05rem">${esc(S.tagline)}</p>
+  ${u?'<a class="btn" href="#mychars">ไปที่ตัวละครของฉัน</a>':'<a class="btn" href="#register">เริ่มต้นเป็นเด็กฝึก</a> <a class="btn ghost" href="#login">เข้าสู่ระบบ</a>'}</section>
+ ${S.homeHtml?`<div class="card">${codeFrame(S.homeHtml)}</div>`:''}
+ <div class="card"><div class="row between"><h3 style="margin:0">🔥 กระทู้อัปเดตล่าสุด</h3><a href="#threads">ดูทั้งหมด →</a></div><br>${recentHtml}</div>
+ <div class="card"><div class="row between"><h3 style="margin:0">📂 บอร์ดและหมวดหมู่ฟอรั่ม</h3>${isAdmin()?'<a class="btn sm ghost" href="#admin/forums">จัดการฟอรั่ม</a>':''}</div><br>${forumHtml}</div>`);
+}
+
+function threadItem(t){
+ const cnt=DB.get('posts').filter(p=>p.threadId===t.id).length,ty=TYPES[t.type]||TYPES.main,ag=agencyOf(t.agencyId),tr=t.train||[],fo=DB.get('forums').find(f=>f.id===t.forumId);
+ return `<a class="card item" href="#thread/${t.id}"><div class="row">${t.pinned?'📌':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>
+  ${isClosed(t)?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}
+  ${fo?`<span class="badge" style="--c:var(--sec)">📂 ${esc(fo.name)}</span>`:''}${ag?`<span class="badge" style="--c:${esc(ag.color)}">🏢 เฉพาะ ${esc(ag.name)}</span>`:''}</div>
+  <h3 style="margin:8px 0 4px">${esc(t.title)}</h3>
+  <div class="mut">${t.type!=='notice'?`ระดับ: ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)} · +${t.exp} EXP · 💰 ${wonFmt(t.won)} · `:''}${tr.length?`🏋️ ${tr.map(k=>statOf(k)?.e).join('')} +${t.statGain} · `:''}${cnt} โพสต์ · ${fmt(t.createdAt)}</div></a>`;
+}
+function pageThreads(){
+ const th=DB.get('threads').sort(sortThreads);
+ app(`<div class="row between"><h2>💬 กระทู้ทั้งหมด</h2>${isAdmin()?'<a class="btn" href="#admin/newthread">+ สร้างกระทู้</a>':''}</div>${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้</div>'}`);
+}
+function pageForum(fid){
+ const f=DB.get('forums').find(x=>x.id===fid);if(!f)return app('<div class="card">ไม่พบฟอรั่มนี้</div>');
+ const th=DB.get('threads').filter(t=>t.forumId===fid).sort(sortThreads);
+ const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
+ app(`<a href="#home">← หน้าแรก</a><br><br>
+ <div class="forum-card-banner" style="margin-bottom:20px">
+  <div class="forum-card-bg" ${bgStyle}></div>
+  <div class="forum-card-overlay"></div>
+  <div class="forum-card-content">
+   <div><h2 style="margin:0 0 6px;color:var(--txt)">📂 ${esc(f.name)}</h2><div class="mut">${esc(f.desc||'')}</div></div>
+   <a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในซับฟอรั่มนี้</a>
+  </div>
+ </div>
+ ${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้ในซับฟอรั่มนี้ — เริ่มสร้างกระทู้แรกกันเลย!</div>'}`);
+}
+
+/* ================= PROFILE & SETTINGS ================= */
+function pageProfile(uidVal){
+ const users=DB.get('users'),target=users.find(x=>x.id===uidVal);if(!target)return app('<div class="card">ไม่พบผู้ใช้นี้</div>');
+ const chars=DB.get('characters').filter(c=>c.ownerId===target.id);
+ app(`<div class="card row" style="gap:20px">${avatar(target,100)}<div><h2 style="margin:0">${esc(target.username)}</h2>
+  <div class="mut">บทบาท: ${target.role==='admin'?'👑 แอดมิน':'ผู้เล่น'} · สมัครเมื่อ: ${fmt(target.createdAt)} · ตัวละครทั้งหมด: ${chars.length} ตัว</div></div></div>
+  <h3>🎭 ตัวละครในสังกัด</h3>${chars.length?`<div class="grid">${chars.map(charCard).join('')}</div>`:'<div class="card mut">ยังไม่มีตัวละคร</div>'}`);
+}
+function pageSettings(){
+ const u=me();if(!u)return go('login');
+ app(`<form class="card" style="max-width:480px;margin:30px auto" onsubmit="doSaveProfile(event)"><h2>⚙️ ตั้งค่าบัญชีผู้ใช้</h2>
+  <label>ชื่อผู้ใช้</label><input name="username" required value="${esc(u.username)}">
+  <label>รูปโปรไฟล์ผู้ใช้ (https://...)</label><input name="avatar" type="url" value="${esc(u.avatar)}" placeholder="https://">
+  <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+  <label>รหัสผ่านใหม่ (ปล่อยว่างไว้ถ้าไม่เปลี่ยน)</label><input type="password" name="pw" placeholder="อย่างน้อย 6 ตัว">
+  <button class="btn" style="width:100%">💾 บันทึกการตั้งค่า</button></form>`);
+}
+async function doSaveProfile(e){
+ e.preventDefault();const f=e.target,E=f.elements,u=me();
+ const username=E.username.value.trim(),avatarUrl=E.avatar.value.trim(),pw=E.pw.value;
+ if(!/^[a-zA-Z0-9_]{3,20}$/.test(username))return toast('ชื่อผู้ใช้ไม่ถูกต้อง','bad');
+ const users=DB.get('users');
+ if(users.some(x=>x.id!==u.id&&x.username.toLowerCase()===username.toLowerCase()))return toast('ชื่อนี้ถูกใช้แล้ว','bad');
+ if(pw&&pw.length<6)return toast('รหัสผ่านต้องมีอย่างน้อย 6 ตัว','bad');
+ const h=pw?await hash(pw):u.pass;
+ update('users',u.id,x=>{x.username=username;x.avatar=avatarUrl;x.pass=h});
+ toast('บันทึกการตั้งค่าแล้ว');render();
+}
+
+/* ================= AUTH ================= */
+function pageRegister(){
+ if(me())return go('mychars');
+ app(`<form class="card" style="max-width:420px;margin:40px auto" onsubmit="doRegister(event)"><h2>สมัครสมาชิก</h2>
+  <label>ชื่อผู้ใช้ (a-z, 0-9, _ ยาว 3-20 ตัว)</label><input name="username" required>
+  <label>รหัสผ่าน (อย่างน้อย 6 ตัว)</label><input type="password" name="pw" required>
+  <label>ยืนยันรหัสผ่าน</label><input type="password" name="pw2" required>
+  <button class="btn" style="width:100%">สมัครสมาชิก</button>
+  <p class="mut" style="text-align:center">มีบัญชีแล้ว? <a href="#login">เข้าสู่ระบบ</a></p></form>`);
+}
+async function doRegister(e){
+ e.preventDefault();const E=e.target.elements,username=E.username.value.trim(),pw=E.pw.value;
+ if(!/^[a-zA-Z0-9_]{3,20}$/.test(username))return toast('ชื่อผู้ใช้ไม่ถูกต้อง','bad');
+ if(pw.length<6)return toast('รหัสผ่านต้องมีอย่างน้อย 6 ตัว','bad');
+ if(pw!==E.pw2.value)return toast('รหัสผ่านไม่ตรงกัน','bad');
+ const users=DB.get('users');
+ if(users.some(u=>u.username.toLowerCase()===username.toLowerCase()))return toast('ชื่อนี้ถูกใช้แล้ว','bad');
+ const user={id:uid(),username,pass:await hash(pw),avatar:'',role:users.length?'player':'admin',createdAt:Date.now()};
+ users.push(user);DB.set('users',users);store.setItem('sa_session',user.id);
+ if(user.role==='admin'){seedData(user.id);toast('คุณเป็นแอดมินคนแรก 👑');go('admin/settings')}else{toast('สมัครสำเร็จ! มาลงทะเบียนตัวละครกันเลย');go('newchar')}
+}
+function pageLogin(){
+ if(me())return go('mychars');
+ app(`<form class="card" style="max-width:420px;margin:40px auto" onsubmit="doLogin(event)"><h2>เข้าสู่ระบบ</h2>
+  <label>ชื่อผู้ใช้</label><input name="username" required>
+  <label>รหัสผ่าน</label><input type="password" name="pw" required>
+  <button class="btn" style="width:100%">เข้าสู่ระบบ</button>
+  <p class="mut" style="text-align:center">ยังไม่มีบัญชี? <a href="#register">สมัครสมาชิก</a></p>
+  <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+  <p style="text-align:center"><button type="button" class="btn sm bad" onclick="emergencyResetAdmin()">🔑 ลืมรหัสผ่านแอดมิน / รีเซ็ตด่วน</button></p></form>`);
+}
+async function doLogin(e){
+ e.preventDefault();const E=e.target.elements,h=await hash(E.pw.value);
+ const u=DB.get('users').find(x=>x.username.toLowerCase()===E.username.value.trim().toLowerCase()&&x.pass===h);
+ if(!u)return toast('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง','bad');
+ store.setItem('sa_session',u.id);toast('ยินดีต้อนรับกลับ, '+u.username);go('home');
+}
+async function emergencyResetAdmin(){
+ if(!await ask('รีเซ็ตรหัสผ่านของแอดมินคนแรกเป็น "admin1234" ใช่ไหม?'))return;
+ const users=DB.get('users'),h=await hash('admin1234');let admin=users.find(u=>u.role==='admin');
+ if(admin)admin.pass=h;else{admin={id:uid(),username:'Admin',pass:h,avatar:'',role:'admin',createdAt:Date.now()};users.push(admin)}
+ DB.set('users',users);store.setItem('sa_session',admin.id);
+ toast(`รีเซ็ตแล้ว! ชื่อผู้ใช้ "${admin.username}" รหัสผ่าน "admin1234"`);go('admin/settings');
+}
+function logout(){store.removeItem('sa_session');toast('ออกจากระบบแล้ว');go('home')}
+function seedData(adminId){
+ const th=DB.get('threads');
+ th.push({id:uid(),authorId:adminId,title:'📜 กฎของบอร์ด (อ่านก่อนเล่น)',type:'notice',forumId:'f_1',pinned:true,exp:0,won:0,train:[],statGain:0,minStage:0,maxStage:STAGES.length-1,deadline:'',status:'open',agencyId:'',css:'',tpl:'',createdAt:Date.now(),
+  plotMode:'rich',plot:'<p>ยินดีต้อนรับสู่ค่ายฝึกศิลปิน! ✦</p><p>ที่นี่ทุกคนเริ่มต้นจากผู้สมัครออดิชั่น ฝึกฝน แข่งขัน และเติบโตจนได้เดบิวต์เป็นศิลปิน</p>',
+  rulesMode:'rich',rules:'<ol><li>เคารพผู้เล่นทุกคน ห้ามใช้ถ้อยคำหยาบคายหรือดูหมิ่น</li><li>ห้าม Godmodding (บังคับการกระทำ/ความรู้สึกตัวละครผู้อื่น)</li><li>ห้ามเมตาเกมมิ่ง</li><li>การเลื่อนขั้นและการจัดวงขึ้นอยู่กับดุลยพินิจของแอดมิน</li></ol>'});
+ DB.set('threads',th);
+}
+
+/* ================= THREAD VIEW ================= */
+function pageThread(id){
+ const t=DB.get('threads').find(x=>x.id===id);if(!t)return app('<div class="card">ไม่พบกระทู้</div>');
+ const u=me(),chars=DB.get('characters'),users=DB.get('users'),ty=TYPES[t.type]||TYPES.main,closed=isClosed(t),train=t.train||[],ag=agencyOf(t.agencyId),fo=DB.get('forums').find(f=>f.id===t.forumId);
+ const all=DB.get('posts'),posts=all.filter(p=>p.threadId===id).sort((a,b)=>a.createdAt-b.createdAt);
+ const cnt=cid=>all.filter(p=>p.charId===cid).length;
+ const postHtml=p=>{
+  const c=chars.find(x=>x.id===p.charId),o=users.find(x=>x.id===p.userId),st=statOf(p.train),canEdit=u&&(u.id===p.userId||isAdmin());
+  const info=p.gm?'📢 ประกาศจากผู้ดำเนินเรื่อง':`ผู้เล่น: <a href="#profile/${o?.id}"><b>${esc(o?.username||'-')}</b></a>${st?` · 🏋️ ฝึก${st.n} +${p.gain||0}`:''}${p.wonGain?` · 💰 +${wonFmt(p.wonGain)}`:''}`;
+  const tools=`${fmt(p.createdAt)}${p.editedAt?' (แก้ไขแล้ว)':''}${canEdit?` · <a href="#editpost/${p.id}">แก้ไข</a>`:''}${isAdmin()?` · <a onclick="deletePost('${p.id}')">ลบ</a>`:''}`;
+  return `<div class="card post ${p.gm?'gm':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
+   <div style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
+   ${renderBody(p.content,p.mode,t.css)}</div></div></div>`;
+ };
+ let form='';
+ if(!u)form='<div class="card mut">กรุณา <a href="#login">เข้าสู่ระบบ</a> เพื่อร่วมโรลเพลย์</div>';
+ else if(closed)form='<div class="card mut">🔒 กระทู้นี้ปิดรับโพสต์แล้ว</div>';
+ else if(t.type==='notice'&&!isAdmin())form='';
+ else{
+  const ac=getActiveChar(u),canChar=!!(ac&&canPost(ac,t,u));
+  if(!canChar&&!isAdmin()){
+   form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
+  }else{
+   form=`<form class="card" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
+    <div class="row between"><h3 style="margin:0">✍️ ตอบกระทู้</h3>
+    ${isAdmin()?`<div class="seg">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 GM</span></label></div>`:''}</div>
+    ${canChar?`<div class="as-card">${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<div class="mut" style="font-size:.8rem">กำลังโพสต์ในนามตัวละครนี้ · สลับได้ที่มุมขวาบน · 💰 ${wonFmt(ac.won)}</div></div></div>`:''}
+    ${train.length&&canChar?`<label>🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</label><div class="chk">${train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div>`:''}
+    ${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}
+    <div class="row between"><span class="mut">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</span>
+    <div class="row"><button type="button" class="btn ghost" onclick="preview(this.form)">👁 พรีวิว</button><button class="btn">📨 โพสต์</button></div></div>
+    <div class="preview" hidden></div></form>`;
+  }
+ }
+ app(`${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}<br><br>
+ <div class="card"><div class="row">${t.pinned?'📌':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${closed?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}${ag?agencyBadge(ag.id):''}</div>
+  <h2 style="margin:10px 0">${esc(t.title)}</h2>
+  ${t.type!=='notice'?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
+  <h3>📖 เนื้อเรื่อง</h3>${renderBody(t.plot,t.plotMode,t.css)}
+  ${t.rules?`<h3>⚠️ ขอบเขตและกติกา</h3><div class="rules">${renderBody(t.rules,t.rulesMode)}</div>`:''}
+  ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
+ </div>
+ <h3>💬 โรลเพลย์ (${posts.length})</h3>
+ ${posts.map(postHtml).join('')||'<div class="card mut">ยังไม่มีโพสต์ — เป็นคนแรกที่เริ่มเรื่องสิ!</div>'}
+ ${form}`);
+}
+function doReply(e,tid){
+ e.preventDefault();const f=e.target,E=f.elements,u=me();if(!u)return;
+ const t=DB.get('threads').find(x=>x.id===tid);if(!t||isClosed(t))return toast('กระทู้นี้ปิดแล้ว','bad');
+ const {content,mode}=edGet(edOf(f,'content'));
+ if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
+ if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
+ const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,createdAt:Date.now()};
+ if(isAdmin()&&E.as?.value==='gm'){posts.push({...base,charId:null,gm:true});DB.set('posts',posts);toast('โพสต์ในฐานะ GM แล้ว')}
+ else{
+  const ac=getActiveChar(u);if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
+  const len=textLen(content,mode);if(len<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร (ตอนนี้ ${len})`,'bad');
+  const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;let gain=0,capped=false;
+  const nc=update('characters',activeC.id,o=>{o.exp+=Number(t.exp)||0;
+   if(tr){const cap=statCap(o.stage),b=o.stats[tr]||0;o.stats[tr]=Math.max(b,Math.min(cap,b+(Number(t.statGain)||0)));gain=o.stats[tr]-b;capped=b>=cap}});
+  const w=Number(t.won)||0;if(w)addWon(activeC.id,w,'โพสต์: '+t.title);
+  posts.push({...base,charId:activeC.id,gm:false,train:tr,gain,wonGain:w});DB.set('posts',posts);
+  toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}${capped?' (ถึงเพดานขั้นนี้แล้ว)':''}${eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''}`);
+ }
+ store.removeItem('sa_draft_'+tid);
+ render();setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),300);
+}
+function pageEditPost(id){
+ const u=me(),p=DB.get('posts').find(x=>x.id===id);
+ if(!p||!u||(p.userId!==u.id&&!isAdmin()))return go('home');
+ const t=DB.get('threads').find(x=>x.id===p.threadId);
+ app(`<a href="#thread/${p.threadId}">← กลับไปกระทู้</a><br><br>
+ <form class="card" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')"><h3>✏️ แก้ไขโพสต์</h3>
+  ${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}
+  <div class="row"><button type="button" class="btn ghost" onclick="preview(this.form)">👁 พรีวิว</button><button class="btn">💾 บันทึก</button></div>
+  <div class="preview" hidden></div></form>`);
+}
+function doEditPost(e,id){
+ e.preventDefault();const u=me(),p=DB.get('posts').find(x=>x.id===id);
+ if(!p||(p.userId!==u?.id&&!isAdmin()))return;
+ const {content,mode}=edGet(edOf(e.target,'content'));
+ if(!content)return toast('เนื้อหาว่างอยู่','bad');
+ if(!p.gm&&textLen(content,mode)<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร`,'bad');
+ update('posts',id,x=>{x.content=content;x.mode=mode;x.editedAt=Date.now()});toast('แก้ไขโพสต์แล้ว');go('thread/'+p.threadId);
+}
+
+/* ================= CHARACTERS (NEW PROFILE LAYOUT) ================= */
+function charCard(c){
+ const s=ST[c.status],a=agencyOf(c.agencyId),g=groupOf(c.id);
+ return `<div class="card item" style="text-align:center;margin:0">
+  <a href="#char/${c.id}" style="display:flex;justify-content:center">${avatar(c,80)}</a>
+  <h3 style="margin:10px 0 0"><a href="#char/${c.id}">${esc(c.stageName||c.name)}</a></h3><div class="mut">${esc(c.name)}</div>
+  <div style="margin-top:6px">${c.status==='approved'?stageBadge(c.stage):`<span class="badge" style="--c:${s[1]}">${s[0]}</span>`}</div>
+  <div class="mut" style="font-size:.8rem;margin-top:4px">${a?'🏢 '+esc(a.name):'ไม่สังกัดค่าย'}${g?' · 🎤 '+esc(g.name):''} · ⚡${sum(c.stats)}</div>
+  <div class="won" style="font-size:.85rem">💰 ${wonFmt(c.won)}</div></div>`;
+}
+function pageChars(f){
+ let cs=DB.get('characters').filter(c=>c.status==='approved').sort((a,b)=>b.stage-a.stage||b.exp-a.exp);
+ if(f!==undefined&&f!=='')cs=cs.filter(c=>c.stage==f);
+ app(`<h2>🌟 ทำเนียบเด็กฝึก & ศิลปิน</h2>
+ <div class="tabs"><a href="#chars" class="${f===undefined?'on':''}">ทั้งหมด</a>${STAGES.map((s,i)=>`<a href="#chars/${i}" class="${f==i?'on':''}">${esc(s.n)}</a>`).join('')}</div>
+ ${cs.length?`<div class="grid">${cs.map(charCard).join('')}</div>`:'<div class="card mut">ยังไม่มีตัวละครในระดับนี้</div>'}`);
+}
+function pageMyChars(){
+ const u=me();if(!u)return go('login');
+ const mine=DB.get('characters').filter(c=>c.ownerId===u.id),active=mine.filter(c=>c.status!=='rejected').length,cur=getActiveChar(u);
+ app(`<div class="row between"><h2>🎭 ตัวละครของฉัน</h2>${active<MAX_CHARS?'<a class="btn" href="#newchar">+ ลงทะเบียนตัวละคร</a>':`<span class="mut">ครบโควตา ${MAX_CHARS} ตัวแล้ว</span>`}</div>
+ ${mine.length?`<div class="grid">${mine.map(c=>`<div>${charCard(c)}${c.status==='approved'?`<button class="btn sm ${c.id===cur?.id?'ok':'ghost'}" style="width:100%;margin-top:6px" onclick="setActiveChar('${c.id}')" ${c.id===cur?.id?'disabled':''}>${c.id===cur?.id?'✅ กำลังใช้ตัวนี้':'🎭 ใช้ตัวนี้'}</button>`:''}</div>`).join('')}</div>`:'<div class="card mut">ยังไม่มีตัวละคร — ลงทะเบียนตัวละครแรกเพื่อเข้าร่วมออดิชั่น!</div>'}`);
+}
+function pageNewChar(){
+ const u=me();if(!u)return go('login');
+ if(DB.get('characters').filter(c=>c.ownerId===u.id&&c.status!=='rejected').length>=MAX_CHARS){toast('ครบโควตาตัวละครแล้ว','bad');return go('mychars')}
+ app(`<form class="card" onsubmit="doNewChar(event)"><h2>📋 ใบสมัครเด็กฝึก</h2>
+  <div class="row"><div class="f1"><label>ชื่อ-นามสกุลตัวละคร *</label><input name="name" required maxlength="60"></div>
+  <div class="f1"><label>ชื่อในวงการ (Stage Name)</label><input name="stageName" maxlength="30"></div></div>
+  <div class="row"><div class="f1"><label>อายุ *</label><input type="number" name="age" min="12" max="40" required></div>
+  <div class="f1"><label>เพศ *</label><select name="gender"><option>ชาย</option><option>หญิง</option><option>ไม่ระบุ</option></select></div>
+  <div class="f1"><label>สัญชาติ *</label><input name="nationality" required maxlength="30"></div></div>
+  <label>🏢 ค่ายที่ต้องการเข้าร่วม</label><select name="agencyId">${agencyOptions('','ยังไม่สังกัด — รอค่ายทาบทาม',true)}</select>
+  <label>ตำแหน่งที่ถนัด * (เลือกได้หลายข้อ)</label>
+  <div class="chk">${POSITIONS.map(p=>`<label><input type="checkbox" name="pos" value="${p}">${p}</label>`).join('')}</div>
+  <label>📊 ค่าสถานะเริ่มต้น — ทุกด้านเริ่มที่ ${STAT_BASE} แจกแต้มโบนัสได้ ${STAT_POOL} แต้ม (ด้านละไม่เกิน ${STAT_PER})</label>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 12px;margin-top:6px">${STATS.map(s=>`<div><label>${s.e} ${s.n}</label><input type="number" name="b_${s.k}" min="0" max="${STAT_PER}" value="0" oninput="ptsLeft(this.form)"></div>`).join('')}</div>
+  <p class="pts" style="margin-top:0">เหลือ ${STAT_POOL} แต้ม</p>
+  <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (https://...)</label><input name="avatar" type="url" placeholder="https://"></div>
+  <div class="f1"><label>ภาพปก Banner (https://...)</label><input name="banner" type="url" placeholder="https://..."></div></div>
+  <label>รูปข้างแนวตั้ง (https://...) แนะนำสัดส่วน 3:5</label><input name="portrait" type="url" placeholder="https://...">
+  <label>นิสัย / บุคลิก *</label>${richEditor('personality','',{ph:'นิสัย บุคลิก สิ่งที่ชอบ/ไม่ชอบ...'})}
+  <label>ประวัติ / เหตุผลที่อยากเป็นศิลปิน *</label>${richEditor('background','',{ph:'เล่าประวัติตัวละคร...'})}
+  <label class="row" style="color:var(--txt)"><input type="checkbox" name="agree" required style="width:auto;margin:0"> ข้าพเจ้าอ่านและยอมรับกฎของบอร์ดแล้ว</label><br>
+  <button class="btn">ส่งใบสมัคร</button></form>`);
+}
+function ptsLeft(f){const used=STATS.reduce((a,s)=>a+(+f.elements['b_'+s.k].value||0),0),el=f.querySelector('.pts');if(el){el.textContent=`เหลือ ${STAT_POOL-used} แต้ม`;el.style.color=used>STAT_POOL?'var(--bad)':''}}
+function doNewChar(e){
+ e.preventDefault();const f=e.target,E=f.elements,u=me();
+ const positions=[...f.querySelectorAll('[name=pos]:checked')].map(x=>x.value);
+ if(!positions.length)return toast('กรุณาเลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง','bad');
+ const bonus=STATS.map(s=>Math.max(0,+E['b_'+s.k].value||0));
+ if(bonus.some(b=>b>STAT_PER))return toast(`แต่ละด้านแจกได้ไม่เกิน ${STAT_PER} แต้ม`,'bad');
+ if(bonus.reduce((a,b)=>a+b,0)>STAT_POOL)return toast(`แจกแต้มเกิน ${STAT_POOL} แต้ม`,'bad');
+ const pe=edGet(edOf(f,'personality')).content,bg=edGet(edOf(f,'background')).content;
+ if(!pe||!bg)return toast('กรุณากรอกนิสัยและประวัติ','bad');
+ const cs=DB.get('characters');
+ cs.push({id:uid(),ownerId:u.id,name:E.name.value.trim(),stageName:E.stageName.value.trim(),age:+E.age.value,gender:E.gender.value,nationality:E.nationality.value.trim(),positions,
+  avatar:E.avatar.value.trim(),banner:E.banner.value.trim(),portrait:E.portrait.value.trim(),personality:pe,background:bg,bioMode:'rich',agencyId:E.agencyId.value,
+  stats:Object.fromEntries(STATS.map((s,i)=>[s.k,STAT_BASE+bonus[i]])),won:START_WON,inv:[],ledger:[],showcase:[],
+  profileHtml:'',status:'pending',reason:'',stage:0,exp:0,createdAt:Date.now()});
+ DB.set('characters',cs);toast('ส่งใบสมัครแล้ว! รอแอดมินอนุมัติ');go('mychars');
+}
+function pageChar(id){
+ const c=DB.get('characters').find(x=>x.id===id);if(!c)return app('<div class="card">ไม่พบตัวละคร</div>');
+ const u=me(),owner=DB.get('users').find(x=>x.id===c.ownerId),isOwner=u?.id===c.ownerId;
+ if(c.status!=='approved'&&!isOwner&&!isAdmin())return app('<div class="card">ตัวละครนี้ยังไม่เปิดเผย</div>');
+ const next=STAGES[c.stage+1],pct=next?Math.min(100,c.exp/next.exp*100):100,threads=DB.get('threads'),s=ST[c.status],g=groupOf(c.id),cap=statCap(c.stage),items=DB.get('items');
+ const posts=DB.get('posts').filter(p=>p.charId===id).sort((a,b)=>b.createdAt-a.createdAt);
+ const cd=(c.lastPractice||0)+PRACTICE_CD-Date.now(),sl=(c.lastSalary||0)+SALARY_CD-Date.now();
+ const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
+ const others=DB.get('characters').filter(x=>x.status==='approved'&&x.id!==c.id).map(x=>`<option value="${x.id}">${esc(x.stageName||x.name)}</option>`).join('');
+ 
+ app(`<div class="profile-wrap">
+  <div class="profile-banner">${/^https?:\/\//.test(c.banner||'')?`<img src="${esc(c.banner)}">`:''}</div>
+  <div class="profile-avatar-row">${avatar(c,120)}</div>
+  <div class="profile-info">
+   <h2>${esc(c.stageName||c.name)}</h2>
+   <div class="mut">${esc(c.name)} · ${c.age} ปี · ผู้เล่น: <a href="#profile/${owner?.id}">${esc(owner?.username||'-')}</a></div>
+   <div class="row" style="justify-content:center;margin:8px 0">${c.status==='approved'?stageBadge(c.stage):''}<span class="badge" style="--c:${s[1]}">${s[0]}</span>${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อมเลื่อนขั้น</span>':''}${agencyBadge(c.agencyId)}
+   ${g?`<a href="#group/${g.id}" class="badge" style="--c:${esc(g.color)}">🎤 ${esc(g.name)} · ${esc(g.members.find(m=>m.charId===c.id)?.role||'')}</a>`:''}</div>
+   ${c.status==='rejected'&&c.reason?`<div class="rules">เหตุผลที่ไม่ผ่าน: ${esc(c.reason)}</div>`:''}
+   ${c.status==='approved'?`<div style="max-width:400px;margin:8px auto"><div class="row between mut" style="font-size:.8rem"><span>EXP ${c.exp}${next?` / ${next.exp}`:''}</span><span>${next?'ขั้นถัดไป: '+esc(next.n):'สูงสุด ✨'}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`:''}
+   <div class="row" style="justify-content:center;margin-top:10px">
+    ${isAdmin()&&c.status==='pending'?`<button class="btn sm ok" onclick="approveChar('${c.id}')">อนุมัติ</button><button class="btn sm bad" onclick="rejectChar('${c.id}')">ไม่อนุมัติ</button>`:''}
+    ${isOwner||isAdmin()?`<a class="btn sm" href="#editchar/${c.id}">🎨 แก้ไข/ตกแต่งโปรไฟล์</a>`:''}
+    ${(isOwner&&c.status!=='approved')||isAdmin()?`<button class="btn sm bad" onclick="deleteChar('${c.id}')">ลบตัวละคร</button>`:''}
+   </div>
+  </div>
+  <div class="profile-main-layout">
+   <div>${sideCard(c,owner,posts.length)}</div>
+   <div style="min-width:0">
+    ${c.profileHtml?`<div class="card" style="margin-bottom:16px">${codeFrame(c.profileHtml)}</div>`:''}
+    <div class="card"><h3>🎯 ตำแหน่งที่ถนัด</h3><div class="row">${(c.positions||[]).map(p=>`<span class="badge" style="--c:var(--sec)">${esc(p)}</span>`).join('')}</div>
+     <h3>💭 นิสัย</h3>${renderBody(c.personality,c.bioMode)}<h3>📜 ประวัติ</h3>${renderBody(c.background,c.bioMode)}</div>
+    <div class="card"><div class="row between"><h3 style="margin:0">💰 กระเป๋าเงิน</h3><span class="won" style="font-size:1.4rem">${wonFmt(c.won)}</span></div>
+     ${isOwner&&c.status==='approved'?`<br><div class="row"><button class="btn sm ${sl>0?'ghost':''}" ${sl>0?'disabled':''} onclick="claimSalary('${c.id}')">💵 รับเงินเดือน ${wonFmt(salaryOf(c.stage))}</button><span class="mut">${sl>0?'รับได้อีกใน '+fmtLeft(sl):'พร้อมรับแล้ว!'}</span><a class="btn sm ghost" href="#shop">🛍 ไปร้านค้า</a></div>
+     <form class="row" style="margin-top:12px" onsubmit="doTransfer(event,'${c.id}')"><select name="to" style="margin:0;flex:2;min-width:150px"><option value="">💸 โอนเงินให้...</option>${others}</select><input name="amt" type="number" min="1" placeholder="จำนวน ₩" style="margin:0;flex:1;min-width:100px"><input name="note" placeholder="บันทึก (ไม่บังคับ)" maxlength="60" style="margin:0;flex:2;min-width:130px"><button class="btn sm">โอน</button></form>`:''}
+     ${(isOwner||isAdmin())&&(c.ledger||[]).length?`<details><summary>📒 สมุดบัญชี (${c.ledger.length} รายการล่าสุด)</summary>${c.ledger.map(l=>`<div class="row between" style="padding:5px 0;border-bottom:1px solid var(--line);font-size:.85rem"><span>${esc(l.note)} <span class="mut">· ${fmt(l.at)}</span></span><b style="color:${l.amt<0?'var(--bad)':'var(--ok)'}">${l.amt>0?'+':''}${wonFmt(l.amt)}</b></div>`).join('')}</details>`:''}</div>
+    <div class="card"><h3 style="margin-top:0">🎒 ของสะสม (${inv.length})</h3>${inv.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${inv.map(x=>`<div class="side-box" style="text-align:center">${x.it.img?`<img src="${esc(x.it.img)}" loading="lazy">`:'<div style="font-size:2rem">🎁</div>'}<b>${esc(x.it.name)}</b><div class="mut" style="font-size:.75rem">${esc(x.it.cat)}</div></div>`).join('')}</div>`:`<p class="mut">ยังไม่มีของ${isOwner?' · <a href="#shop">ไปร้านค้า</a>':''}</p>`}</div>
+    <div class="card"><div class="row between"><h3 style="margin:0">📊 ค่าสถานะ</h3><span class="mut">เพดานขั้นนี้ ${cap} · พลังรวม ⚡${sum(c.stats)}</span></div>
+     <div class="row" style="gap:24px"><div>${radar(c.stats)}</div><div class="f1">${statBars(c.stats,cap)}</div></div>
+     ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ซ้อมทุก ${PRACTICE_CD/3600e3} ชม. ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${cd>0?`· ⏳ ซ้อมได้อีกใน ${fmtLeft(cd)}`:'· ✅ พร้อมซ้อม!'}</p>
+     <div class="row">${STATS.map(st=>{const dis=cd>0||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n}</button>`}).join('')}</div>`:''}</div>
+    ${isAdmin()&&c.status==='approved'?adminCharForm(c):''}
+   </div>
+  </div>
+ </div>`);
+}
+function adminCharForm(c){
+ return `<form class="card" onsubmit="saveCharAdmin(event,'${c.id}')"><h3 style="margin-top:0">🛠 จัดการโดยแอดมิน</h3>
+ <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0 12px">${STATS.map(s=>`<div><label>${s.e} ${s.n}</label><input type="number" name="st_${s.k}" min="0" max="100" value="${c.stats[s.k]||0}"></div>`).join('')}</div>
+ <div class="row"><div class="f1"><label>สังกัดค่าย</label><select name="agencyId">${agencyOptions(c.agencyId,'ไม่สังกัด')}</select></div>
+ <div class="f1"><label>ขั้น</label><select name="stage">${STAGES.map((s,i)=>`<option value="${i}" ${i===c.stage?'selected':''}>${i} — ${esc(s.n)}</option>`).join('')}</select></div>
+ <div class="f1"><label>EXP</label><input type="number" name="exp" min="0" value="${c.exp}"></div>
+ <div class="f1"><label>💰 เงินวอน</label><input type="number" name="won" min="0" value="${c.won||0}"></div></div>
+ <button class="btn sm">บันทึก</button></form>`;
+}
+function saveCharAdmin(e,id){
+ e.preventDefault();if(!isAdmin())return;const E=e.target.elements,c=DB.get('characters').find(x=>x.id===id);
+ const nw=Math.max(0,+E.won.value||0),diff=nw-(c.won||0);
+ update('characters',id,c=>{STATS.forEach(s=>c.stats[s.k]=Math.max(0,Math.min(100,+E['st_'+s.k].value||0)));c.agencyId=E.agencyId.value;c.stage=+E.stage.value;c.exp=Math.max(0,+E.exp.value||0)});
+ if(diff)addWon(id,diff,'แอดมินปรับยอดเงิน');
+ toast('บันทึกแล้ว');render();
+}
+function practice(id,k){
+ const u=me(),c=DB.get('characters').find(x=>x.id===id),st=statOf(k);
+ if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
+ const left=(c.lastPractice||0)+PRACTICE_CD-Date.now();if(left>0)return toast(`ยังเหนื่อยอยู่! ซ้อมได้อีกใน ${fmtLeft(left)}`,'bad');
+ const cap=statCap(c.stage);if((c.stats[k]||0)>=cap)return toast(`${st.n}ถึงเพดานของขั้นนี้แล้ว (${cap})`,'bad');
+ const g=Math.random()<.3?2:1;
+ update('characters',id,o=>{o.stats[k]=Math.min(cap,(o.stats[k]||0)+g);o.exp+=PRACTICE_EXP;o.lastPractice=Date.now()});
+ toast(`${g===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':''}${st.e} ${st.n} +${g} · +${PRACTICE_EXP} EXP`);render();
+}
+function claimSalary(id){
+ const u=me(),c=DB.get('characters').find(x=>x.id===id);if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
+ const left=(c.lastSalary||0)+SALARY_CD-Date.now();if(left>0)return toast('รับเงินเดือนได้อีกใน '+fmtLeft(left),'bad');
+ const amt=salaryOf(c.stage);addWon(id,amt,'เงินเดือนประจำวัน');update('characters',id,o=>o.lastSalary=Date.now());
+ toast(`💵 ได้รับเงินเดือน ${wonFmt(amt)}`);render();
+}
+function doTransfer(e,id){
+ e.preventDefault();const E=e.target.elements,u=me(),cs=DB.get('characters'),c=cs.find(x=>x.id===id),to=cs.find(x=>x.id===E.to.value),amt=Math.floor(+E.amt.value);
+ if(!c||c.ownerId!==u?.id)return;
+ if(!to)return toast('กรุณาเลือกผู้รับ','bad');
+ if(!(amt>0))return toast('จำนวนเงินไม่ถูกต้อง','bad');
+ if(amt>(c.won||0))return toast('เงินไม่พอ','bad');
+ const note=E.note.value.trim();
+ addWon(c.id,-amt,`โอนให้ ${to.stageName||to.name}${note?' · '+note:''}`);
+ addWon(to.id,amt,`รับโอนจาก ${c.stageName||c.name}${note?' · '+note:''}`);
+ toast(`โอน ${wonFmt(amt)} ให้ ${to.stageName||to.name} แล้ว`);render();
+}
+function scRow(l='',i=''){
+ return `<div class="row sc-row" style="margin-bottom:6px"><input name="sl" placeholder="หัวข้อ เช่น ชุดตัวละคร" value="${esc(l)}" style="margin:0;flex:1;min-width:120px"><input name="si" placeholder="ลิงก์รูป https://..." value="${esc(i)}" style="margin:0;flex:2;min-width:160px"><button type="button" class="btn sm bad" onclick="const f=this.form;this.parentNode.remove();f.dispatchEvent(new Event('input'))">✕</button></div>`;
+}
+function collectSide(f){
+ const E=f.elements;
+ const inv=[...f.querySelectorAll('[name=shinv]:checked')].map(x=>({inv:x.value}));
+ const cus=[...f.querySelectorAll('.sc-row')].map(r=>({label:r.querySelector('[name=sl]').value.trim(),img:r.querySelector('[name=si]').value.trim()})).filter(x=>x.label||x.img);
+ return{avatar:E.avatar.value.trim(),banner:E.banner.value.trim(),portrait:E.portrait.value.trim(),sideTag:E.sideTag.value.trim(),sideColor:E.sideColor.value,hoverOwner:E.hoverOwner.checked,showcase:[...inv,...cus].slice(0,MAX_SHOW)};
+}
+function previewSide(f,id){const c=DB.get('characters').find(x=>x.id===id);if(!c)return;const box=f.querySelector('.side-pv');if(box)box.innerHTML=sideCard({...c,...collectSide(f)},me(),0)}
+function pageEditChar(id){
+ const u=me(),c=DB.get('characters').find(x=>x.id===id);
+ if(!c||!u||(c.ownerId!==u.id&&!isAdmin()))return go('home');
+ const full=c.status!=='approved'||isAdmin(),items=DB.get('items');
+ const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
+ const shownInv=new Set((c.showcase||[]).filter(s=>s.inv).map(s=>s.inv));
+ const custom=(c.showcase||[]).filter(s=>!s.inv);
+ app(`<a href="#char/${id}">← กลับ</a><br><br><form class="edit-grid" onsubmit="doEditChar(event,'${id}')" oninput="previewSide(this,'${id}')" onchange="previewSide(this,'${id}')"><div>
+ <div class="card"><h2 style="margin-top:0">🎨 แก้ไขตัวละคร: ${esc(c.stageName||c.name)}</h2>
+ ${full?`<div class="row"><div class="f1"><label>ชื่อ-นามสกุล</label><input name="name" required value="${esc(c.name)}"></div><div class="f1"><label>Stage Name</label><input name="stageName" value="${esc(c.stageName)}"></div></div>`:''}
+ <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (https://...)</label><input name="avatar" type="url" value="${esc(c.avatar)}"></div>
+ <div class="f1"><label>ภาพปก Banner (https://...)</label><input name="banner" type="url" value="${esc(c.banner)}" placeholder="https://..."></div></div></div>
+ <div class="card"><h3 style="margin-top:0">🖼 รูปข้าง (แสดงซ้ายมือทุกโพสต์)</h3>
+ <label>ลิงก์รูปแนวตั้ง — แนะนำสัดส่วน 3:5 เช่น 600×1000 px</label><input name="portrait" type="url" value="${esc(c.portrait)}" placeholder="https://...">
+ <div class="row"><div class="f1"><label>คำโปรยเหนือชื่อ</label><input name="sideTag" maxlength="30" value="${esc(c.sideTag)}"></div>
+ <div style="width:110px"><label>สีประจำตัว</label><input type="color" name="sideColor" value="${esc(c.sideColor||'#ff5fa2')}"></div></div>
+ <label class="row" style="color:var(--txt)"><input type="checkbox" name="hoverOwner" ${c.hoverOwner!==false?'checked':''} style="width:auto;margin:0"> เอาเมาส์ชี้รูปแล้วแสดงชื่อผู้เล่นที่โพสต์</label>
+ <h3>🎁 กล่องของมีค่า (สูงสุด ${MAX_SHOW} กล่อง)</h3>
+ <label>จากของที่ซื้อในร้านค้า</label> ${inv.length?`<div class="chk">${inv.map(x=>`<label><input type="checkbox" name="shinv" value="${x.id}" ${shownInv.has(x.id)?'checked':''}>${esc(x.it.name)} <span class="mut">(${esc(x.it.cat)})</span></label>`).join('')}</div>`:'<p class="mut">ยังไม่มีของ · <a href="#shop">ไปร้านค้า</a></p>'}
+ <label>ใส่เอง (หัวข้อ + รูป)</label><div class="sc-list">${custom.map(s=>scRow(s.label,s.img)).join('')}</div>
+ <button type="button" class="btn sm ghost" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend',scRow());this.form.dispatchEvent(new Event('input'))">+ เพิ่มกล่อง</button></div>
+ ${full?`<div class="card"><label>นิสัย / บุคลิก</label>${richEditor('personality',toRich(c.personality,c.bioMode))}<label>ประวัติ</label>${richEditor('background',toRich(c.background,c.bioMode))}</div>`
+  :'<div class="card mut">ตัวละครได้รับอนุมัติแล้ว หากต้องการแก้ชื่อหรือประวัติให้ติดต่อแอดมิน</div>'}
+ ${canCode()?`<div class="card"><div class="row between"><label>💻 หน้าโปรไฟล์แบบโค้ดอิสระ (ไม่บังคับ)</label><button type="button" class="btn sm ghost" onclick="this.form.elements.profileHtml.value=SAMPLE_PROFILE">ใส่ตัวอย่าง</button></div>
+ <textarea name="profileHtml" rows="10" class="code">${esc(c.profileHtml||'')}</textarea>
+ <button type="button" class="btn sm ghost" onclick="pvField(this.form,'profileHtml')">👁 พรีวิว</button><div class="preview" hidden></div></div>`:''}
+ ${c.status==='rejected'?'<p class="mut">เมื่อบันทึก ตัวละครจะถูกส่งให้แอดมินพิจารณาใหม่</p>':''}
+ <button class="btn">💾 บันทึก</button></div>
+ <div><div class="mut" style="text-align:center;margin-bottom:6px">👁 ตัวอย่างรูปข้าง</div><div class="side-pv">${sideCard(c,u,0)}</div></div></form>`);
+}
+function doEditChar(e,id){
+ e.preventDefault();const f=e.target,E=f.elements,u=me(),c=DB.get('characters').find(x=>x.id===id);
+ if(!c||(c.ownerId!==u?.id&&!isAdmin()))return;
+ const side=collectSide(f);let pe,bg;
+ if(edOf(f,'personality')){pe=edGet(edOf(f,'personality')).content;bg=edGet(edOf(f,'background')).content;if(!pe||!bg)return toast('นิสัยและประวัติต้องไม่ว่าง','bad')}
+ update('characters',id,o=>{Object.assign(o,side);
+  if(E.name){o.name=E.name.value.trim();o.stageName=E.stageName.value.trim()}
+  if(pe!==undefined){o.personality=pe;o.background=bg;o.bioMode='rich'}
+  if(E.profileHtml)o.profileHtml=E.profileHtml.value;
+  if(o.status==='rejected'&&!isAdmin()){o.status='pending';o.reason=''}});
+ toast('บันทึกแล้ว');go('char/'+id);
+}
+
+/* ================= SHOP ================= */
+function pageShop(cat){
+ const u=me(),c=u&&getActiveChar(u),items=DB.get('items'),list=cat?items.filter(i=>i.cat===cat):items;
+ const rich=DB.get('characters').filter(x=>x.status==='approved').sort((a,b)=>(b.won||0)-(a.won||0)).slice(0,5);
+ const cats=[...new Set(items.map(i=>i.cat))];
+ app(`<div class="row between"><h2>🛍 ร้านค้า</h2>${isAdmin()?'<a class="btn sm ghost" href="#admin/shop">⚙️ จัดการสินค้า</a>':''}</div>
+ <div class="card row between">${c?`<div class="row">${avatar(c,44)}<div><b>${esc(c.stageName||c.name)}</b><div class="won">💰 ${wonFmt(c.won)}</div></div></div><a class="btn sm ghost" href="#char/${c.id}">💳 กระเป๋าเงิน / โอนเงิน</a>`:'<span class="mut">เข้าสู่ระบบและมีตัวละครที่อนุมัติแล้วเพื่อซื้อของ</span>'}</div>
+ <div class="tabs"><a href="#shop" class="${!cat?'on':''}">ทั้งหมด</a>${cats.map(x=>`<a href="#shop/${encodeURIComponent(x)}" class="${cat&&decodeURIComponent(cat)===x?'on':''}">${esc(x)}</a>`).join('')}</div>
+ ${(cat?items.filter(i=>i.cat===decodeURIComponent(cat)):list).length?`<div class="grid">${(cat?items.filter(i=>i.cat===decodeURIComponent(cat)):list).map(it=>{const owned=c&&(c.inv||[]).some(x=>x.iid===it.id),out=it.stock===0;
+  return `<div class="card shop-item" style="margin:0"><div class="pic">${it.img?`<img src="${esc(it.img)}" loading="lazy">`:'🎁'}</div><b>${esc(it.name)}</b><span class="badge" style="--c:var(--sec);margin:auto">${esc(it.cat)}</span>
+  ${it.desc?`<div class="mut" style="font-size:.8rem">${esc(it.desc)}</div>`:''}<div class="won">${wonFmt(it.price)}</div>${it.stock>0?`<div class="mut" style="font-size:.75rem">เหลือ ${it.stock} ชิ้น</div>`:''}
+  ${owned?'<span class="mut" style="font-size:.8rem">✅ มีแล้ว</span>':''}
+  <button class="btn sm" ${!c||out||(c.won||0)<it.price?'disabled':''} onclick="buyItem('${it.id}')">${out?'สินค้าหมด':'🛒 ซื้อ'}</button></div>`}).join('')}</div>`:'<div class="card mut">ยังไม่มีสินค้า</div>'}
+ <br><div class="card"><h3 style="margin-top:0">🏆 อันดับเศรษฐี</h3>${rich.map((x,i)=>`<div class="row between" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${['🥇','🥈','🥉','4.','5.'][i]} <a href="#char/${x.id}">${esc(x.stageName||x.name)}</a></span><span class="won">${wonFmt(x.won)}</span></div>`).join('')||'<p class="mut">-</p>'}</div>`);
+}
+async function buyItem(iid){
+ const u=me(),c=u&&getActiveChar(u),it=DB.get('items').find(x=>x.id===iid);
+ if(!c||!it)return toast('ต้องมีตัวละครที่อนุมัติแล้ว','bad');
+ if(it.stock===0)return toast('สินค้าหมดแล้ว','bad');
+ if((c.won||0)<it.price)return toast('เงินวอนไม่พอ','bad');
+ if(!await ask(`ซื้อ "${it.name}" ราคา ${wonFmt(it.price)}\nให้ ${c.stageName||c.name}?`))return;
+ addWon(c.id,-it.price,'ซื้อ: '+it.name);
+ update('characters',c.id,o=>{o.inv=[...(o.inv||[]),{id:uid(),iid,at:Date.now()}]});
+ if(it.stock>0)update('items',iid,x=>x.stock--);
+ toast('ซื้อสำเร็จ! 🎉 ไปเลือกแสดงบนรูปข้างได้ที่ "แก้ไข/ตกแต่งโปรไฟล์"');render();
+}
+function itemForm(it){
+ const v={name:'',img:'',price:1000,cat:ITEM_CATS[0],desc:'',stock:-1,...(it||{})};
+ return `<form class="card" onsubmit="doSaveItem(event,'${it?.id||''}')"><h3 style="margin-top:0">${it?'✏️ แก้ไขสินค้า':'➕ เพิ่มสินค้าใหม่'}</h3>
+ <div class="row"><div class="f1"><label>ชื่อสินค้า *</label><input name="name" required maxlength="60" value="${esc(v.name)}"></div>
+ <div class="f1"><label>หมวด (จะเป็นหัวข้อกล่องบนรูปข้าง)</label><select name="cat">${ITEM_CATS.map(x=>`<option ${x===v.cat?'selected':''}>${x}</option>`).join('')}</select></div></div>
+ <div class="row"><div class="f1"><label>ราคา (₩)</label><input name="price" type="number" min="0" value="${v.price}"></div>
+ <div class="f1"><label>จำนวนคงเหลือ (เว้นว่าง = ไม่จำกัด)</label><input name="stock" type="number" min="0" value="${v.stock<0?'':v.stock}"></div></div>
+ <label>ลิงก์รูปสินค้า (https://...)</label><input name="img" type="url" value="${esc(v.img)}">
+ <label>คำอธิบายสั้น ๆ</label><input name="desc" maxlength="150" value="${esc(v.desc)}">
+ <div class="row"><button class="btn">${it?'บันทึก':'เพิ่มสินค้า'}</button>${it?'<a class="btn ghost" href="#admin/shop">ยกเลิก</a>':''}</div></form>`;
+}
+function doSaveItem(e,id){
+ e.preventDefault();if(!isAdmin())return;const E=e.target.elements;
+ const d={name:E.name.value.trim(),cat:E.cat.value,price:Math.max(0,+E.price.value||0),stock:E.stock.value===''?-1:Math.max(0,+E.stock.value),img:E.img.value.trim(),desc:E.desc.value.trim()};
+ if(id)update('items',id,x=>Object.assign(x,d));else{const a=DB.get('items');a.push({id:uid(),...d});DB.set('items',a)}
+ toast('บันทึกสินค้าแล้ว');go('admin/shop');
+}
+async function deleteItem(id){if(!isAdmin()||!await ask('ลบสินค้านี้?'))return;DB.set('items',DB.get('items').filter(x=>x.id!==id));toast('ลบแล้ว');render()}
+async function giveWon(id){
+ if(!isAdmin())return;const r=await askText('จำนวนเงินวอน (ใส่ค่าลบเพื่อหัก):','1000');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');
+ const note=await askText('เหตุผล:',v>0?'รางวัลจากแอดมิน':'หักโดยแอดมิน');addWon(id,v,note||'แอดมินปรับยอด');toast('อัปเดตเงินแล้ว');render();
+}
+
+/* ================= AGENCIES ================= */
+function agencyCard(a){
+ const cs=DB.get('characters').filter(c=>c.agencyId===a.id&&c.status==='approved').length,gs=DB.get('groups').filter(g=>g.agencyId===a.id&&g.status==='debuted').length;
+ return `<a class="card item" href="#agency/${a.id}" style="text-align:center;margin:0;border-top:4px solid ${esc(a.color)}"><div style="display:flex;justify-content:center">${avatar(a,80)}</div><h3 style="margin:10px 0 4px">${esc(a.name)}</h3>
+  <div class="mut">👥 ${cs} คน · 🎤 ${gs} วงเดบิวต์</div><div style="margin-top:6px">${a.recruiting?'<span class="badge" style="--c:var(--ok)">เปิดรับเด็กฝึก</span>':'<span class="badge" style="--c:var(--mut)">ปิดรับ</span>'}</div></a>`;
+}
+function pageAgencies(){const ags=DB.get('agencies');app(`<div class="row between"><h2>🏢 ค่ายเพลง</h2>${isAdmin()?'<a class="btn" href="#admin/agencies">+ จัดการค่าย</a>':''}</div>${ags.length?`<div class="grid">${ags.map(agencyCard).join('')}</div>`:'<div class="card mut">ยังไม่มีค่ายเพลง</div>'}`)}
+function pageAgency(id){
+ const a=agencyOf(id);if(!a)return app('<div class="card">ไม่พบค่าย</div>');
+ const cs=DB.get('characters').filter(c=>c.agencyId===id&&c.status==='approved').sort((x,y)=>y.stage-x.stage||y.exp-x.exp),gs=DB.get('groups').filter(g=>g.agencyId===id&&g.status!=='disbanded');
+ app(`<a href="#agencies">← ค่ายทั้งหมด</a><br><br>
+ <div class="card" style="border-top:4px solid ${esc(a.color)}"><div class="row" style="gap:20px">${avatar(a,100)}<div class="f1"><h2 style="margin:0">${esc(a.name)}</h2><div class="mut">👥 ${cs.length} คน · 🎤 ${gs.length} วง</div>${a.recruiting?'<span class="badge" style="--c:var(--ok)">เปิดรับเด็กฝึก</span>':''}</div></div>
+  ${a.desc?`<br>${renderBody(a.desc,a.descMode)}`:''}
+  ${isAdmin()?`<div class="row"><a class="btn sm ghost" href="#editagency/${a.id}">✏️ แก้ไข</a><button class="btn sm bad" onclick="deleteAgency('${a.id}')">ลบค่าย</button></div>`:''}</div>
+ ${a.html?`<div class="card">${codeFrame(a.html)}</div>`:''}
+ ${gs.length?`<h3>🎤 ศิลปินในสังกัด</h3><div class="grid">${gs.map(groupCard).join('')}</div><br>`:''}
+ <h3>👥 สมาชิกในค่าย</h3>${cs.length?`<div class="grid">${cs.map(charCard).join('')}</div>`:'<div class="card mut">ยังไม่มีสมาชิก</div>'}`);
+}
+function agencyForm(a){
+ const v={name:'',color:'#8b7bff',avatar:'',desc:'',html:'',recruiting:true,...(a||{})};
+ return `<form class="card" onsubmit="doSaveAgency(event,'${a?.id||''}')"><h3 style="margin-top:0">${a?'✏️ แก้ไขค่าย':'🏢 สร้างค่ายเพลงใหม่'}</h3>
+ <div class="row"><div class="f1"><label>ชื่อค่าย *</label><input name="name" required maxlength="40" value="${esc(v.name)}"></div><div style="width:120px"><label>สีประจำค่าย</label><input type="color" name="color" value="${esc(v.color)}"></div></div>
+ <label>ลิงก์โลโก้ (https://...)</label><input name="avatar" type="url" value="${esc(v.avatar)}">
+ <label>คำอธิบาย / จุดเด่นของค่าย</label>${richEditor('desc',toRich(v.desc,v.descMode))}
+ <label>💻 หน้าค่ายแบบโค้ดอิสระ (HTML/CSS/JS)</label><textarea name="html" rows="6" class="code">${esc(v.html)}</textarea>
+ <button type="button" class="btn sm ghost" onclick="pvField(this.form,'html')">👁 พรีวิว</button><div class="preview" hidden></div><br>
+ <label class="row" style="color:var(--txt)"><input type="checkbox" name="recruiting" ${v.recruiting?'checked':''} style="width:auto;margin:0"> เปิดรับเด็กฝึก</label><br>
+ <button class="btn">${a?'บันทึก':'สร้างค่าย'}</button></form>`;
+}
+function doSaveAgency(e,id){
+ e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
+ const d={name:E.name.value.trim(),color:E.color.value,avatar:E.avatar.value.trim(),desc:edGet(edOf(f,'desc')).content,descMode:'rich',html:E.html.value,recruiting:E.recruiting.checked};
+ if(id){update('agencies',id,a=>Object.assign(a,d));toast('บันทึกแล้ว');return go('agency/'+id)}
+ const ags=DB.get('agencies'),na={id:uid(),createdAt:Date.now(),...d};ags.push(na);DB.set('agencies',ags);toast('สร้างค่ายแล้ว');go('agency/'+na.id);
+}
+function pageEditAgency(id){if(!isAdmin())return go('home');const a=agencyOf(id);app(a?`<a href="#agency/${id}">← กลับ</a><br><br>`+agencyForm(a):'<div class="card">ไม่พบค่าย</div>')}
+async function deleteAgency(id){
+ if(!isAdmin()||!await ask('ลบค่ายนี้? สมาชิกจะกลายเป็น "ไม่สังกัด"'))return;
+ DB.set('agencies',DB.get('agencies').filter(a=>a.id!==id));
+ ['characters','groups','threads'].forEach(k=>{const arr=DB.get(k);arr.forEach(x=>{if(x.agencyId===id)x.agencyId=''});DB.set(k,arr)});
+ toast('ลบค่ายแล้ว');go('agencies');
+}
+
+/* ================= GROUPS ================= */
+function groupCard(g){
+ const s=GST[g.status],a=agencyOf(g.agencyId);
+ return `<a class="card item" href="#group/${g.id}" style="text-align:center;margin:0;border-top:4px solid ${esc(g.color)}"><div style="display:flex;justify-content:center">${avatar(g,80)}</div><h3 style="margin:10px 0 0">${esc(g.name)}</h3>
+  <div class="mut">${esc(g.type)} · ${g.members.length} คน${a?' · '+esc(a.name):''}</div><div style="margin-top:6px"><span class="badge" style="--c:${s[1]}">${s[0]}</span></div></a>`;
+}
+function pageGroups(tab){
+ tab=tab||'debuted';const all=DB.get('groups'),gs=all.filter(g=>g.status===tab).sort((a,b)=>(b.debutAt||b.createdAt)-(a.debutAt||a.createdAt));
+ app(`<div class="row between"><h2>🎤 ศิลปิน & วง</h2>${isAdmin()?'<a class="btn" href="#editgroup/new">+ จัดวงใหม่</a>':''}</div>
+ <div class="tabs">${Object.entries(GST).map(([k,v])=>`<a href="#groups/${k}" class="${tab===k?'on':''}">${v[0]} (${all.filter(g=>g.status===k).length})</a>`).join('')}</div>
+ ${gs.length?`<div class="grid">${gs.map(groupCard).join('')}</div>`:'<div class="card mut">ยังไม่มีวงในหมวดนี้</div>'}`);
+}
+function pageGroup(id){
+ const g=DB.get('groups').find(x=>x.id===id);if(!g)return app('<div class="card">ไม่พบวง</div>');
+ const cs=DB.get('characters'),s=GST[g.status],mem=g.members.map(m=>({...m,c:cs.find(x=>x.id===m.charId)})).filter(m=>m.c);
+ const avg=Object.fromEntries(STATS.map(st=>[st.k,mem.length?Math.round(mem.reduce((t,m)=>t+(m.c.stats[st.k]||0),0)/mem.length):0]));
+ app(`<a href="#groups">← ศิลปินทั้งหมด</a><br><br>
+ <div class="card" style="border-top:4px solid ${esc(g.color)}"><div class="row" style="gap:20px">${avatar(g,110)}<div class="f1"><h2 style="margin:0">${esc(g.name)}</h2>
+  <div class="mut">${esc(g.type)} · ${mem.length} คน${g.fandom?` · แฟนด้อม: ${esc(g.fandom)}`:''}</div>
+  <div class="row" style="margin:8px 0"><span class="badge" style="--c:${s[1]}">${s[0]}</span>${agencyBadge(g.agencyId)}${g.debutAt?`<span class="mut">เดบิวต์ ${fmt(g.debutAt)}</span>`:''}</div></div></div>
+  ${g.concept?`<h3>💡 คอนเซปต์</h3>${renderBody(g.concept,g.conceptMode)}`:''}
+  ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editgroup/${g.id}">✏️ แก้ไข</a>${g.status==='planning'?`<button class="btn sm ok" onclick="debutGroup('${g.id}')">🎉 เดบิวต์!</button>`:''}${g.status==='debuted'?`<button class="btn sm ghost" onclick="disbandGroup('${g.id}')">💤 ยุบวง</button>`:''}<button class="btn sm bad" onclick="deleteGroup('${g.id}')">ลบ</button></div>`:''}</div>
+ ${g.html?`<div class="card">${codeFrame(g.html)}</div>`:''}
+ <div class="card"><h3 style="margin-top:0">👥 สมาชิก</h3><div class="grid">${mem.map(m=>`<a class="card item" href="#char/${m.c.id}" style="text-align:center;margin:0"><div style="display:flex;justify-content:center">${avatar(m.c,70)}</div><b>${esc(m.c.stageName||m.c.name)}</b><div class="mut">${esc(m.role)}</div>${stageBadge(m.c.stage)}</a>`).join('')}</div></div>
+ <div class="card"><h3 style="margin-top:0">📊 ค่าสถานะเฉลี่ยของวง</h3><div class="row" style="gap:24px"><div>${radar(avg)}</div><div class="f1">${statBars(avg)}<p class="mut">พลังวงเฉลี่ย ⚡${sum(avg)}</p></div></div></div>`);
+}
+function groupForm(g){
+ const v={name:'',type:GROUP_TYPES[0],agencyId:'',concept:'',fandom:'',color:'#ff5fa2',avatar:'',html:'',members:[],...(g||{})};
+ const taken=new Set(DB.get('groups').filter(x=>x.id!==g?.id&&x.status!=='disbanded').flatMap(x=>x.members.map(m=>m.charId)));
+ const cands=DB.get('characters').filter(c=>c.status==='approved'&&!taken.has(c.id)&&(c.stage>=DEBUT_STAGE||v.members.some(m=>m.charId===c.id))).sort((a,b)=>b.stage-a.stage||sum(b.stats)-sum(a.stats));
+ const rows=cands.map(c=>{const m=v.members.find(x=>x.charId===c.id),a=agencyOf(c.agencyId),top=[...STATS].sort((x,y)=>(c.stats[y.k]||0)-(c.stats[x.k]||0)).slice(0,2);
+  return `<tr><td><input type="checkbox" name="m" value="${c.id}" ${m?'checked':''} style="width:auto;margin:0"></td><td><div class="row">${avatar(c,32)}<span>${esc(c.stageName||c.name)}</span></div></td><td>${stageBadge(c.stage)}</td><td class="mut">${a?esc(a.name):'ไม่สังกัด'}</td><td>${top.map(s=>`${s.e}${c.stats[s.k]}`).join(' ')}</td>
+  <td><input name="role_${c.id}" value="${esc(m?.role||'')}" placeholder="${esc(suggestRole(c))}" style="margin:0;min-width:140px"></td></tr>`}).join('');
+ return `<form class="card" onsubmit="doSaveGroup(event,'${g?.id||''}')"><h3 style="margin-top:0">${g?'✏️ แก้ไขวง':'🎤 จัดวงเดบิวต์ใหม่'}</h3>
+ <div class="row"><div class="f1"><label>ชื่อวง/ศิลปิน *</label><input name="name" required maxlength="40" value="${esc(v.name)}"></div>
+ <div class="f1"><label>ประเภท</label><select name="type">${GROUP_TYPES.map(x=>`<option ${x===v.type?'selected':''}>${x}</option>`).join('')}</select></div>
+ <div class="f1"><label>สังกัดค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'— ไม่ระบุ —')}</select></div></div>
+ <div class="row"><div class="f1"><label>ชื่อแฟนด้อม</label><input name="fandom" maxlength="30" value="${esc(v.fandom)}"></div>
+ <div style="width:120px"><label>สีประจำวง</label><input type="color" name="color" value="${esc(v.color)}"></div>
+ <div class="f1"><label>ลิงก์โลโก้วง (https://...)</label><input name="avatar" type="url" value="${esc(v.avatar)}"></div></div>
+ <label>คอนเซปต์ / แนวเพลง</label>${richEditor('concept',toRich(v.concept,v.conceptMode))}
+ <h3>👥 เลือกสมาชิก</h3><p class="mut">แสดงเฉพาะตัวละครขั้น "${esc(STAGES[DEBUT_STAGE].n)}" ขึ้นไปที่ยังไม่มีวง · เว้นช่องตำแหน่งได้ ระบบจะแนะนำจากค่าสถานะ</p>
+ ${cands.length?`<div style="overflow-x:auto"><table><tr><th></th><th>ตัวละคร</th><th>ขั้น</th><th>ค่าย</th><th>ทักษะเด่น</th><th>ตำแหน่งในวง</th></tr>{rows}</table></div>`:'<p class="mut">ยังไม่มีตัวละครที่พร้อมเดบิวต์</p>'}
+ <br><label>💻 หน้าโปรไฟล์วงแบบโค้ดอิสระ</label><textarea name="html" rows="6" class="code">${esc(v.html)}</textarea>
+ <button type="button" class="btn sm ghost" onclick="pvField(this.form,'html')">👁 พรีวิว</button><div class="preview" hidden></div><br>
+ <button class="btn">${g?'บันทึก':'สร้างวง'}</button></form>`;
+}
+function pageEditGroup(id){
+ if(!isAdmin())return go('home');const g=id!=='new'?DB.get('groups').find(x=>x.id===id):null;
+ if(id!=='new'&&!g)return app('<div class="card">ไม่พบวง</div>');
+ app(`<a href="#admin/groups">← กลับ</a><br><br>`+groupForm(g));
+}
+function doSaveGroup(e,id){
+ e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements,cs=DB.get('characters');
+ const members=[...f.querySelectorAll('[name=m]:checked')].map(x=>({charId:x.value,role:E['role_'+x.value].value.trim()||suggestRole(cs.find(c=>c.id===x.value))}));
+ const type=E.type.value,solo=type==='ศิลปินเดี่ยว';
+ if(solo&&members.length!==1)return toast('ศิลปินเดี่ยวต้องมีสมาชิก 1 คน','bad');
+ if(!solo&&members.length<2)return toast('วงต้องมีสมาชิกอย่างน้อย 2 คน','bad');
+ const d={name:E.name.value.trim(),type,agencyId:E.agencyId.value,fandom:E.fandom.value.trim(),color:E.color.value,avatar:E.avatar.value.trim(),concept:edGet(edOf(f,'concept')).content,conceptMode:'rich',html:E.html.value,members};
+ if(id){update('groups',id,g=>Object.assign(g,d));toast('บันทึกแล้ว');return go('group/'+id)}
+ const gs=DB.get('groups'),ng={id:uid(),status:'planning',debutAt:null,createdAt:Date.now(),...d};gs.push(ng);DB.set('groups',gs);
+ toast('จัดวงแล้ว! พร้อมเมื่อไหร่กดปุ่มเดบิวต์ได้เลย');go('group/'+ng.id);
+}
+async function debutGroup(id){
+ if(!isAdmin())return;const g=DB.get('groups').find(x=>x.id===id);
+ if(!g||!await ask(`ประกาศเดบิวต์ "${g.name}"?\nสมาชิกที่ต่ำกว่าขั้น "${STAGES[ARTIST_STAGE].n}" จะถูกเลื่อนขั้นอัตโนมัติ`))return;
+ const cs=DB.get('characters');cs.forEach(c=>{if(g.members.some(m=>m.charId===c.id)&&c.stage<ARTIST_STAGE)c.stage=ARTIST_STAGE});DB.set('characters',cs);
+ update('groups',id,x=>{x.status='debuted';x.debutAt=Date.now()});
+ const a=agencyOf(g.agencyId),names=g.members.map(m=>{const c=cs.find(x=>x.id===m.charId);return `<li><b>${esc(c?(c.stageName||c.name):'?')}</b> — ${esc(m.role)}</li>`}).join('');
+ const th=DB.get('threads');
+ th.push({id:uid(),authorId:me().id,title:`🎉 ${g.name} เดบิวต์อย่างเป็นทางการ!`,type:'event',forumId:'f_2',plotMode:'rich',
+  plot:`<p>${esc(a?a.name+' ':'')}ขอประกาศการเดบิวต์ของ${esc(g.type)} <b>"${esc(g.name)}"</b>${g.fandom?`<br>แฟนด้อม: ${esc(g.fandom)}`:''}</p><h3>สมาชิก</h3><ul>${names}</ul>`,
+  rulesMode:'rich',rules:'<p>ร่วมแสดงความยินดี สัมภาษณ์ หรือโรลเพลย์งานเปิดตัวได้ในกระทู้นี้</p>',minStage:0,maxStage:STAGES.length-1,exp:5,won:500,train:[],statGain:0,agencyId:'',css:'',tpl:'',deadline:'',status:'open',pinned:false,createdAt:Date.now()});
+ DB.set('threads',th);toast(`🎉 ${g.name} เดบิวต์แล้ว! สร้างกระทู้ประกาศให้แล้ว`);render();
+}
+async function disbandGroup(id){if(!isAdmin()||!await ask('ยุบวงนี้? สมาชิกจะสามารถถูกจัดเข้าวงใหม่ได้'))return;update('groups',id,g=>g.status='disbanded');toast('ยุบวงแล้ว');render()}
+async function deleteGroup(id){if(!isAdmin()||!await ask('ลบวงนี้ถาวร?'))return;DB.set('groups',DB.get('groups').filter(g=>g.id!==id));toast('ลบวงแล้ว');go('groups')}
+
+/* ================= ADMIN: THREADS ================= */
+function threadForm(t,preForumId){
+ const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',...(t||{})};
+ const so=sel=>STAGES.map((s,i)=>`<option value="${i}" ${i==sel?'selected':''}>${i} — ${esc(s.n)}</option>`).join('');
+ return `<form class="card" onsubmit="doSaveThread(event,'${t?.id||''}')"><h3 style="margin-top:0">${t?'✏️ แก้ไขกระทู้':'🆕 สร้างกระทู้ใหม่'}</h3>
+  <label>ชื่อกระทู้ *</label><input name="title" required maxlength="120" value="${esc(v.title)}">
+  <div class="row"><div class="f1"><label>ประเภทกระทู้</label><select name="type">${Object.entries(TYPES).map(([k,x])=>`<option value="${k}" ${k===v.type?'selected':''}>${x.n}</option>`).join('')}</select></div>
+  <div class="f1"><label>ซับฟอรั่ม *</label><select name="forumId">${forumOptions(v.forumId)}</select></div>
+  <div class="f1"><label>จำกัดเฉพาะค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'ทุกค่าย / ไม่จำกัด')}</select></div></div>
+  <div class="row"><div class="f1"><label>🏅 EXP ต่อโพสต์</label><input type="number" name="exp" min="0" max="200" value="${v.exp}"></div>
+  <div class="f1"><label>💰 เงินวอนต่อโพสต์</label><input type="number" name="won" min="0" value="${v.won||0}"></div>
+  <div class="f1"><label>ระดับต่ำสุด</label><select name="minStage">${so(v.minStage)}</select></div>
+  <div class="f1"><label>ระดับสูงสุด</label><select name="maxStage">${so(v.maxStage)}</select></div></div>
+  <label>🏋️ ทักษะที่ฝึกได้ในกระทู้นี้ (ไม่เลือก = ไม่ได้ค่าสถานะ)</label>
+  <div class="chk">${STATS.map(s=>`<label><input type="checkbox" name="train" value="${s.k}" ${v.train.includes(s.k)?'checked':''}>${s.e} ${s.n}</label>`).join('')}</div>
+  <div style="max-width:260px"><label>ค่าสถานะที่ได้ต่อโพสต์</label><input type="number" name="statGain" min="0" max="10" value="${v.statGain}"></div>
+  <label>📖 เนื้อเรื่อง / สถานการณ์ *</label>${richEditor('plot',toRich(v.plot,v.plotMode),{code:true,mode:v.plotMode})}
+  <label>⚠️ ขอบเขตและกติกา</label>${richEditor('rules',toRich(v.rules,v.rulesMode),{ph:'เช่น ฉากเกิดในห้องซ้อม B2 เท่านั้น...'})}
+  <details ${v.css||v.tpl?'open':''}><summary>🎨 CSS ประจำกระทู้ + เทมเพลตโพสต์แบบโค้ด (ไม่บังคับ)</summary><br>
+   <div class="row between"><label>CSS ของกระทู้</label><button type="button" class="btn sm ghost" onclick="fillSample(this.form)">ใส่ตัวอย่าง</button></div>
+   <textarea name="css" rows="6" class="code">${esc(v.css)}</textarea>
+   <label>เทมเพลตโพสต์</label><textarea name="tpl" rows="6" class="code">${esc(v.tpl)}</textarea></details>
+  <label>กำหนดปิดรับโพสต์ (ไม่บังคับ)</label><input type="datetime-local" name="deadline" value="${esc(v.deadline)}">
+  <label class="row" style="color:var(--txt)"><input type="checkbox" name="pinned" ${v.pinned?'checked':''} style="width:auto;margin:0"> 📌 ปักหมุดกระทู้</label><br>
+  <button class="btn">${t?'บันทึก':'สร้างกระทู้'}</button></form>`;
+}
+async function fillSample(f){const E=f.elements;if((E.css.value||E.tpl.value)&&!await ask('แทนที่โค้ดเดิม?'))return;E.css.value=SAMPLE_CSS;E.tpl.value=SAMPLE_TPL}
+function doSaveThread(e,id){
+ e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
+ const plot=edGet(edOf(f,'plot')),rules=edGet(edOf(f,'rules'));
+ if(!plot.content)return toast('กรุณาเขียนเนื้อเรื่อง','bad');
+ const d={title:E.title.value.trim(),type:E.type.value,forumId:E.forumId.value,exp:+E.exp.value||0,won:Math.max(0,+E.won.value||0),minStage:+E.minStage.value,maxStage:+E.maxStage.value,agencyId:E.agencyId.value,
+  train:[...f.querySelectorAll('[name=train]:checked')].map(x=>x.value),statGain:+E.statGain.value||0,
+  plot:plot.content,plotMode:plot.mode,rules:rules.content,rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked};
+ if(d.minStage>d.maxStage)return toast('ระดับต่ำสุดต้องไม่มากกว่าระดับสูงสุด','bad');
+ if(id){update('threads',id,t=>Object.assign(t,d));toast('บันทึกแล้ว');return go('thread/'+id)}
+ const th=DB.get('threads'),nt={id:uid(),authorId:me().id,status:'open',createdAt:Date.now(),...d};th.push(nt);DB.set('threads',th);toast('สร้างกระทู้แล้ว');go('thread/'+nt.id);
+}
+function pageEditThread(id){if(!isAdmin())return go('home');const t=DB.get('threads').find(x=>x.id===id);app(t?`<a href="#thread/${id}">← กลับ</a><br><br>`+threadForm(t):'<div class="card">ไม่พบกระทู้</div>')}
+
+/* ================= ADMIN: FORUMS ================= */
+function forumsBody(){
+ const cats=DB.get('categories'),forums=DB.get('forums');
+ return `<div class="row between"><h3>📂 หมวดหมู่และซับฟอรั่ม</h3><button class="btn sm" onclick="addCat()">+ เพิ่มหมวดหมู่หลัก</button></div>`+cats.map(cat=>{const sub=forums.filter(f=>f.catId===cat.id);
+  return `<div class="card"><div class="row between"><h3 style="margin:0">${esc(cat.name)}</h3><div class="row"><button class="btn sm ghost" onclick="editCat('${cat.id}')">แก้ไข</button><button class="btn sm bad" onclick="deleteCat('${cat.id}')">ลบ</button></div></div><br>
+   ${sub.map(f=>`<div class="row between" style="background:var(--card2);padding:10px 14px;border-radius:10px;margin-bottom:8px"><div><b>${esc(f.name)}</b><div class="mut">${esc(f.desc||'')}</div></div>
+   <div class="row"><button class="btn sm ghost" onclick="editForum('${f.id}')">แก้ไข</button><button class="btn sm bad" onclick="deleteForum('${f.id}')">ลบ</button></div></div>`).join('')||'<p class="mut">ยังไม่มีซับฟอรั่ม</p>'}
+   <button class="btn sm ghost" onclick="addForum('${cat.id}')">+ เพิ่มซับฟอรั่ม</button></div>`}).join('');
+}
+async function addCat(){const n=await askText('ชื่อหมวดหมู่หลัก:');if(!n)return;const c=DB.get('categories');c.push({id:uid(),name:n.trim(),order:c.length+1});DB.set('categories',c);render()}
+async function editCat(id){const c=DB.get('categories').find(x=>x.id===id);const n=await askText('แก้ไขชื่อหมวดหมู่:',c.name);if(!n)return;update('categories',id,x=>x.name=n.trim());render()}
+async function deleteCat(id){if(!await ask('ลบหมวดหมู่นี้และซับฟอรั่มข้างในขั้นเด็ดขาด?'))return;DB.set('categories',DB.get('categories').filter(c=>c.id!==id));DB.set('forums',DB.get('forums').filter(f=>f.catId!==id));render()}
+async function addForum(catId){
+ const n=await askText('ชื่อซับฟอรั่ม:');if(!n)return;
+ const d=await askText('คำอธิบายซับฟอรั่ม:','');
+ const b=await askText('ลิงก์รูปภาพพื้นหลัง Banner (https://... หากไม่ใส่ปล่อยว่าง):','');
+ const fs=DB.get('forums');fs.push({id:uid(),catId,name:n.trim(),desc:(d||'').trim(),banner:(b||'').trim(),order:fs.length+1});DB.set('forums',fs);render();
+}
+async function editForum(id){
+ const f=DB.get('forums').find(x=>x.id===id);if(!f)return;
+ const n=await askText('ชื่อซับฟอรั่ม:',f.name);if(!n)return;
+ const d=await askText('คำอธิบาย:',f.desc||'');
+ const b=await askText('ลิงก์รูปภาพพื้นหลัง Banner (https://...):',f.banner||'');
+ update('forums',id,x=>{x.name=n.trim();x.desc=(d||'').trim();x.banner=(b||'').trim()});render();
+}
+async function deleteForum(id){if(!await ask('ลบซับฟอรั่มนี้?'))return;DB.set('forums',DB.get('forums').filter(f=>f.id!==id));render()}
+
+/* ================= ADMIN: SETTINGS ================= */
+function settingsForm(){
+ return `<form class="card" onsubmit="doSaveSettings(event)"><h3 style="margin-top:0">⚙️ ตั้งค่าเว็บไซต์</h3>
+ <div class="row"><div style="width:110px"><label>โลโก้/อีโมจิ</label><input name="logo" maxlength="4" value="${esc(S.logo)}"></div>
+ <div class="f1"><label>ชื่อเว็บไซต์ *</label><input name="siteName" required maxlength="40" value="${esc(S.siteName)}"></div></div>
+ <label>คำโปรย</label><input name="tagline" maxlength="150" value="${esc(S.tagline)}">
+ <div class="row"><div class="f1"><label>สีหลัก</label><input type="color" name="pri" value="${esc(S.pri)}"></div><div class="f1"><label>สีรอง</label><input type="color" name="sec" value="${esc(S.sec)}"></div><div class="f1"><label>สีพื้นหลัง</label><input type="color" name="bg" value="${esc(S.bg)}"></div></div>
+ <div class="row"><div class="f1"><label>📢 ชื่อ GM (แสดงบนรูปข้าง)</label><input name="gmName" maxlength="30" value="${esc(S.gmName)}"></div><div class="f1"><label>📢 รูปข้างของ GM (https://...)</label><input name="gmImg" type="url" value="${esc(S.gmImg)}"></div></div>
+ <label class="row" style="color:var(--txt)"><input type="checkbox" name="allowPlayerCode" ${S.allowPlayerCode?'checked':''} style="width:auto;margin:0"> อนุญาตให้ผู้เล่นใช้แท็บ "โค้ดอิสระ" และตกแต่งโปรไฟล์ด้วยโค้ด</label>
+ <h3>🪜 ชื่อขั้นและเกณฑ์ EXP</h3>
+ <div style="overflow-x:auto"><table><tr><th>ขั้น</th><th>ชื่อไทย</th><th>ชื่ออังกฤษ</th><th>EXP</th><th>สี</th></tr>
+ ${STAGES.map((s,i)=>`<tr><td>${i}</td><td><input name="sn${i}" value="${esc(s.n)}" required style="margin:0"></td><td><input name="se${i}" value="${esc(s.en)}" style="margin:0"></td><td><input type="number" name="sx${i}" value="${s.exp}" min="0" ${i===0?'readonly':''} style="margin:0;width:90px"></td><td><input type="color" name="sc${i}" value="${esc(s.c)}" style="margin:0;width:60px"></td></tr>`).join('')}</table></div>
+ <h3>🎨 ตกแต่งด้วยโค้ด</h3>
+ <label>แบนเนอร์หน้าแรก (HTML/CSS/JS)</label><textarea name="homeHtml" rows="6" class="code">${esc(S.homeHtml)}</textarea>
+ <button type="button" class="btn sm ghost" onclick="pvField(this.form,'homeHtml')">👁 พรีวิวแบนเนอร์</button><div class="preview" hidden></div><br>
+ <label>CSS ทั้งเว็บ</label><textarea name="customCss" rows="6" class="code">${esc(S.customCss)}</textarea>
+ <div class="row"><button class="btn">บันทึกการตั้งค่า</button><button type="button" class="btn ghost" onclick="resetTheme()">คืนค่าสีเริ่มต้น</button></div></form>
+ <div class="card"><h3 style="margin-top:0">💾 สำรอง / กู้คืนข้อมูล</h3><p class="mut">ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น ควรสำรองไว้เป็นระยะ</p>
+ <div class="row"><button class="btn ghost" onclick="exportData()">⬇ ดาวน์โหลดไฟล์สำรอง</button><label class="btn ghost">⬆ กู้คืนจากไฟล์<input type="file" accept=".json" hidden onchange="importData(this)"></label></div></div>`;
+}
+function doSaveSettings(e){
+ e.preventDefault();if(!isAdmin())return;const E=e.target.elements;
+ const stages=STAGES.map((s,i)=>({n:E['sn'+i].value.trim()||s.n,en:E['se'+i].value.trim(),exp:i?Math.max(0,+E['sx'+i].value||0):0,c:E['sc'+i].value}));
+ for(let i=1;i<stages.length;i++)if(stages[i].exp<=stages[i-1].exp)return toast(`EXP ของขั้น ${i} ต้องมากกว่าขั้น ${i-1}`,'bad');
+ DB.set('settings',{...DB.get('settings',{}),siteName:E.siteName.value.trim(),tagline:E.tagline.value.trim(),logo:E.logo.value.trim(),pri:E.pri.value,sec:E.sec.value,bg:E.bg.value,
+  gmName:E.gmName.value.trim(),gmImg:E.gmImg.value.trim(),allowPlayerCode:E.allowPlayerCode.checked,homeHtml:E.homeHtml.value,customCss:E.customCss.value,stages});
+ toast('บันทึกการตั้งค่าแล้ว');render();
+}
+function resetTheme(){DB.set('settings',{...DB.get('settings',{}),pri:DEFAULT_SETTINGS.pri,sec:DEFAULT_SETTINGS.sec,bg:DEFAULT_SETTINGS.bg});toast('คืนค่าสีแล้ว');render()}
+const BACKUP_KEYS=['users','characters','threads','posts','agencies','groups','categories','forums','items','settings'];
+function exportData(){
+ const d={};BACKUP_KEYS.forEach(k=>d[k]=DB.get(k,null));
+ try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='rp-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove()}
+ catch(e){toast('ดาวน์โหลดไม่ได้ในหน้านี้','bad')}
+}
+async function importData(inp){
+ const f=inp.files[0];if(!f)return;
+ if(!await ask('ข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด ดำเนินการต่อ?'))return;
+ try{const d=JSON.parse(await f.text());BACKUP_KEYS.forEach(k=>{if(d[k]!=null)DB.set(k,d[k])});migrate();toast('กู้คืนข้อมูลแล้ว');render()}catch(e){toast('ไฟล์ไม่ถูกต้อง','bad')}
+ inp.value='';
+}
+
+/* ================= ADMIN PANEL ================= */
+function pageAdmin(tab,sub,sub2){
+ if(!isAdmin())return go('home');tab=tab||'pending';
+ const users=DB.get('users'),chars=DB.get('characters'),ags=DB.get('agencies'),groups=DB.get('groups');
+ const uname=id=>esc(users.find(u=>u.id===id)?.username||'-');
+ const T=[['pending',`⏳ รออนุมัติ (${pendingCount()})`],['chars','🎭 ตัวละคร'],['newthread','🆕 สร้างกระทู้'],['forums','📂 ฟอรั่ม'],['shop','🛍 ร้านค้า'],['agencies','🏢 ค่ายเพลง'],['groups','🎤 วง'],['users','👥 สมาชิก'],['settings','⚙️ ตั้งค่า']];
+ let body='';
+ if(tab==='pending'){
+  body=chars.filter(c=>c.status==='pending').map(c=>`<div class="card"><div class="row">${avatar(c,64)}<div><h3 style="margin:0">${esc(c.name)} ${c.stageName?`(${esc(c.stageName)})`:''}</h3>
+   <div class="mut">ผู้เล่น: ${uname(c.ownerId)} · ${c.age} ปี · ${esc(c.gender)} · ${esc(c.nationality)} · ${esc(agencyOf(c.agencyId)?.name||'ไม่สังกัด')}</div><div class="mut">ตำแหน่ง: ${(c.positions||[]).map(esc).join(', ')} · ${STATS.map(s=>`${s.e}${c.stats[s.k]}`).join(' ')}</div></div></div>
+   <h4>นิสัย</h4>${renderBody(c.personality,c.bioMode)}<h4>ประวัติ</h4>${renderBody(c.background,c.bioMode)}
+   <div class="row"><button class="btn ok sm" onclick="approveChar('${c.id}')">✅ อนุมัติ</button><button class="btn bad sm" onclick="rejectChar('${c.id}')">❌ ไม่อนุมัติ</button><a class="btn sm ghost" href="#char/${c.id}">ดูโปรไฟล์</a></div></div>`).join('')||'<div class="card mut">ไม่มีตัวละครรออนุมัติ 🎉</div>';
+ }else if(tab==='chars'){
+  const a=chars.filter(c=>c.status==='approved').sort((x,y)=>y.stage-x.stage||y.exp-x.exp);
+  body=`<div class="card" style="overflow-x:auto"><table><tr><th>ตัวละคร</th><th>ผู้เล่น</th><th>ระดับ</th><th>EXP</th><th>💰</th><th>จัดการ</th></tr>
+  ${a.map(c=>`<tr><td><a href="#char/${c.id}">${esc(c.stageName||c.name)}</a></td><td>${uname(c.ownerId)}</td><td>${stageBadge(c.stage)} ${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อม</span>':''}</td><td>${c.exp}</td><td class="won">${wonFmt(c.won)}</td>
+  <td><div class="row"><button class="btn sm ok" title="เลื่อนขั้น" onclick="setStage('${c.id}',1)">▲</button><button class="btn sm ghost" title="ลดขั้น" onclick="setStage('${c.id}',-1)">▼</button><button class="btn sm ghost" onclick="giveExp('${c.id}')">±EXP</button><button class="btn sm ghost" onclick="giveWon('${c.id}')">±₩</button></div></td></tr>`).join('')}</table>
+  ${a.length?'':'<p class="mut">ยังไม่มีตัวละครที่อนุมัติ</p>'}</div>`;
+ }else if(tab==='newthread')body=threadForm(null,sub);
+ else if(tab==='forums')body=forumsBody();
+ else if(tab==='shop'){
+  const items=DB.get('items'),ed=sub&&items.find(x=>x.id===sub);
+  body=itemForm(ed)+`<div class="card" style="overflow-x:auto"><table><tr><th>สินค้า</th><th>หมวด</th><th>ราคา</th><th>คงเหลือ</th><th>ขายแล้ว</th><th></th></tr>
+  ${items.map(it=>`<tr><td><div class="row">${it.img?`<img src="${esc(it.img)}" style="width:36px;height:36px;object-fit:cover;border-radius:6px">`:'🎁'} ${esc(it.name)}</div></td><td>${esc(it.cat)}</td><td class="won">${wonFmt(it.price)}</td><td>${it.stock<0?'∞':it.stock}</td><td>${chars.reduce((n,c)=>n+(c.inv||[]).filter(x=>x.iid===it.id).length,0)}</td>
+  <td><div class="row"><a class="btn sm ghost" href="#admin/shop/${it.id}">แก้ไข</a><button class="btn sm bad" onclick="deleteItem('${it.id}')">ลบ</button></div></div></td></tr>`).join('')}</table>${items.length?'':'<p class="mut">ยังไม่มีสินค้า</p>'}</div>`;
+ }else if(tab==='agencies'){
+  body=`${ags.length?`<div class="card" style="overflow-x:auto"><table><tr><th>ค่าย</th><th>รับสมัคร</th><th>สมาชิก</th><th></th></tr>
+  ${ags.map(a=>`<tr><td><a href="#agency/${a.id}">${esc(a.name)}</a></td><td>${a.recruiting?'🟢 เปิด':'⚪ ปิด'}</td><td>${chars.filter(c=>c.agencyId===a.id&&c.status==='approved').length}</td>
+  <td><div class="row"><a class="btn sm ghost" href="#editagency/${a.id}">แก้ไข</a><button class="btn sm bad" onclick="deleteAgency('${a.id}')">ลบ</button></div></div></td></tr>`).join('')}</table></div>`:''}${agencyForm()}`;
+ }else if(tab==='groups'){
+  const ready=chars.filter(c=>c.status==='approved'&&c.stage>=DEBUT_STAGE&&!groupOf(c.id));
+  body=`<div class="row between"><p class="mut">ตัวละครพร้อมเดบิวต์ที่ยังไม่มีวง: <b>${ready.length}</b> คน</p><a class="btn" href="#editgroup/new">+ จัดวงใหม่</a></div>
+  <div class="card" style="overflow-x:auto"><table><tr><th>วง</th><th>ประเภท</th><th>สมาชิก</th><th>สถานะ</th><th></th></tr>
+  ${groups.map(g=>`<tr><td><a href="#group/${g.id}">${esc(g.name)}</a></td><td>${esc(g.type)}</td><td>${g.members.length}</td><td><span class="badge" style="--c:${GST[g.status][1]}">${GST[g.status][0]}</span></td>
+  <td><div class="row"><a class="btn sm ghost" href="#editgroup/${g.id}">แก้ไข</a>${g.status==='planning'?`<button class="btn sm ok" onclick="debutGroup('${g.id}')">🎉 เดบิวต์</button>`:''}</div></div></td></tr>`).join('')}</table>${groups.length?'':'<p class="mut">ยังไม่มีวง</p>'}</div>`;
+ }else if(tab==='users'){
+  const u=me();
+  body=`<div class="card" style="overflow-x:auto"><table><tr><th>ชื่อผู้ใช้</th><th>บทบาท</th><th>ตัวละคร</th><th>สมัครเมื่อ</th><th></th></tr>
+  ${users.map(x=>`<tr><td><a href="#profile/${x.id}"><b>${esc(x.username)}</b></a></td><td>${x.role==='admin'?'👑 แอดมิน':'ผู้เล่น'}</td><td>${chars.filter(c=>c.ownerId===x.id).length}</td><td>${fmt(x.createdAt)}</td>
+  <td>${x.id!==u.id?`<button class="btn sm ghost" onclick="toggleAdmin('${x.id}')">${x.role==='admin'?'ถอดแอดมิน':'ตั้งเป็นแอดมิน'}</button>`:'<span class="mut">(คุณ)</span>'}</td></tr>`).join('')}</table></div>`;
+ }else if(tab==='settings')body=settingsForm();
+ app(`<h2>👑 แผงควบคุมแอดมิน</h2><div class="tabs">${T.map(([k,n])=>`<a href="#admin/${k}" class="${tab===k?'on':''}">${n}</a>`).join('')}</div>${body}`);
+}
+
+function approveChar(id){if(!isAdmin())return;update('characters',id,c=>{c.status='approved';c.reason=''});toast('อนุมัติตัวละครแล้ว');render()}
+async function rejectChar(id){if(!isAdmin())return;const r=await askText('เหตุผลที่ไม่อนุมัติ (ผู้เล่นจะเห็นข้อความนี้):');if(r===null)return;update('characters',id,c=>{c.status='rejected';c.reason=r});toast('ไม่อนุมัติแล้ว');render()}
+function setStage(id,d){if(!isAdmin())return;const c=update('characters',id,c=>{c.stage=Math.max(0,Math.min(STAGES.length-1,c.stage+d))});toast(`${c.stageName||c.name} → ${STAGES[c.stage].n}`);render()}
+async function giveExp(id){if(!isAdmin())return;const r=await askText('จำนวน EXP (ใส่ค่าลบเพื่อหัก):','10');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');update('characters',id,c=>c.exp=Math.max(0,c.exp+v));toast('อัปเดต EXP แล้ว');render()}
+function toggleThread(id){if(!isAdmin())return;update('threads',id,t=>t.status=t.status==='open'?'closed':'open');render()}
+function pinThread(id){if(!isAdmin())return;update('threads',id,t=>t.pinned=!t.pinned);render()}
+async function deleteThread(id){if(!isAdmin()||!await ask('ลบกระทู้นี้และโพสต์ทั้งหมด?'))return;DB.set('threads',DB.get('threads').filter(t=>t.id!==id));DB.set('posts',DB.get('posts').filter(p=>p.threadId!==id));toast('ลบกระทู้แล้ว');go('threads')}
+async function deletePost(id){if(!isAdmin()||!await ask('ลบโพสต์นี้?'))return;DB.set('posts',DB.get('posts').filter(p=>p.id!==id));render()}
+function toggleAdmin(id){if(!isAdmin())return;update('users',id,u=>u.role=u.role==='admin'?'player':'admin');render()}
+async function deleteChar(id){
+ const u=me(),c=DB.get('characters').find(x=>x.id===id);
+ if(!c||!(isAdmin()||(c.ownerId===u?.id&&c.status!=='approved'))||!await ask('ลบตัวละครนี้ตัวนี้?'))return;
+ DB.set('characters',DB.get('characters').filter(x=>x.id!==id));
+ const gs=DB.get('groups');gs.forEach(g=>g.members=g.members.filter(m=>m.charId!==id));DB.set('groups',gs);
+ toast('ลบตัวละครแล้ว');go('mychars');
+}
+
+/* ================= START ================= */
+try{migrate();render()}catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
+if(store.temp)toast('โหมดพรีวิว: ข้อมูลจะหายเมื่อรีเฟรช — เปิดไฟล์ในเบราว์เซอร์โดยตรงเพื่อบันทึกถาวร','bad');
+</script>
+</body>
+</html>
