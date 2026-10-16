@@ -542,10 +542,10 @@ async function cloudBootstrap(){
   }
   // Public site content may be read without signing in; all writes still require Supabase Auth.
   const rows=await cloudFetchRows();
-  if(rows.length){
-   cloudApplyRows(rows,true);
-   store.removeItem('sa_session');
-  }
+  if(rows.length)cloudApplyRows(rows,true);
+  // Once the cloud schema is installed, require a Supabase Auth session;
+  // never display a browser-only legacy session as though it were cloud-authenticated.
+  store.removeItem('sa_session');
  }catch(e){
   console.warn('Cloud sync is not ready yet; keeping local data',e);
  }
