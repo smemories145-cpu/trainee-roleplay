@@ -473,6 +473,13 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 <style id="characterBioCodeEditor">
 /* ---------- Character HTML writer: shared style with thread composer ---------- */
 .ed-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--card);border-bottom:1px solid var(--line)}
+.ed-head-actions{display:flex;align-items:center;gap:8px;min-width:0}
+.ed-head-actions .btn{white-space:nowrap}
+.ed.html-source-mode .ed-area{font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);color:var(--txt);tab-size:2}
+.ed.html-source-mode .ed-bar{display:none!important}
+.topic-composer>.preview[data-preview-for]{margin:12px 18px;background:var(--card);color:var(--txt);overflow-wrap:anywhere}
+.topic-composer>.preview[data-preview-for]>.rich{background:transparent}
+.reply-composer>.reply-preview{margin:0 0 14px;background:var(--card);color:var(--txt);overflow-wrap:anywhere}
 .ed-title{display:block;font-size:.78rem;letter-spacing:.12em;font-weight:700;color:#d8c1ed}
 .char-bio-head>div{min-width:0}
 .char-bio-head small{display:block;margin-top:2px;font-size:.8rem;color:var(--mut);letter-spacing:0}
@@ -1122,7 +1129,7 @@ function applyCharacterProfileTemplate(button){
 function richEditor(name,val='',o={}){
  const id='ed'+(++EDN);
  return `<div class="ed" id="${id}" data-name="${name}" data-mode="rich" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
- <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><span class="ed-count"></span></div>
+ <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn sm ghost" data-editor-action="toggle-html" title="สลับระหว่างโหมดโค้ด HTML และโหมดจัดรูปแบบ">&lt;/&gt; โหมด HTML</button><span class="ed-count"></span></div></div>
  ${o.code&&canCode()?'<div class="announcement-tools"><label>📄 แบบประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" data-editor-action="announcement">＋ ใส่แบบประกาศ</button></div>':''}
  <div class="ed-bar">${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sanitize(val)}</div>
@@ -1217,16 +1224,46 @@ function ex(id,cmd,val=null){
  if(ed){edCount(ed);ed.querySelector('.ed-area')?.dispatchEvent(new Event('input',{bubbles:true}))}
 }
 const ins=(id,html)=>ex(id,'insertHTML',html);
+function setEditorSourceMode(ed,sourceMode){
+ const area=ed?.querySelector('.ed-area');if(!ed||!area)return;
+ const bar=ed.querySelector('.ed-bar'),toggle=ed.querySelector('[data-editor-action="toggle-html"]');
+ if(sourceMode){
+  if(area.dataset.htmlSource!=='1'){
+   const savedCode=area.querySelector('pre.html-source-block');
+   const html=savedCode?(savedCode.textContent||''):(area.innerHTML||'');
+   area.dataset.htmlSource='1';
+   area.textContent=html;
+  }
+  ed.classList.add('html-source-mode');
+  if(bar)bar.hidden=true;
+  if(toggle){toggle.textContent='👁 แก้ไขแบบแสดงผล';toggle.title='แสดงผล HTML แล้วจัดรูปแบบด้วยแถบเครื่องมือ';}
+ }else{
+  const savedCode=area.querySelector('pre.html-source-block');
+  const html=area.dataset.htmlSource==='1'?(area.textContent||''):(savedCode?(savedCode.textContent||''):(area.innerHTML||''));
+  area.innerHTML=sanitize(html);
+  delete area.dataset.htmlSource;
+  ed.classList.remove('html-source-mode');
+  if(bar)bar.hidden=false;
+  if(toggle){toggle.innerHTML='&lt;/&gt; โหมด HTML';toggle.title='สลับไปแก้ไขโค้ด HTML';}
+ }
+ area.dispatchEvent(new Event('input',{bubbles:true}));
+ edCount(ed);
+}
+function toggleEditorSource(button){
+ const ed=button?.closest('.ed'),area=ed?.querySelector('.ed-area');if(!area)return;
+ setEditorSourceMode(ed,area.dataset.htmlSource!=='1'||!!area.querySelector('pre.html-source-block'));
+}
 async function edInsertHTML(id){
  const ed=document.getElementById(id),area=ed?.querySelector('.ed-area');
  if(!area)return;
- const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรกได้เลย (เช่น <div>, <b>, <img>)\\nโค้ดจะแสดงเป็นข้อความในช่องเขียน และจะประมวลผลเฉพาะในพรีวิว/หลังโพสต์');
+ const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรกได้เลย (เช่น <div>, <b>, <img>)\\nโค้ดจะเป็นข้อความในโหมด HTML และจะแสดงผลเฉพาะในพรีวิว/หลังโพสต์');
  if(!snippet)return;
- area.focus();
- try{document.execCommand('insertHTML',false,'<pre class="html-source-block">'+esc(snippet)+'</pre><p><br></p>')}catch(err){const pre=document.createElement('pre');pre.className='html-source-block';pre.textContent=snippet;area.appendChild(pre)}
- area.removeAttribute('data-html-source');
+ if(area.dataset.htmlSource!=='1')setEditorSourceMode(ed,true);
+ const current=area.textContent||'';
+ area.textContent=(current.trim()?current+'\\n':'')+snippet;
  area.dispatchEvent(new Event('input',{bubbles:true}));
  edCount(ed);
+ area.focus();
 }
 async function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
 let EDITOR_IMAGE_FILE=null;
@@ -1311,10 +1348,13 @@ function insertPostAnnouncement(button){
  const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
  const x=skins[pick]||skins.official;
  const html='<div style="max-width:760px;margin:12px auto;padding:clamp(18px,5vw,36px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:20px;line-height:1.8;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:14px;letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:28px;color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:32px;line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:15px;color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:15px;color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
- area.removeAttribute('data-html-source');
- area.innerHTML='<pre class="html-source-block">'+esc(html)+'</pre>';
+ area.dataset.htmlSource='1';
+ area.textContent=html;
+ ed.classList.add('html-source-mode');
+ const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=true;
+ const toggle=ed.querySelector('[data-editor-action="toggle-html"]');if(toggle)toggle.textContent='👁 แก้ไขแบบแสดงผล';
  ed.dataset.mode='rich';
- edUI(ed);
+ edCount(ed);
  area.dispatchEvent(new Event('input',{bubbles:true}));
  edCount(ed);
  area.focus();
@@ -1330,7 +1370,19 @@ function insertPostAnnouncement(button){
  }
 }
 function edTab(id,t){const ed=document.getElementById(id);if(ed)edUI(ed)}
-function edUI(ed){if(!ed)return;const code=ed.querySelector('.char-bio-code');if(code){ed.dataset.mode='charcode';if(!code.dataset.countHook){code.dataset.countHook='1';code.addEventListener('input',()=>edCount(ed))}edCount(ed);return}ed.dataset.mode='rich';const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area');if(bar)bar.hidden=false;if(area)area.hidden=false;edCount(ed)}
+function edUI(ed){
+ if(!ed)return;
+ const code=ed.querySelector('.char-bio-code');
+ if(code){ed.dataset.mode='charcode';if(!code.dataset.countHook){code.dataset.countHook='1';code.addEventListener('input',()=>edCount(ed))}edCount(ed);return}
+ ed.dataset.mode='rich';
+ const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area'),toggle=ed.querySelector('[data-editor-action="toggle-html"]');
+ const sourceMode=area?.dataset.htmlSource==='1';
+ if(bar)bar.hidden=sourceMode;
+ if(area)area.hidden=false;
+ ed.classList.toggle('html-source-mode',sourceMode);
+ if(toggle){toggle.textContent=sourceMode?'👁 แก้ไขแบบแสดงผล':'</> โหมด HTML';toggle.title=sourceMode?'แสดงผล HTML แล้วจัดรูปแบบด้วยแถบเครื่องมือ':'สลับไปแก้ไขโค้ด HTML'}
+ edCount(ed);
+}
 function edParseInlineHTML(area){
  if(!area)return false;
  let changed=false;
@@ -1380,9 +1432,28 @@ const edOf=(f,name)=>f?.querySelector(`.ed[data-name="${name}"]`);
 function initEditors(){
  document.querySelectorAll('.ed:not([data-ok])').forEach(ed=>{
   ed.dataset.ok=1;const a=ed.querySelector('.ed-area'),dk=ed.dataset.draft?'sa_draft_'+ed.dataset.draft:'';
-  if(dk&&a&&!a.innerHTML.trim()){const d=store.getItem(dk);if(d){if(/^\s*<(?:div|h1|p|section)\b/i.test(d)&&/\/>|<\//.test(d)){a.innerHTML=sanitize(d)}else{a.innerHTML=sanitize(d)}setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300)}}
-  if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.dataset.htmlSource==='1'?a.textContent:a.innerHTML)});
-  if(a)a.addEventListener('paste',e=>{const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();document.execCommand('insertHTML',false,h?sanitize(h):esc(tx).replace(/\n/g,'<br>'))});
+  if(dk&&a&&!a.innerHTML.trim()){
+   const d=store.getItem(dk);
+   if(d){
+    const prefix='__STARLIGHT_HTML_SOURCE__\\n';
+    const oldAnnouncement=/^\\s*<div style="max-width:760px/i.test(d)&&/(?:OFFICIAL ANNOUNCEMENT|OFFICIAL NOTICE|NOTICE BOARD|COMMUNITY NOTICE)/i.test(d);
+    if(d.startsWith(prefix)){
+     a.dataset.htmlSource='1';a.textContent=d.slice(prefix.length);ed.classList.add('html-source-mode');
+    }else if(oldAnnouncement){
+     a.dataset.htmlSource='1';a.textContent=d;ed.classList.add('html-source-mode');
+    }else a.innerHTML=sanitize(d);
+    const isSource=a.dataset.htmlSource==='1';
+    const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=isSource;
+    const toggle=ed.querySelector('[data-editor-action="toggle-html"]');if(toggle&&isSource)toggle.textContent='👁 แก้ไขแบบแสดงผล';
+    setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300);
+   }
+  }
+  if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.dataset.htmlSource==='1'?'__STARLIGHT_HTML_SOURCE__\\n'+a.textContent:a.innerHTML)});
+  if(a)a.addEventListener('paste',e=>{
+   const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();
+   if(a.dataset.htmlSource==='1'){document.execCommand('insertText',false,tx||h);return}
+   document.execCommand('insertHTML',false,h?sanitize(h):esc(tx).replace(/\\n/g,'<br>'));
+  });
   ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
   a?.addEventListener('blur',()=>{if(a.dataset.htmlSource!=='1')edParseInlineHTML(a);saveSel();});
   ed.addEventListener('keydown',e=>{
@@ -1401,23 +1472,24 @@ function preview(target){
   const f=target?.matches?.('form')?target:target?.closest?.('form');
   if(!f){toast('ไม่พบแบบฟอร์มสำหรับพรีวิว','bad');return}
   const ed=f.querySelector('.ed[data-name="content"]')||f.querySelector('.ed');
-  const box=f.querySelector('.preview');
+  let box=f.querySelector('.reply-preview')||f.querySelector('.preview')||f.parentElement?.querySelector(':scope > .reply-preview');
   if(!box){toast('ไม่พบพื้นที่แสดงพรีวิว','bad');return}
+  if(f.id==='reply-composer'&&box.parentElement===f&&f.parentElement)f.parentElement.insertBefore(box,f);
   const result=edGet(ed);
   box.hidden=false;box.style.display='block';
   const content=result&&typeof result.content==='string'?result.content.trim():'';
   const t=DB.get('threads').find(x=>x.id===f.dataset.tid);
   box.innerHTML='<div class="mut">👁 พรีวิว (ยังไม่ได้โพสต์)</div><br>'+(content?renderBody(content,result.mode,t?.css):'<span class="mut">ยังไม่มีเนื้อหา — พิมพ์ข้อความหรือใส่แบบประกาศก่อนนะ</span>');
-  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  box.scrollIntoView({behavior:'smooth',block:'start'});
  }catch(err){
   console.error('Preview render failed:',err);
   const f=target?.matches?.('form')?target:target?.closest?.('form');
-  const box=f?.querySelector('.preview');
+  const box=f?.querySelector('.reply-preview')||f?.querySelector('.preview')||f?.parentElement?.querySelector(':scope > .reply-preview');
   if(box){box.hidden=false;box.style.display='block';box.innerHTML='<div class="mut">พรีวิวผิดพลาด: '+esc(err?.message||String(err))+'</div>'}
   toast('พรีวิวผิดพลาด กรุณาดูข้อความแจ้งเตือน','bad');
  }
 }
-window.preview=preview;
+window.preview=preview;window.preview=preview;
 function previewEditor(button,name){
  const f=button?.closest?.('form');
  if(!f)return;
@@ -2067,7 +2139,7 @@ function pageThread(id){
   }else{
    form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
     <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
-    <div class="preview topic-preview" hidden></div>
+    <div class="preview topic-preview reply-preview" hidden></div>
     <div class="topic-field-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
     <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
     ${isAdmin()?`<div class="topic-role-choice">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div>`:''}</div></div>
@@ -2823,6 +2895,11 @@ document.addEventListener('click',function(e){
  if(action==='announcement'){
   e.preventDefault();
   insertPostAnnouncement(button);
+  return;
+ }
+ if(action==='toggle-html'){
+  e.preventDefault();
+  toggleEditorSource(button);
   return;
  }
  if(action==='preview'){
