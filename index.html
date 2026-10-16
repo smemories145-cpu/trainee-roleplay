@@ -1786,6 +1786,7 @@ function doNewChar(e){
 function pageChar(id){
  const c=DB.get('characters').find(x=>x.id===id);if(!c)return app('<div class="card">ไม่พบตัวละคร</div>');
  const u=me(),owner=DB.get('users').find(x=>x.id===c.ownerId),isOwner=u?.id===c.ownerId;
+ const bioThread=c.bioThreadId?DB.get('threads').find(t=>t.id===c.bioThreadId&&t.characterBio===true&&t.forumId===CHARACTER_BIO_FORUM_ID&&t.authorId===c.ownerId):null;
  if(c.status!=='approved'&&!isOwner&&!isAdmin())return app('<div class="card">ตัวละครนี้ยังไม่เปิดเผย</div>');
  const next=STAGES[c.stage+1],pct=next?Math.min(100,c.exp/next.exp*100):100,threads=DB.get('threads'),s=ST[c.status],g=groupOf(c.id),cap=statCap(c.stage),items=DB.get('items');
  const posts=DB.get('posts').filter(p=>p.charId===id).sort((a,b)=>b.createdAt-a.createdAt);
@@ -1813,8 +1814,10 @@ function pageChar(id){
    <div>${sideCard(c,owner,posts.length)}</div>
    <div style="min-width:0">
     ${c.profileHtml?`<div class="card" style="margin-bottom:16px">${codeFrame(c.profileHtml)}</div>`:''}
-    <div class="card"><h3>🎯 ตำแหน่งที่ถนัด</h3><div class="row">${(c.positions||[]).map(p=>`<span class="badge" style="--c:var(--sec)">${esc(p)}</span>`).join('')}</div>
-     <h3>💭 นิสัย</h3>${renderBody(c.personality,c.bioMode)}<h3>📜 ประวัติ</h3>${renderBody(c.background,c.bioMode)}</div>
+    <div class="card character-profile-about"><h3 style="margin-top:0">🎯 ตำแหน่งที่ถนัด</h3><div class="row">${(c.positions||[]).map(p=>`<span class="badge" style="--c:var(--sec)">${esc(p)}</span>`).join('')}</div>
+     ${c.summary?`<div class="character-short-bio"><h3>✦ เกี่ยวกับตัวละคร</h3><p>${esc(c.summary).replace(/\r?\n/g,'<br>')}</p></div>`:''}
+     ${bioThread?`<div class="character-archive-link"><div><div class="bio-thread-eyebrow">CHARACTER ARCHIVE</div><h3>📖 ประวัติฉบับเต็ม</h3><p>อ่านเรื่องราวของ ${esc(c.stageName||c.name)} ในกระทู้ประวัติ แยกจากหน้าโปรไฟล์หลัก</p></div><a class="btn" href="#thread/${bioThread.id}">อ่านประวัติ ↗</a></div>`:((c.personality||c.background)?`<details class="character-legacy-bio"><summary>📖 ข้อมูลนิสัยและประวัติเดิม</summary><div><h4>💭 นิสัย</h4>${renderBody(c.personality,c.bioMode)}<h4>📜 ประวัติ</h4>${renderBody(c.background,c.bioMode)}</div></details>`:'')}
+    </div>
     <div class="card"><div class="row between"><h3 style="margin:0">💰 กระเป๋าเงิน</h3><span class="won" style="font-size:1.4rem">${wonFmt(c.won)}</span></div>
      ${isOwner&&c.status==='approved'?`<br><div class="row"><button class="btn sm ${sl>0?'ghost':''}" ${sl>0?'disabled':''} onclick="claimSalary('${c.id}')">💵 รับเงินเดือน ${wonFmt(salaryOf(c.stage))}</button><span class="mut">${sl>0?'รับได้อีกใน '+fmtLeft(sl):'พร้อมรับแล้ว!'}</span><a class="btn sm ghost" href="#shop">🛍 ไปร้านค้า</a></div>
      <form class="row" style="margin-top:12px" onsubmit="doTransfer(event,'${c.id}')"><select name="to" style="margin:0;flex:2;min-width:150px"><option value="">💸 โอนเงินให้...</option>${others}</select><input name="amt" type="number" min="1" placeholder="จำนวน ₩" style="margin:0;flex:1;min-width:100px"><input name="note" placeholder="บันทึก (ไม่บังคับ)" maxlength="60" style="margin:0;flex:2;min-width:130px"><button class="btn sm">โอน</button></form>`:''}
@@ -1918,8 +1921,14 @@ function pageEditChar(id){
  ${inv.length?`<div class="chk">${inv.map(x=>`<label><input type="checkbox" name="shinv" value="${x.id}" ${shownInv.has(x.id)?'checked':''}>${esc(x.it.name)} <span class="mut">(${esc(x.it.cat)})</span></label>`).join('')}</div>`:'<p class="mut">ยังไม่มีของ · <a href="#shop">ไปร้านค้า</a></p>'}
  <label>ใส่เอง (หัวข้อ + รูป)</label><div class="sc-list">${custom.map(s=>scRow(s.label,s.img)).join('')}</div>
  <button type="button" class="btn sm ghost" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend',scRow());this.form.dispatchEvent(new Event('input'))">+ เพิ่มกล่อง</button></div>
- ${full?`<div class="card"><label>นิสัย / บุคลิก</label>${characterBioEditor('personality',toRich(c.personality,c.bioMode))}<label>ประวัติ</label>${characterBioEditor('background',toRich(c.background,c.bioMode))}</div>`
-  :'<div class="card mut">ตัวละครได้รับอนุมัติแล้ว หากต้องการแก้ชื่อหรือประวัติให้ติดต่อแอดมิน</div>'}
+ <div class="card character-edit-bio">
+ <h3 style="margin-top:0">✦ คำแนะนำตัวแบบสั้น</h3><p class="mut" style="margin-top:-8px">แสดงบนหน้าโปรไฟล์หลัก ควรสั้น กระชับ และไม่เกิน 360 ตัวอักษร</p>
+ <textarea name="summary" rows="4" maxlength="360" placeholder="คำโปรย บุคลิกเด่น ความฝัน หรือสิ่งที่อยากให้คนอ่านรู้ก่อน">${esc(c.summary||'')}</textarea>
+ <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+ <label>📖 ลิงก์กระทู้ประวัติฉบับเต็ม</label><input name="bioThreadUrl" type="url" value="${esc(characterBioUrl(c.bioThreadId)||'')}" placeholder="https://smemories145-cpu.github.io/trainee-roleplay/#thread/...">
+ <small class="field-help">กระทู้ต้องอยู่ในคลังประวัติตัวละครและเป็นกระทู้ที่เจ้าของตัวละครสร้างเอง</small>
+ <button type="button" class="btn sm ghost" onclick="window.open(location.origin+location.pathname+'#forum/${CHARACTER_BIO_FORUM_ID}','_blank','noopener')">📚 เปิดคลังประวัติในแท็บใหม่ ↗</button>
+ </div>
   ${canCode()?`<div class="card profile-code-panel"><div class="row between"><label>💻 ตกแต่งหน้าโปรไฟล์ด้วย HTML (ไม่บังคับ)</label></div>
  <p class="field-help" style="margin:4px 0 10px">เลือกเทมเพลตสำเร็จรูปหรือวางโค้ดเองได้ ใช้สำหรับการ์ดตกแต่งที่จะแสดงบนหน้าโปรไฟล์ตัวละคร</p>
  <div class="profile-template-tools"><div><label>เทมเพลต</label><select class="profile-template-choice"><option value="lilac">Lavender · Starlight</option><option value="midnight">Midnight · Dark card</option><option value="editorial">Editorial · Magazine</option><option value="archive">Archive · Character file</option></select></div><button type="button" class="btn sm" onclick="applyCharacterProfileTemplate(this)">＋ ใช้เทมเพลตนี้</button></div>
@@ -1932,11 +1941,16 @@ function doEditChar(e,id){
  e.preventDefault();const f=e.target,E=f.elements,u=me(),c=DB.get('characters').find(x=>x.id===id);
  if(!c||(c.ownerId!==u?.id&&!isAdmin()))return;
  const side=collectSide(f);let pe,bg;
+ const bioUrl=E.bioThreadUrl?E.bioThreadUrl.value.trim():'';
+ const biography=bioUrl?getCharacterBioThreadFromUrl(bioUrl,c.ownerId):null;
+ if(bioUrl&&!biography)return toast('ลิงก์ประวัติต้องเป็นกระทู้ในคลังที่เจ้าของตัวละครสร้างเอง','bad');
  if(edOf(f,'personality')){pe=edGet(edOf(f,'personality')).content;bg=edGet(edOf(f,'background')).content;if(!pe||!bg)return toast('นิสัยและประวัติต้องไม่ว่าง','bad')}
  update('characters',id,o=>{Object.assign(o,side);
   if(E.name){o.name=E.name.value.trim();o.stageName=E.stageName.value.trim()}
   if(pe!==undefined){o.personality=pe;o.background=bg;o.bioMode='rich'}
   if(E.profileHtml)o.profileHtml=E.profileHtml.value;
+  if(E.summary)o.summary=E.summary.value.trim().slice(0,360);
+  if(E.bioThreadUrl)o.bioThreadId=biography?.id||'';
   if(o.status==='rejected'&&!isAdmin()){o.status='pending';o.reason=''}});
  toast('บันทึกแล้ว');go('char/'+id);
 }
@@ -2238,7 +2252,7 @@ function pageAdmin(tab,sub,sub2){
  if(tab==='pending'){
   body=chars.filter(c=>c.status==='pending').map(c=>`<div class="card"><div class="row">${avatar(c,64)}<div><h3 style="margin:0">${esc(c.name)} ${c.stageName?`(${esc(c.stageName)})`:''}</h3>
    <div class="mut">ผู้เล่น: ${uname(c.ownerId)} · ${c.age} ปี · ${esc(c.gender)} · ${esc(c.nationality)} · ${esc(agencyOf(c.agencyId)?.name||'ไม่สังกัด')}</div><div class="mut">ตำแหน่ง: ${(c.positions||[]).map(esc).join(', ')} · ${STATS.map(s=>`${s.e}${c.stats[s.k]}`).join(' ')}</div></div></div>
-   <h4>นิสัย</h4>${renderBody(c.personality,c.bioMode)}<h4>ประวัติ</h4>${renderBody(c.background,c.bioMode)}
+   <h4>คำแนะนำตัวแบบสั้น</h4>${c.summary?esc(c.summary):'<span class="mut">ไม่ได้ใส่คำแนะนำตัว</span>'}<h4>ประวัติฉบับเต็ม</h4>${c.bioThreadId?`<a class="btn sm ghost" href="#thread/${c.bioThreadId}">📖 เปิดกระทู้ประวัติ</a>`:'<span class="mut">ไม่พบลิงก์กระทู้ประวัติ</span>'}
    <div class="row"><button class="btn ok sm" onclick="approveChar('${c.id}')">✅ อนุมัติ</button><button class="btn bad sm" onclick="rejectChar('${c.id}')">❌ ไม่อนุมัติ</button><a class="btn sm ghost" href="#char/${c.id}">ดูโปรไฟล์</a></div></div>`).join('')||'<div class="card mut">ไม่มีตัวละครรออนุมัติ 🎉</div>';
  }else if(tab==='chars'){
   const a=chars.filter(c=>c.status==='approved').sort((x,y)=>y.stage-x.stage||y.exp-x.exp);
