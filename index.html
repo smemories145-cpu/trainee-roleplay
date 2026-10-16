@@ -1146,7 +1146,7 @@ function edCount(ed){
 function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
  const code=ed.querySelector('.char-bio-code');
- if(code){const clean=cleanCharacterBio(code.value),meaningful=textLen(clean,'rich')>0||/<(img|iframe|hr|table|div|h[1-6]|ul|ol|li|p)\\b/i.test(clean);return{mode:'rich',content:meaningful?clean:''}}
+ if(code){const clean=cleanCharacterBio(code.value),meaningful=textLen(clean,'rich')>0||/<(img|iframe|hr|table|div|h[1-6]|ul|ol|li|p)\b/i.test(clean);return{mode:'rich',content:meaningful?clean:''}}
  const area=ed.querySelector('.ed-area');
  if(!area)return{mode:'rich',content:''};
  let raw='';
