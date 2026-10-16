@@ -778,7 +778,7 @@ function pageHome(){
   return `<section class="cat-block"><div class="cat-header"><span class="home-cat-mark">✦</span>${esc(cat.name)}</div>`+sub.map(f=>{
    const ft=threads.filter(t=>t.forumId===f.id);
    const subList=forums.filter(sf=>sf.parentId===f.id);
-   const bgStyle=f.banner&&/^https?:\\/\\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
+   const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
    const lastTh=ft.sort((a,b)=>b.createdAt-a.createdAt)[0];
    const lastUser=lastTh?users.find(x=>x.id===lastTh.authorId):null;
    return `<div class="forum-pro-card">
