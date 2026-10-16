@@ -1027,7 +1027,8 @@ function pageThread(id){
   const info=p.gm?'📢 ประกาศจากผู้ดำเนินเรื่อง':`ผู้เล่น: <a href="#profile/${o?.id}"><b>${esc(o?.username||'-')}</b></a>${st?` · 🏋️ ฝึก${st.n} +${p.gain||0}`:''}${p.wonGain?` · 💰 +${wonFmt(p.wonGain)}`:''}`;
   const tools=`${fmt(p.createdAt)}${p.editedAt?' (แก้ไขแล้ว)':''}${canEdit?` · <a href="#editpost/${p.id}">แก้ไข</a>`:''}${isAdmin()?` · <a onclick="deletePost('${p.id}')">ลบ</a>`:''}`;
   return `<div class="card post ${p.gm?'gm':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
-   <div style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
+   <div class="post-content-column" style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
+   ${p.subject?`<h3 class="post-subject">${esc(p.subject)}</h3>`:''}
    ${renderBody(p.content,p.mode,t.css)}</div></div></div>`;
  };
  let form='';
@@ -1039,15 +1040,17 @@ function pageThread(id){
   if(!canChar&&!isAdmin()){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
-   form=`<form class="card" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
-    <div class="row between"><h3 style="margin:0">✍️ ตอบกระทู้</h3>
-    ${isAdmin()?`<div class="seg">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 GM</span></label></div>`:''}</div>
-    ${canChar?`<div class="as-card">${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<div class="mut" style="font-size:.8rem">กำลังโพสต์ในนามตัวละครนี้ · สลับได้ที่มุมขวาบน · 💰 ${wonFmt(ac.won)}</div></div></div>`:''}
-    ${train.length&&canChar?`<label>🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</label><div class="chk">${train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div>`:''}
-    ${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}
-    <div class="row between"><span class="mut">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</span>
-    <div class="row"><button type="button" class="btn ghost" data-editor-action="preview">👁 พรีวิว</button><button class="btn">📨 โพสต์</button></div></div>
-    <div class="preview" hidden></div></form>`;
+   form=`<form class="card reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
+    <div class="reply-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
+    <div class="reply-field-row"><div class="reply-field-label">ตอบกระทู้:</div><div class="reply-field-value"><a class="reply-thread-link" href="#thread/${t.id}">${esc(t.title)}</a><span class="reply-thread-badge">${esc(ty.n)}</span></div></div>
+    <div class="reply-field-row"><div class="reply-field-label">ชื่อผู้ใช้:</div><div class="reply-field-value"><div class="reply-identity">${canChar?`${avatar(ac,40)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
+    ${isAdmin()?`<div class="reply-role-choice">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div>`:''}</div></div>
+    <div class="reply-field-row"><label class="reply-field-label" for="replySubject">หัวข้อกระทู้:</label><div class="reply-field-value"><input id="replySubject" name="postSubject" class="reply-subject" maxlength="140" value="${esc('RE: '+t.title)}" aria-label="หัวข้อโพสต์ตอบกลับ"></div></div>
+    <div class="reply-field-row reply-message-row"><div class="reply-field-label">ข้อความของคุณ:</div><div class="reply-field-value">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}</div></div>
+    ${train.length&&canChar?`<div class="reply-field-row"><div class="reply-field-label">ตัวเลือกเพิ่มเติม:</div><div class="reply-field-value"><div class="reply-options-title">🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</div><div class="chk">${train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div></div></div>`:''}
+    <div class="reply-field-row"><div class="reply-field-label">รายละเอียดโพสต์:</div><div class="reply-field-value"><div class="reply-reward-line">🏅 +${t.exp} EXP <span>·</span> 💰 +${wonFmt(t.won)} ต่อโพสต์ <span>·</span> ขั้นต่ำ ${MIN_POST} ตัวอักษร</div><p class="reply-autosave-note">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</p></div></div>
+    <div class="reply-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">📨 ตอบกระทู้</button></div>
+    <div class="preview reply-preview" hidden></div></form>`;
   }
  }
  app(`${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}<br><br>
@@ -1068,7 +1071,7 @@ function doReply(e,tid){
  const {content,mode}=edGet(edOf(f,'content'));
  if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
  if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
- const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,createdAt:Date.now()};
+ const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),createdAt:Date.now()};
  if(isAdmin()&&E.as?.value==='gm'){posts.push({...base,charId:null,gm:true});DB.set('posts',posts);toast('โพสต์ในฐานะ GM แล้ว')}
  else{
   const ac=getActiveChar(u);if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
@@ -1088,8 +1091,9 @@ function pageEditPost(id){
  if(!p||!u||(p.userId!==u.id&&!isAdmin()))return go('home');
  const t=DB.get('threads').find(x=>x.id===p.threadId);
  app(`<a href="#thread/${p.threadId}">← กลับไปกระทู้</a><br><br>
- <form class="card" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')"><h3>✏️ แก้ไขโพสต์</h3>
-  ${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}
+ <form class="card reply-composer" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')"><div class="reply-composer-heading"><h2>✏️ แก้ไขโพสต์</h2><p>ปรับหัวข้อและข้อความตอบกลับ</p></div>
+  <div class="reply-field-row"><label class="reply-field-label" for="replySubjectEdit">หัวข้อกระทู้:</label><div class="reply-field-value"><input id="replySubjectEdit" name="postSubject" class="reply-subject" maxlength="140" value="${esc(p.subject||('RE: '+(t?.title||'')))}"></div></div>
+  <div class="reply-field-row reply-message-row"><div class="reply-field-label">ข้อความของคุณ:</div><div class="reply-field-value">${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}</div></div>
   <div class="row"><button type="button" class="btn ghost" data-editor-action="preview">👁 พรีวิว</button><button class="btn">💾 บันทึก</button></div>
   <div class="preview" hidden></div></form>`);
 }
@@ -1099,7 +1103,7 @@ function doEditPost(e,id){
  const {content,mode}=edGet(edOf(e.target,'content'));
  if(!content)return toast('เนื้อหาว่างอยู่','bad');
  if(!p.gm&&textLen(content,mode)<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร`,'bad');
- update('posts',id,x=>{x.content=content;x.mode=mode;x.editedAt=Date.now()});toast('แก้ไขโพสต์แล้ว');go('thread/'+p.threadId);
+ update('posts',id,x=>{x.content=content;x.mode=mode;x.subject=(e.target.elements.postSubject?.value||'').trim();x.editedAt=Date.now()});toast('แก้ไขโพสต์แล้ว');go('thread/'+p.threadId);
 }
 
 /* ================= CHARACTERS (NEW PROFILE LAYOUT) ================= */
