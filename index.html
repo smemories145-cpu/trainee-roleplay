@@ -839,10 +839,11 @@ function loadSettings(){
  const cs=document.getElementById('customCss');if(cs)cs.textContent=S.customCss||'';
  document.title=S.siteName;
 }
+function migrateSet(k,v){if(cloudReady&&!isAdmin()){store.setItem('sa_'+k,JSON.stringify(v));return}DB.set(k,v)}
 function migrate(){
  try{
-  const users=DB.get('users');users.forEach(u=>{if(!u.avatar)u.avatar=''});DB.set('users',users);
-  const forums=DB.get('forums');forums.forEach(f=>{if(!f.banner)f.banner='';if(!f.sub)f.sub=[]});DB.set('forums',forums);
+  const users=DB.get('users');users.forEach(u=>{if(!u.avatar)u.avatar=''});migrateSet('users',users);
+  const forums=DB.get('forums');forums.forEach(f=>{if(!f.banner)f.banner='';if(!f.sub)f.sub=[]});migrateSet('forums',forums);
   const cs=DB.get('characters');
   cs.forEach(c=>{
    if(!c.stats)c.stats=Object.fromEntries(STATS.map(s=>[s.k,STAT_BASE]));
@@ -851,21 +852,21 @@ function migrate(){
    if(!c.banner)c.banner='';
    if(!c.inv)c.inv=[];if(!c.ledger)c.ledger=[];if(!c.showcase)c.showcase=[];
   });
-  DB.set('characters',cs);
-  if(!DB.get('categories').length)DB.set('categories',DEFAULT_CATEGORIES);
-  if(!DB.get('forums').length)DB.set('forums',DEFAULT_FORUMS);
+  migrateSet('characters',cs);
+  if(!DB.get('categories').length)migrateSet('categories',DEFAULT_CATEGORIES);
+  if(!DB.get('forums').length)migrateSet('forums',DEFAULT_FORUMS);
 const bioCats=DB.get('categories');
 if(!bioCats.some(c=>c.id===CHARACTER_BIO_CATEGORY_ID)){
  bioCats.push({id:CHARACTER_BIO_CATEGORY_ID,name:'📚 ทำเนียบและประวัติตัวละคร',order:Math.max(0,...bioCats.map(c=>Number(c.order)||0))+1});
- if(!cloudReady||isAdmin())DB.set('categories',bioCats);else store.setItem('sa_categories',JSON.stringify(bioCats));
+ if(!cloudReady||isAdmin())migrateSet('categories',bioCats);else store.setItem('sa_categories',JSON.stringify(bioCats));
 }
 const bioForums=DB.get('forums');
 if(!bioForums.some(f=>f.id===CHARACTER_BIO_FORUM_ID)){
  bioForums.push({id:CHARACTER_BIO_FORUM_ID,catId:CHARACTER_BIO_CATEGORY_ID,name:'คลังประวัติตัวละคร',desc:'สร้างกระทู้เล่าเรื่องราวตัวละครฉบับเต็ม แล้วนำลิงก์มาแนบตอนลงทะเบียน',banner:'',order:Math.max(0,...bioForums.map(f=>Number(f.order)||0))+1});
- if(!cloudReady||isAdmin())DB.set('forums',bioForums);else store.setItem('sa_forums',JSON.stringify(bioForums));
+ if(!cloudReady||isAdmin())migrateSet('forums',bioForums);else store.setItem('sa_forums',JSON.stringify(bioForums));
 }
-  const th=DB.get('threads');th.forEach(t=>{if(!t.forumId)t.forumId='f_1';if(t.won===undefined)t.won=t.type==='notice'?0:300});DB.set('threads',th);
-  if(store.getItem('sa_items')===null)DB.set('items',[
+  const th=DB.get('threads');th.forEach(t=>{if(!t.forumId)t.forumId='f_1';if(t.won===undefined)t.won=t.type==='notice'?0:300});migrateSet('threads',th);
+  if(store.getItem('sa_items')===null)migrateSet('items',[
    {id:uid(),name:'ชุดซ้อมเต้นสีดำ',cat:'ชุดตัวละคร',price:5000,img:'',desc:'ชุดซ้อมมาตรฐานของเด็กฝึก',stock:-1},
    {id:uid(),name:'สร้อยเงินรูปดาว',cat:'เครื่องประดับ',price:12000,img:'',desc:'ของขวัญจากแฟนคลับคนแรก',stock:-1},
    {id:uid(),name:'ไมค์ทองคำ',cat:'สมบัติชิ้นเอก',price:50000,img:'',desc:'มีเพียง 3 ชิ้นในค่าย',stock:3}]);
