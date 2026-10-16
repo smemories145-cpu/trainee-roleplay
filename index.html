@@ -141,7 +141,7 @@ summary{cursor:pointer;font-weight:600}
 /* ---------- รูปข้างแบบยาว ---------- */
 .post-layout{display:grid;grid-template-columns:240px 1fr;gap:18px;align-items:start}
 .side{--ac:var(--pri);background:var(--card2);border:1px solid var(--line);border-radius:14px;overflow:hidden;position:sticky;top:72px}
-.side-por{position:relative;aspect-ratio:3/5;background:linear-gradient(160deg,var(--ac),var(--sec));overflow:hidden}
+.side-por{position:relative;aspect-ratio:3/5;min-height:420px;max-height:620px;background:linear-gradient(160deg,var(--ac),var(--sec));overflow:hidden}
 .side-por .ini{position:absolute;inset:0;display:grid;place-items:center;font-size:4.5rem;font-weight:600;color:#fff9}
 .side-por img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
 .side-por:hover img{transform:scale(1.05)}
@@ -416,6 +416,15 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 @media(max-width:600px){main{padding:12px 10px 48px}.thread-opening-post{padding:12px}.thread-opening-meta{align-items:flex-start}}
 </style>
 <style id="customCss"></style>
+<style id="threadReplyAndTallPortrait">
+.post-layout{grid-template-columns:minmax(230px,260px) minmax(0,1fr)}
+.side-por{aspect-ratio:2.35/5;min-height:460px;max-height:680px}
+.thread-page-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 12px}
+.thread-page-toolbar>div{min-width:0}
+.thread-reply-jump{white-space:nowrap;border-radius:999px;padding:9px 20px}
+#reply-composer{scroll-margin-top:100px}
+@media(max-width:820px){.post-layout,.post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:minmax(0,1fr)}.side-por{aspect-ratio:3/4;min-height:0;max-height:520px}.thread-page-toolbar{align-items:flex-start}.thread-reply-jump{margin-left:auto}}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
@@ -771,7 +780,7 @@ const agencyOf=id=>id?DB.get('agencies').find(a=>a.id===id):null;
 const groupOf=cid=>DB.get('groups').find(g=>g.status!=='disbanded'&&g.members.some(m=>m.charId===cid));
 const textLen=(s,mode)=>mode==='html'||mode==='rich'?String(s).replace(/<(style|script)[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim().length:String(s).length;
 const fmtLeft=ms=>`${Math.floor(ms/3600e3)} ชม. ${Math.ceil(ms%3600e3/60000)} นาที`;
-function canPost(c,t,u){return c&&u&&c.ownerId===u.id&&c.status==='approved'&&c.stage>=t.minStage&&c.stage<=t.maxStage&&(!t.agencyId||c.agencyId===t.agencyId)}
+function canPost(c,t,u){return c&&u&&(isAdmin()||c.ownerId===u.id)&&c.status==='approved'&&c.stage>=t.minStage&&c.stage<=t.maxStage&&(!t.agencyId||c.agencyId===t.agencyId)}
 function avatar(o,s=48){
  if(o?.avatar&&/^https?:\/\//.test(o.avatar))return `<img class="av" style="--s:${s}px" src="${esc(o.avatar)}" onerror="this.style.opacity=.15">`;
  return `<div class="av" style="--s:${s}px${o?.color?';background:'+esc(o.color):''}">${esc((o?.stageName||o?.name||o?.username||'?')[0])}</div>`;
@@ -1133,7 +1142,7 @@ addEventListener('hashchange',()=>{try{const h=location.hash.slice(1)||'home';if
 
 function getActiveChar(u){
  if(!u)return null;
- const chars=DB.get('characters').filter(c=>c.ownerId===u.id&&c.status==='approved');
+ const chars=DB.get('characters').filter(c=>(c.ownerId===u.id||u.role==='admin')&&c.status==='approved');
  if(!chars.length)return null;
  let c=chars.find(x=>x.id===store.getItem('sa_active_char_'+u.id));
  if(!c){c=chars[0];store.setItem('sa_active_char_'+u.id,c.id)}
@@ -1141,11 +1150,21 @@ function getActiveChar(u){
 }
 function setActiveChar(id){const u=me();if(!u)return;store.setItem('sa_active_char_'+u.id,id);toast('สลับตัวละครแล้ว 🎭');render()}
 
+function ensureKimAdminCharacter(u){
+ if(!u||u.role!=='admin')return;
+ const cs=DB.get('characters');
+ const kim=cs.find(c=>c.status==='approved'&&/kim\\s*hyunsuk|คิม\\s*ฮยอนซอก/i.test(`${c.stageName||''} ${c.name||''}`));
+ if(kim)return;
+ const id=uid();
+ cs.push({id,ownerId:u.id,name:'Kim Hyunsuk',stageName:'Kim Hyunsuk',age:26,gender:'ชาย',nationality:'เกาหลีใต้',positions:['ร้องนำ (Vocal)','เต้น (Dance)','วิชวล (Visual)'],avatar:'',banner:'',portrait:'',personality:'ตัวละครสำหรับใช้โรลเพลย์โดยแอดมิน',background:'Kim Hyunsuk',bioMode:'rich',agencyId:'',stats:Object.fromEntries(STATS.map(st=>[st.k,STAT_BASE])),won:START_WON,inv:[],ledger:[],showcase:[],profileHtml:'',status:'approved',reason:'',stage:STAGES.length-1,exp:STAGES[STAGES.length-1].exp,createdAt:Date.now(),adminPersona:'kim-hyunsuk'});
+ DB.set('characters',cs);
+}
 function renderNav(){
  const u=me(),pc=pendingCount();
+ if(u?.role==='admin')ensureKimAdminCharacter(u);
  let pill='';
  if(u){
-  const mine=DB.get('characters').filter(c=>c.ownerId===u.id&&c.status==='approved'),cur=getActiveChar(u);
+  const mine=DB.get('characters').filter(c=>(c.ownerId===u.id||u.role==='admin')&&c.status==='approved'),cur=getActiveChar(u);
   pill=mine.length?`<div class="me-pill" title="ตัวละครที่กำลังใช้">${avatar(cur,30)}<div><select onchange="setActiveChar(this.value)">${mine.map(c=>`<option value="${c.id}" ${c.id===cur?.id?'selected':''}>${esc(c.stageName||c.name)}</option>`).join('')}</select><div class="won" style="font-size:.72rem;line-height:1">💰 ${wonFmt(cur.won)}</div></div></div>`
    :`<a href="#newchar" class="badge" style="--c:var(--warn)">+ สร้างตัวละคร</a>`;
  }
@@ -1403,7 +1422,7 @@ function pageThread(id){
   if(!canChar&&!isAdmin()){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
-   form=`<form class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
+   form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
     <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
     <div class="topic-field-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
     <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
@@ -1416,7 +1435,7 @@ function pageThread(id){
     <div class="preview topic-preview" hidden></div></form>`;
   }
  }
-   app(`${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}<br><br>
+   app(`<div class="thread-page-toolbar"><div>${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}</div>${!closed&&u&&(t.type!=='notice'||isAdmin())?'<a class="btn thread-reply-jump" href="#reply-composer">✍️ ตอบกระทู้</a>':''}</div>
   <div class="card post thread-opening-post"><div class="post-layout">
    ${openingSide}
    <div class="post-content-column">
