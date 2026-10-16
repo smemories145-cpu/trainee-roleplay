@@ -17,24 +17,23 @@ The legacy site uses usernames instead of email addresses. The front end maps a 
 
 In Supabase, open **Authentication → Sign-in / Providers → Email** and disable email confirmation for this username-based setup. Users still sign in with their username and password on the website; they do not need to enter the synthetic address.
 
-## 3. Migrate the existing website data
+## 3. Bootstrap the first administrator
 
-**Do this on the browser/device that currently has the real site data in its local storage. Do not clear that browser's site data.**
+You do **not** need an existing admin ID. The project owner promotes the first account from SQL Editor.
 
-1. Open the published STARLIGHT ACADEMY site in that browser.
-2. Sign in with the existing site admin's username and password. The site checks the legacy local password hash and creates the matching Supabase Auth account on first sign-in.
-3. The first account's Supabase profile starts with the `player` role by design. In SQL Editor, promote the existing admin account, replacing `Admin` if the username is different:
+1. Use the browser/device that contains the original site's real data. **Do not clear its local storage.**
+2. On the website, register a Cloud account or sign in with an existing legacy admin account if you still have its credentials.
+3. If the cloud database is empty and there is no admin yet, the site displays a **Set up first admin** screen with a SQL command for the account you just authenticated. Copy it into Supabase SQL Editor and run it.
+4. Return to the website and reload. The signed-in account should now be recognized as admin, and the site imports the existing local snapshot only when the shared table is empty. Local password hashes are not imported.
+5. Keep a backup of the original local data until the migration is confirmed.
 
-   ```sql
-   update public.site_profiles
-   set role = 'admin'
-   where lower(username) = lower('Admin');
-   ```
+The first-admin SQL command is guarded so it only works while there is no admin and no cloud records. Do not promote accounts through public front-end code.
 
-4. Reload the website in that same browser. The site now detects the admin profile and imports the local snapshot only when the shared table is empty. The import excludes local password hashes.
-5. Open the site on the other device, sign in with the same username/password, and confirm the same characters, threads, posts, and balances appear.
+## 4. Sign in on other devices
 
-The import is intentionally blocked if cloud records already exist to prevent accidentally overwriting shared data. Keep a backup of the original local data until the first migration has been confirmed.
+Once the first admin has been established and the original data has migrated, open the website on the other device and register/sign in with the appropriate account. Legacy users who have not yet created a Supabase Auth identity need to sign in once on the browser where their legacy password is stored, or create a new Cloud account. Confirm the same characters, threads, posts, and balances appear before removing any old local data.
+
+The import is intentionally blocked if cloud records already exist to prevent accidentally overwriting shared data.
 
 ## 4. Important notes
 
