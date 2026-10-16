@@ -1552,7 +1552,7 @@ async function importData(inp){
 
 /* ================= ADMIN PANEL ================= */
 function pageAdmin(tab,sub,sub2){
- if(!isAdmin())return go('home');tab=tab||'pending';
+ if(!isAdmin()){app('<div class="card" style="max-width:620px;margin:32px auto"><h2>🔒 ต้องใช้บัญชีแอดมิน</h2><p>หน้า “สร้างกระทู้” อยู่ในแผงควบคุมแอดมิน แต่ระบบไม่พบสิทธิ์แอดมินของบัญชีที่กำลังใช้งาน จึงไม่พาเด้งกลับหน้าแรกเงียบ ๆ แล้ว</p><div class="row"><a class="btn" href="#login">เข้าสู่ระบบใหม่</a><a class="btn ghost" href="#home">กลับหน้าแรก</a></div></div>');return;}tab=tab||'pending';
  const users=DB.get('users'),chars=DB.get('characters'),ags=DB.get('agencies'),groups=DB.get('groups');
  const uname=id=>esc(users.find(u=>u.id===id)?.username||'-');
  const T=[['pending',`⏳ รออนุมัติ (${pendingCount()})`],['chars','🎭 ตัวละคร'],['newthread','🆕 สร้างกระทู้'],['forums','📂 ฟอรั่ม'],['shop','🛍 ร้านค้า'],['agencies','🏢 ค่ายเพลง'],['groups','🎤 วง'],['users','👥 สมาชิก'],['settings','⚙️ ตั้งค่า']];
