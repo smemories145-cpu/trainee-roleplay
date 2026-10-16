@@ -284,6 +284,21 @@ begin
 end;
 $$;
 
+create or replace function public.site_first_admin_needed()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $
+  select
+    not exists (select 1 from public.site_profiles where role = 'admin')
+    and not exists (select 1 from public.site_records);
+$;
+
+revoke all on function public.site_first_admin_needed() from public, anon;
+grant execute on function public.site_first_admin_needed() to authenticated;
+
 revoke all on function public.site_is_admin() from public, anon;
 grant execute on function public.site_is_admin() to authenticated;
 revoke all on function public.site_record_write(text,text,jsonb,boolean) from public, anon;
