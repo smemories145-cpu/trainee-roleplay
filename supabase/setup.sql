@@ -552,13 +552,13 @@ grant execute on function public.site_transfer(text,text,integer,text) to authen
 revoke all on function public.site_buy_item(text,text) from public, anon;
 grant execute on function public.site_buy_item(text,text) to authenticated;
 
-do $
+do $$
 begin
   if exists (select 1 from pg_publication where pubname='supabase_realtime')
     and not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='site_records') then
     execute 'alter publication supabase_realtime add table public.site_records';
   end if;
-end $;
+end $$;
 
 -- After the first account signs into STARLIGHT ACADEMY from the legacy device,
 -- promote the existing site owner once in SQL Editor. Replace Admin if needed:
