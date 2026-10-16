@@ -1048,10 +1048,10 @@ function doReply(e,tid){
   const ac=getActiveChar(u);if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
   const len=textLen(content,mode);if(len<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร (ตอนนี้ ${len})`,'bad');
   const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;let gain=0,capped=false;
-  const nc=update('characters',activeC.id,o=>{o.exp+=Number(t.exp)||0;
+  const nc=update('characters',ac.id,o=>{o.exp+=Number(t.exp)||0;
    if(tr){const cap=statCap(o.stage),b=o.stats[tr]||0;o.stats[tr]=Math.max(b,Math.min(cap,b+(Number(t.statGain)||0)));gain=o.stats[tr]-b;capped=b>=cap}});
-  const w=Number(t.won)||0;if(w)addWon(activeC.id,w,'โพสต์: '+t.title);
-  posts.push({...base,charId:activeC.id,gm:false,train:tr,gain,wonGain:w});DB.set('posts',posts);
+  const w=Number(t.won)||0;if(w)addWon(ac.id,w,'โพสต์: '+t.title);
+  posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w});DB.set('posts',posts);
   toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}${capped?' (ถึงเพดานขั้นนี้แล้ว)':''}${eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''}`);
  }
  store.removeItem('sa_draft_'+tid);
