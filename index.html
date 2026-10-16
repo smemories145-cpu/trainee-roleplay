@@ -857,12 +857,12 @@ function migrate(){
 const bioCats=DB.get('categories');
 if(!bioCats.some(c=>c.id===CHARACTER_BIO_CATEGORY_ID)){
  bioCats.push({id:CHARACTER_BIO_CATEGORY_ID,name:'📚 ทำเนียบและประวัติตัวละคร',order:Math.max(0,...bioCats.map(c=>Number(c.order)||0))+1});
- DB.set('categories',bioCats);
+ if(!cloudReady||isAdmin())DB.set('categories',bioCats);else store.setItem('sa_categories',JSON.stringify(bioCats));
 }
 const bioForums=DB.get('forums');
 if(!bioForums.some(f=>f.id===CHARACTER_BIO_FORUM_ID)){
  bioForums.push({id:CHARACTER_BIO_FORUM_ID,catId:CHARACTER_BIO_CATEGORY_ID,name:'คลังประวัติตัวละคร',desc:'สร้างกระทู้เล่าเรื่องราวตัวละครฉบับเต็ม แล้วนำลิงก์มาแนบตอนลงทะเบียน',banner:'',order:Math.max(0,...bioForums.map(f=>Number(f.order)||0))+1});
- DB.set('forums',bioForums);
+ if(!cloudReady||isAdmin())DB.set('forums',bioForums);else store.setItem('sa_forums',JSON.stringify(bioForums));
 }
   const th=DB.get('threads');th.forEach(t=>{if(!t.forumId)t.forumId='f_1';if(t.won===undefined)t.won=t.type==='notice'?0:300});DB.set('threads',th);
   if(store.getItem('sa_items')===null)DB.set('items',[
@@ -1328,7 +1328,7 @@ function gmSide(){
 
 /* ================= ROUTER ================= */
 const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
- chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
+ chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editbio:pageEditCharacterBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
  agencies:pageAgencies,agency:pageAgency,editagency:pageEditAgency,groups:pageGroups,group:pageGroup,editgroup:pageEditGroup,
  admin:pageAdmin,editthread:pageEditThread,newthreadtoforum:pageNewThreadToForum};
 let ROUTE=(()=>{try{return location.hash.slice(1)}catch(e){return ''}})()||'home';
@@ -1503,8 +1503,13 @@ async function doCreateCharacterBioThread(e){
  const th={id:uid(),authorId:u.id,authorCharId:getActiveChar(u)?.id||null,title,type:'bio',forumId:CHARACTER_BIO_FORUM_ID,
   exp:0,won:0,minStage:0,maxStage:STAGES.length-1,agencyId:'',train:[],statGain:0,plot:bio.content,plotMode:'rich',rules:'',rulesMode:'rich',
   css:'',tpl:'',deadline:'',pinned:false,status:'open',createdAt:Date.now(),characterBio:true};
- const threads=DB.get('threads');threads.push(th);DB.set('threads',threads);
- if(cloudReady)await cloudQueue;
+ if(cloudReady){
+  const {error}=await supaClient.rpc('site_create_character_bio_thread',{p_thread:th});
+  if(error)return toast('บันทึกกระทู้ไม่สำเร็จ: '+error.message+' · ผู้ดูแลอาจต้องอัปเดตฐานข้อมูลประวัติตัวละคร','bad');
+  await cloudRefresh(false);
+ }else{
+  const threads=DB.get('threads');threads.push(th);DB.set('threads',threads);
+ }
  toast('เผยแพร่กระทู้ประวัติแล้ว — คัดลอก URL มาแนบในใบสมัครตัวละครได้เลย');
  go('thread/'+th.id);
 }
@@ -1518,6 +1523,34 @@ function getCharacterBioThreadFromUrl(value,expectedOwnerId){
  const thread=DB.get('threads').find(t=>t.id===id);
  if(!thread||thread.characterBio!==true||thread.forumId!==CHARACTER_BIO_FORUM_ID||thread.authorId!==expectedOwnerId)return null;
  return thread;
+}
+
+function pageEditCharacterBioThread(id){
+ const u=me(),t=DB.get('threads').find(x=>x.id===id&&x.characterBio===true&&x.forumId===CHARACTER_BIO_FORUM_ID);
+ if(!u||!t||(!isAdmin()&&t.authorId!==u.id))return go('home');
+ app(`<div class="bio-thread-page"><a class="mut" href="#thread/${id}">← กลับกระทู้ประวัติ</a>
+  <header class="bio-thread-hero"><div class="bio-thread-eyebrow">CHARACTER ARCHIVE · EDIT</div><h1>แก้ไขกระทู้ประวัติ</h1><p>แก้ข้อความในกระทู้เดิมได้เลย ลิงก์ประวัติที่แนบไว้ในตัวละครจะยังใช้ได้เหมือนเดิม</p></header>
+  <form class="card topic-composer bio-thread-composer" onsubmit="doUpdateCharacterBioThread(event,'${id}')">
+   <div class="topic-composer-heading"><h2>✏️ แก้ไขแฟ้มประวัติ</h2><p>ชื่อกระทู้และเนื้อหาที่บันทึกจะอัปเดตในลิงก์เดิม</p></div>
+   <div class="topic-field-row"><label class="topic-field-label" for="bioThreadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="bioThreadTitle" name="title" required maxlength="120" class="topic-subject" value="${esc(t.title)}"></div></div>
+   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',toRich(t.plot,t.plotMode),{ph:'เขียน HTML ประวัติของตัวละคร...'})}</div></div>
+   <div class="topic-actions"><a class="btn ghost" href="#thread/${id}">ยกเลิก</a><button class="btn">💾 บันทึกประวัติ</button></div>
+  </form></div>`);
+}
+async function doUpdateCharacterBioThread(e,id){
+ e.preventDefault();const u=me(),f=e.target,E=f.elements,t=DB.get('threads').find(x=>x.id===id);
+ if(!u||!t||!t.characterBio||(!isAdmin()&&t.authorId!==u.id))return;
+ const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
+ if(title.length<3)return toast('กรุณาตั้งชื่อกระทู้ให้ชัดเจน','bad');
+ if(!bio.content||textLen(bio.content,'rich')<80)return toast('กรุณาเขียนประวัติอย่างน้อย 80 ตัวอักษร','bad');
+ if(cloudReady){
+  const {error}=await supaClient.rpc('site_update_character_bio_thread',{p_thread:{id,title,plot:bio.content,plotMode:'rich'}});
+  if(error)return toast('แก้ไขประวัติไม่สำเร็จ: '+error.message+' · ผู้ดูแลอาจต้องอัปเดตฐานข้อมูลประวัติตัวละคร','bad');
+  await cloudRefresh(false);
+ }else{
+  update('threads',id,x=>{x.title=title;x.plot=bio.content;x.plotMode='rich';x.updatedAt=Date.now()});
+ }
+ toast('บันทึกประวัติแล้ว');go('thread/'+id);
 }
 
 /* ================= PROFILE & SETTINGS ================= */
@@ -1704,6 +1737,7 @@ function pageThread(id){
     ${t.type!=='notice'?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
     <h3 class="thread-opening-story-title">📖 เนื้อเรื่อง</h3>
     ${renderBody(t.plot,t.plotMode,t.css)}
+    ${t.characterBio&&u&&(u.id===t.authorId||isAdmin())?`<br><div class="row"><a class="btn sm ghost" href="#editbio/${t.id}">✏️ แก้ไขประวัติ</a></div>`:''}
     ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
    </div>
   </div></div>
