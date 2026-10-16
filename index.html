@@ -1142,7 +1142,9 @@ addEventListener('hashchange',()=>{try{const h=location.hash.slice(1)||'home';if
 
 function getActiveChar(u){
  if(!u)return null;
- const chars=DB.get('characters').filter(c=>(c.ownerId===u.id||u.role==='admin')&&c.status==='approved');
+ // Use the authenticated cloud role when available; the cached app-user role may be stale.
+ const admin=isAdmin();
+ const chars=DB.get('characters').filter(c=>(c.ownerId===u.id||admin)&&c.status==='approved');
  if(!chars.length)return null;
  let c=chars.find(x=>x.id===store.getItem('sa_active_char_'+u.id));
  if(!c){c=chars[0];store.setItem('sa_active_char_'+u.id,c.id)}
@@ -1151,7 +1153,7 @@ function getActiveChar(u){
 function setActiveChar(id){const u=me();if(!u)return;store.setItem('sa_active_char_'+u.id,id);toast('สลับตัวละครแล้ว 🎭');render()}
 
 function ensureKimAdminCharacter(u){
- if(!u||u.role!=='admin')return;
+ if(!u||!isAdmin())return;
  const cs=DB.get('characters');
  let changed=false;
  // Make the specifically requested existing character available to the admin selector.
@@ -1166,11 +1168,11 @@ function ensureKimAdminCharacter(u){
  if(changed)DB.set('characters',cs);
 }
 function renderNav(){
- const u=me(),pc=pendingCount();
- if(u?.role==='admin')ensureKimAdminCharacter(u);
+ const u=me(),pc=pendingCount(),admin=!!u&&isAdmin();
+ if(admin)ensureKimAdminCharacter(u);
  let pill='';
  if(u){
-  const mine=DB.get('characters').filter(c=>(c.ownerId===u.id||u.role==='admin')&&c.status==='approved'),cur=getActiveChar(u);
+  const mine=DB.get('characters').filter(c=>(c.ownerId===u.id||admin)&&c.status==='approved'),cur=getActiveChar(u);
   pill=mine.length?`<div class="me-pill" title="ตัวละครที่กำลังใช้">${avatar(cur,30)}<div><select onchange="setActiveChar(this.value)">${mine.map(c=>`<option value="${c.id}" ${c.id===cur?.id?'selected':''}>${esc(c.stageName||c.name)}</option>`).join('')}</select><div class="won" style="font-size:.72rem;line-height:1">💰 ${wonFmt(cur.won)}</div></div></div>`
    :`<a href="#newchar" class="badge" style="--c:var(--warn)">+ สร้างตัวละคร</a>`;
  }
@@ -1179,7 +1181,7 @@ function renderNav(){
  <div class="links">
   <a href="#threads">ฟอรั่ม</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
-  ${u?.role==='admin'?`<a href="#admin">👑 แอดมิน ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
+  ${admin?`<a href="#admin">👑 แอดมิน ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
   ${u?`${pill}<a href="#profile/${u.id}" class="row" style="color:var(--txt);gap:6px">${avatar(u,30)}<span>${esc(u.username)}</span></a><a href="#settings" class="btn sm ghost" style="padding:4px 8px">⚙️</a><button class="btn sm ghost" onclick="logout()">ออก</button>`
      :'<a href="#login">เข้าสู่ระบบ</a><a href="#register" class="btn sm">สมัครสมาชิก</a>'}
  </div>`;
