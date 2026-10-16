@@ -398,6 +398,7 @@ const SUPABASE_PUBLISHABLE_KEY='sb_publishable_EQwQb-Yj2EBLqQNdzV5aSA_dv4Cp4Ma';
 const CLOUD_COLLECTIONS=['users','characters','posts','threads','forums','categories','settings','items','agencies','groups'];
 const CLOUD_AUTH_DOMAIN='starlight.invalid';
 let supaClient=null, cloudProfile=null, cloudReady=false, cloudApplying=false, cloudQueue=Promise.resolve(), cloudChannel=null;
+let cloudFirstAdminUsername=null;
 try{
  if(window.supabase&&typeof window.supabase.createClient==='function'){
   supaClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
@@ -491,6 +492,12 @@ async function cloudImportLocalSnapshot(){
  if(error)throw error;
  return data;
 }
+async function cloudFirstAdminNeeded(){
+ if(!supaClient)return false;
+ const {data,error}=await supaClient.rpc('site_first_admin_needed');
+ if(error)throw error;
+ return data===true;
+}
 async function cloudLoadForCurrentSession({allowImport=true}={}){
  const profile=await cloudGetProfile();
  if(!profile)throw new Error('ไม่พบโปรไฟล์ Cloud ของบัญชีนี้ กรุณาตรวจสอบว่าได้รัน supabase/setup.sql แล้ว');
@@ -504,9 +511,14 @@ async function cloudLoadForCurrentSession({allowImport=true}={}){
  if(rows.length){
   cloudApplyRows(rows,true);
   cloudReady=true;
+  cloudFirstAdminUsername=null;
   cloudSubscribe();
  }else{
   cloudReady=false;
+  if(profile.role!=='admin'){
+   try{cloudFirstAdminUsername=await cloudFirstAdminNeeded()?profile.username:null}
+   catch(e){console.warn('Unable to check initial admin state',e)}
+  }else cloudFirstAdminUsername=null;
  }
  return {profile,rows};
 }
@@ -532,10 +544,7 @@ async function cloudBootstrap(){
   const {data:{session},error}=await supaClient.auth.getSession();
   if(error)throw error;
   if(session){
-   const state=await cloudLoadForCurrentSession({allowImport:true});
-   if(!state.rows.length&&state.profile.role!=='admin'){
-    toast('บัญชี Cloud เชื่อมแล้ว แต่รอแอดมินนำเข้าข้อมูลเดิมของเว็บ','bad');
-   }
+   await cloudLoadForCurrentSession({allowImport:true});
    return;
   }
   // Public site content may be read without signing in; all writes still require Supabase Auth.
@@ -554,7 +563,7 @@ async function cloudCompleteAuth(authUser){
 }
 function cloudShowFirstAdminSetup(username){
  const safe=String(username||'').trim().replace(/'/g,"''");
- const sql="update public.site_profiles set role = 'admin' where lower(username) = lower('"+safe+"');";
+ const sql="update public.site_profiles set role = 'admin' where lower(username) = lower('"+safe+"') and not exists (select 1 from public.site_profiles where role = 'admin') and not exists (select 1 from public.site_records);";
  const title=esc(username||'บัญชีที่สมัคร');
  app(`<section class="card" style="max-width:850px;margin:28px auto;border-color:var(--pri)">
   <div style="font-size:2rem">👑</div>
@@ -1282,7 +1291,7 @@ async function doLogin(e){
    store.setItem('sa_session',profile.app_user_id);
    const needsAdminPromotion=!!(local&&local.role==='admin'&&profile.role!=='admin'&&!cloudReady);
    go('home');
-   if(needsAdminPromotion)cloudShowFirstAdminSetup(profile.username);
+   if(needsAdminPromotion||cloudFirstAdminUsername)cloudShowFirstAdminSetup(profile.username);
    else toast('ยินดีต้อนรับกลับ, '+profile.username);
   }catch(err){console.error(err);toast('เข้าสู่ระบบได้ แต่เชื่อมข้อมูล Cloud ไม่สำเร็จ: '+(err?.message||String(err)),'bad')}
   return;
@@ -2000,9 +2009,11 @@ document.addEventListener('click',function(e){
 
 /* ================= START ================= */
 async function startApp(){
- try{await cloudBootstrap();migrate();render()}
- catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
-if(store.temp)toast('โหมดพรีวิว: ข้อมูลจะหายเมื่อรีเฟรช — เปิดไฟล์ในเบราว์เซอร์โดยตรงเพื่อบันทึกถาวร','bad');
+ try{
+  await cloudBootstrap();migrate();render();
+  if(cloudFirstAdminUsername)cloudShowFirstAdminSetup(cloudFirstAdminUsername);
+ }catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
+ if(store.temp)toast('โหมดพรีวิว: ข้อมูลจะหายเมื่อรีเฟรช — เปิดไฟล์ในเบราว์เซอร์โดยตรงเพื่อบันทึกถาวร','bad');
 }
 startApp();
 </script>
