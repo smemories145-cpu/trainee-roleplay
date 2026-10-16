@@ -327,57 +327,33 @@ main{max-width:1380px}
   .post .post-top .mut{font-size:.78rem}
 }
 </style>
-<style id="replyComposerSkin">
-/* Classic forum-style reply form */
-.reply-composer.card{padding:0;overflow:hidden;background:#0b0b0c;border-color:#29292d;color:#f3f3f5}
-.reply-composer .reply-composer-heading{padding:18px 22px 14px;background:#080809;border-bottom:1px solid #29292d}
-.reply-composer .reply-composer-heading h2{margin:0;font-size:1.35rem;line-height:1.45;color:#f7f7f8}
-.reply-composer .reply-composer-heading p{margin:4px 0 0;color:#9c9ca5;font-size:.86rem}
-.reply-composer .reply-field-row{display:grid;grid-template-columns:minmax(170px,22%) minmax(0,1fr);gap:18px;padding:12px 18px;background:#121214;border-bottom:1px solid #29292d;align-items:start}
-.reply-composer .reply-field-label{display:block;padding-top:7px;color:#ececf0;font-size:.9rem;font-weight:600;line-height:1.6}
-.reply-composer .reply-field-value{min-width:0;color:#e6e6e9}
-.reply-composer .reply-thread-link{display:inline-block;font-weight:600;color:#f3f3f5;padding:5px 0}
-.reply-composer .reply-thread-badge{display:inline-block;margin-left:9px;padding:2px 8px;border:1px solid #45454d;border-radius:5px;color:#bebec8;font-size:.75rem}
-.reply-composer .reply-identity{display:flex;align-items:center;gap:11px;min-height:40px}
-.reply-composer .reply-identity>div{min-width:0}
-.reply-composer .reply-identity b{color:#f7f7f8}
-.reply-composer .reply-identity small{display:block;margin-top:2px;color:#a5a5ae;font-size:.78rem}
-.reply-composer .reply-role-choice{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-.reply-composer .reply-role-choice label{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#1c1c1f;border:1px solid #3a3a40;border-radius:7px;color:#dedee4;font-size:.84rem;cursor:pointer}
-.reply-composer .reply-role-choice input{width:auto;margin:0;accent-color:#8b7bff}
-.reply-composer .reply-subject{width:min(100%,520px);margin:0;padding:10px 12px;background:#171719;border:1px solid #35353b;border-radius:7px;color:#f5f5f6;font-size:.93rem}
-.reply-composer .reply-subject:focus{outline:2px solid #7a6be8;outline-offset:1px}
-.reply-composer .reply-message-row .reply-field-label{padding-top:4px}
-.reply-composer .reply-message-row .reply-field-value{width:100%;min-width:0}
-.reply-composer .ed{margin:0;background:#1b1b1e;border-color:#34343b;border-radius:8px}
-.reply-composer .ed-head{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#171719;border-bottom:1px solid #303036}
-.reply-composer .ed-title{font-size:.82rem;color:#c5c5cf}
-.reply-composer .ed-bar{position:relative;top:auto;background:#1d1d20;border-bottom:1px solid #34343b}
-.reply-composer .ed-bar button,.reply-composer .ed-bar select{color:#ededf1}
-.reply-composer .ed-area{min-height:310px;max-height:70vh;padding:17px;background:#202023;color:#f4f4f5;font-size:1rem;line-height:1.8}
-.reply-composer .ed-foot{background:#171719;border-top:1px solid #34343b;color:#aaaab4;font-size:.76rem}
-.reply-composer .announcement-tools{background:#171719;border-bottom:1px solid #34343b;padding:8px}
-.reply-composer .announcement-tools label{color:#d7d7dd}
-.reply-composer .announcement-tools select{max-width:100%;background:#202023;color:#f3f3f5;border-color:#3a3a40}
-.reply-composer .reply-options-title{margin:0 0 9px;font-weight:600;color:#e2e2e8}
-.reply-composer .chk{display:flex;gap:8px;flex-wrap:wrap}
-.reply-composer .chk label{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #36363d;border-radius:7px;background:#1b1b1e;color:#e2e2e8;cursor:pointer}
-.reply-composer .chk input{width:auto;margin:0;accent-color:#8b7bff}
-.reply-composer .reply-reward-line{font-size:.9rem;font-weight:600;color:#e8e8ec}
-.reply-composer .reply-reward-line span{color:#707079;margin:0 4px}
-.reply-composer .reply-autosave-note{margin:7px 0 0;color:#a3a3ad;font-size:.78rem}
-.reply-composer .reply-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:15px 20px;background:#0b0b0c;border-top:1px solid #29292d}
-.reply-composer .reply-actions .btn{min-width:130px}
-.reply-composer .reply-preview{margin:0 18px 18px;padding:14px;border:1px solid #45454d;border-radius:9px;background:#141416}
-.post .post-subject{margin:0 0 15px;padding:10px 13px;border-bottom:1px solid var(--line);font-size:1.05rem;line-height:1.5;color:var(--txt);overflow-wrap:anywhere}
+
+<style id="threadStarterAvatars">
+.thread-list-card{display:grid;grid-template-columns:180px minmax(0,1fr) 28px;gap:18px;align-items:center;text-decoration:none}
+.thread-list-starter{display:flex;align-items:center;gap:11px;min-width:0}
+.thread-list-starter>div{min-width:0;display:flex;flex-direction:column}
+.thread-list-starter b{overflow-wrap:anywhere;color:var(--txt)}
+.thread-list-starter small{font-size:.72rem;color:var(--mut);line-height:1.5}
+.thread-list-main{min-width:0}
+.thread-list-title{margin:0 0 6px;overflow-wrap:anywhere}
+.thread-list-summary{overflow-wrap:anywhere;line-height:1.6;margin-bottom:8px}
+.thread-list-meta{font-size:.76rem;color:var(--mut);gap:12px}
+.thread-list-arrow{font-size:1.4rem;color:var(--mut);text-align:center}
+.thread-list-card:hover .thread-list-arrow{color:var(--pri)}
+.forum-pro-last-thread{display:flex;align-items:center;gap:10px;min-width:0}
+.forum-pro-last-thread>div{min-width:0}
+.thread-opening-post{padding:14px 0 2px;border-top:1px solid var(--line);margin-top:16px}
+.thread-opening-author{display:flex;align-items:center;flex-wrap:wrap;gap:11px;margin-bottom:15px;padding:10px 12px;border-radius:10px;background:var(--card2)}
+.thread-opening-author>div{min-width:0;flex:1}
+.thread-opening-author b{overflow-wrap:anywhere}
+.reply-composer .ed{margin:0}
 @media(max-width:720px){
- .reply-composer .reply-field-row{grid-template-columns:minmax(0,1fr);gap:5px;padding:11px 12px}
- .reply-composer .reply-field-label{padding-top:0}
- .reply-composer .reply-composer-heading{padding:16px 14px}
- .reply-composer .ed-area{min-height:260px;padding:13px}
- .reply-composer .reply-actions{padding:12px;justify-content:stretch}
- .reply-composer .reply-actions .btn{flex:1;min-width:0}
- .reply-composer .reply-preview{margin:0 12px 12px}
+ .thread-list-card{grid-template-columns:minmax(0,1fr) 22px;gap:10px;padding:14px}
+ .thread-list-starter{grid-column:1/2;grid-row:1}
+ .thread-list-main{grid-column:1/2;grid-row:2}
+ .thread-list-arrow{grid-column:2;grid-row:1/3}
+ .thread-list-summary{font-size:.8rem}
+ .thread-list-meta{flex-direction:column;align-items:flex-start;gap:2px}
 }
 </style>
 <style id="customCss"></style>
@@ -1125,12 +1101,33 @@ function renderNav(){
  </div>`;
 }
 
+/* ================= THREAD LIST / STARTER AVATARS ================= */
+function threadStarterUser(t){
+ return DB.get('users').find(x=>x.id===t?.authorId)||null;
+}
+function threadItem(t){
+ const user=threadStarterUser(t),ty=TYPES[t.type]||TYPES.main;
+ const fo=DB.get('forums').find(x=>x.id===t.forumId);
+ const replies=DB.get('posts').filter(p=>p.threadId===t.id);
+ const last=replies.reduce((a,p)=>!a||p.createdAt>a.createdAt?p:a,null);
+ const lastUser=last?DB.get('users').find(x=>x.id===last.userId):user;
+ return `<a class="card item thread-list-card" href="#thread/${t.id}">
+  <div class="thread-list-starter">${avatar(user,54)}<div><b>${esc(user?.username||'สมาชิก')}</b><small>ผู้เปิดกระทู้</small><small>${fmt(t.createdAt)}</small></div></div>
+  <div class="thread-list-main">
+   <div class="row" style="gap:7px;margin-bottom:6px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${fo?`<span class="badge">${esc(fo.name)}</span>`:''}</div>
+   <h3 class="thread-list-title">${esc(t.title)}</h3>
+   <div class="mut thread-list-summary">${esc(String(t.plot||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim().slice(0,180))}</div>
+   <div class="row thread-list-meta"><span>💬 ${replies.length} ตอบกลับ</span><span>อัปเดต ${fmt(last?.createdAt||t.createdAt)} · ${esc(lastUser?.username||user?.username||'-')}</span></div>
+  </div>
+  <div class="thread-list-arrow">↗</div>
+ </a>`;
+}
 /* ================= HOME & FORUMS ================= */
 function pageHome(){
  const u=me(),threads=DB.get('threads'),posts=DB.get('posts'),users=DB.get('users'),cats=DB.get('categories'),forums=DB.get('forums');
  const recent=threads.map(t=>{const pl=posts.filter(p=>p.threadId===t.id);const last=pl.sort((a,b)=>b.createdAt-a.createdAt)[0];return{...t,cnt:pl.length,lastTime:last?last.createdAt:t.createdAt,lastUser:last?last.userId:t.authorId}}).sort((a,b)=>b.lastTime-a.lastTime).slice(0,6);
  const recentHtml=recent.length?recent.map(t=>{const ty=TYPES[t.type]||TYPES.main;return `<a class="home-recent item" href="#thread/${t.id}">
-   <span class="home-recent-icon">✦</span><div class="home-recent-main"><div class="home-recent-title"><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b></div><div class="mut home-recent-meta">อัปเดต ${fmt(t.lastTime)} · โดย ${esc(users.find(x=>x.id===t.lastUser)?.username||'-')}</div></div>
+   ${avatar(users.find(x=>x.id===t.authorId),40)}<div class="home-recent-main"><div class="home-recent-title"><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b></div><div class="mut home-recent-meta">อัปเดต ${fmt(t.lastTime)} · โดย ${esc(users.find(x=>x.id===t.lastUser)?.username||'-')}</div></div>
    <div class="home-replies"><b>${t.cnt}</b><span>ตอบกลับ</span></div></a>`}).join(''):'<div class="home-empty"><span>✧</span><b>ยังไม่มีกระทู้</b><p class="mut">เริ่มต้นบทสนทนาแรกของชุมชนได้เลย</p><a class="btn sm" href="#threads">ไปที่ฟอรั่ม</a></div>';
  const forumHtml=cats.map(cat=>{
   const sub=forums.filter(f=>f.catId===cat.id);if(!sub.length)return '';
@@ -1145,7 +1142,7 @@ function pageHome(){
     <div class="forum-pro-main"><h3 style="margin:0"><a href="#forum/${f.id}">${esc(f.name)}</a></h3><div class="mut" style="font-size:.85rem">${esc(f.desc||'')}</div>
     ${subList.length?`<div class="forum-sub-links">${subList.map(sf=>`<a class="forum-sub-badge" href="#forum/${sf.id}">· ${esc(sf.name)}</a>`).join('')}`:''}</div>
     <div class="forum-pro-stats"><div><b>${ft.length}</b>หัวข้อ</div><div><b>${posts.filter(p=>ft.some(t=>t.id===p.threadId)).length}</b>ตอบกลับ</div></div>
-    <div class="forum-pro-last">${lastTh?`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b><a href="#thread/${lastTh.id}">${esc(lastTh.title)}</a></b></div><div class="mut" style="font-size:.76rem">${fmt(lastTh.createdAt)} โดย ${esc(lastUser?.username||'-')}</div>`:'<span class="mut">ยังไม่มีกระทู้</span>'}</div>
+    <div class="forum-pro-last">${lastTh?`<div class="forum-pro-last-thread">${avatar(lastUser,34)}<div style="min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b><a href="#thread/${lastTh.id}">${esc(lastTh.title)}</a></b></div><div class="mut" style="font-size:.76rem">${fmt(lastTh.createdAt)} · เปิดโดย ${esc(lastUser?.username||'-')}</div></div></div>`:'<span class="mut">ยังไม่มีกระทู้</span>'}</div>
    </div>`;
   }).join('')+`</section>`;
  }).join('');
@@ -1344,24 +1341,31 @@ function pageThread(id){
   if(!canChar&&!isAdmin()){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
-   form=`<form class="card reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
-    <div class="reply-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
-    <div class="reply-field-row"><div class="reply-field-label">ตอบกระทู้:</div><div class="reply-field-value"><a class="reply-thread-link" href="#thread/${t.id}">${esc(t.title)}</a><span class="reply-thread-badge">${esc(ty.n)}</span></div></div>
-    <div class="reply-field-row"><div class="reply-field-label">ชื่อผู้ใช้:</div><div class="reply-field-value"><div class="reply-identity">${canChar?`${avatar(ac,40)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
-    ${isAdmin()?`<div class="reply-role-choice">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div>`:''}</div></div>
-    <div class="reply-field-row"><label class="reply-field-label" for="replySubject">หัวข้อกระทู้:</label><div class="reply-field-value"><input id="replySubject" name="postSubject" class="reply-subject" maxlength="140" value="${esc('RE: '+t.title)}" aria-label="หัวข้อโพสต์ตอบกลับ"></div></div>
-    <div class="reply-field-row reply-message-row"><div class="reply-field-label">ข้อความของคุณ:</div><div class="reply-field-value">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}</div></div>
-    ${train.length&&canChar?`<div class="reply-field-row"><div class="reply-field-label">ตัวเลือกเพิ่มเติม:</div><div class="reply-field-value"><div class="reply-options-title">🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</div><div class="chk">${train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div></div></div>`:''}
-    <div class="reply-field-row"><div class="reply-field-label">รายละเอียดโพสต์:</div><div class="reply-field-value"><div class="reply-reward-line">🏅 +${t.exp} EXP <span>·</span> 💰 +${wonFmt(t.won)} ต่อโพสต์ <span>·</span> ขั้นต่ำ ${MIN_POST} ตัวอักษร</div><p class="reply-autosave-note">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</p></div></div>
-    <div class="reply-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">📨 ตอบกระทู้</button></div>
-    <div class="preview reply-preview" hidden></div></form>`;
+   form=`<form class="card" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
+    <h3 style="margin-top:0">✍️ ตอบกลับโพสต์ใหม่</h3>
+    <label>ตอบกระทู้</label><div class="row" style="margin-bottom:10px"><a href="#thread/${t.id}" class="badge" style="--c:${ty.c}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div>
+    <label>ชื่อผู้ใช้ / ตัวละคร</label><div class="row" style="background:var(--card2);padding:10px 12px;border-radius:10px;margin:4px 0 14px">
+      ${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<div class="mut">บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</div></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><div class="mut">กำลังเขียนในนามบัญชีผู้ใช้</div></div>`}
+    </div>
+    ${isAdmin()?`<div class="row" style="margin-bottom:12px"><div class="seg">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div></div>`:''}
+    <label>หัวข้อโพสต์</label><input name="postSubject" maxlength="140" value="${esc('RE: '+t.title)}" aria-label="หัวข้อโพสต์ตอบกลับ">
+    ${train.length&&canChar?`<label>🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</label><div class="chk">${train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div>`:''}
+    <label>ข้อความของคุณ</label>${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}
+    <div class="row between" style="margin-top:12px"><span class="mut">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</span>
+     <div class="row"><button type="button" class="btn ghost" data-editor-action="preview">👁 พรีวิว</button><button class="btn">📨 ตอบกระทู้</button></div>
+    </div>
+    <div class="mut" style="margin-top:8px">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</div>
+    <div class="preview" hidden></div></form>`;
   }
  }
  app(`${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}<br><br>
  <div class="card"><div class="row">${t.pinned?'📌':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${closed?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}${ag?agencyBadge(ag.id):''}</div>
   <h2 style="margin:10px 0">${esc(t.title)}</h2>
   ${t.type!=='notice'?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
-  <h3>📖 เนื้อเรื่อง</h3>${renderBody(t.plot,t.plotMode,t.css)}
+  <div class="thread-opening-post">
+   <div class="thread-opening-author">${avatar(threadStarterUser(t),48)}<div><b>${esc(threadStarterUser(t)?.username||S.gmName||'ผู้ดำเนินเรื่อง')}</b><div class="mut">ผู้เปิดกระทู้ · ${fmt(t.createdAt)}</div></div><span class="badge" style="--c:${ty.c}">${ty.n}</span></div>
+   <h3>📖 เนื้อเรื่อง</h3>${renderBody(t.plot,t.plotMode,t.css)}
+  </div>
 
   ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
  </div>
@@ -1409,7 +1413,7 @@ function pageEditPost(id){
  if(!p||!u||(p.userId!==u.id&&!isAdmin()))return go('home');
  const t=DB.get('threads').find(x=>x.id===p.threadId);
  app(`<a href="#thread/${p.threadId}">← กลับไปกระทู้</a><br><br>
- <form class="card reply-composer" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')"><div class="reply-composer-heading"><h2>✏️ แก้ไขโพสต์</h2><p>ปรับหัวข้อและข้อความตอบกลับ</p></div>
+ <form class="card" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')"><h3 style="margin-top:0">✏️ แก้ไขโพสต์</h3>
   <div class="reply-field-row"><label class="reply-field-label" for="replySubjectEdit">หัวข้อกระทู้:</label><div class="reply-field-value"><input id="replySubjectEdit" name="postSubject" class="reply-subject" maxlength="140" value="${esc(p.subject||('RE: '+(t?.title||'')))}"></div></div>
   <div class="reply-field-row reply-message-row"><div class="reply-field-label">ข้อความของคุณ:</div><div class="reply-field-value">${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}</div></div>
   <div class="row"><button type="button" class="btn ghost" data-editor-action="preview">👁 พรีวิว</button><button class="btn">💾 บันทึก</button></div>
