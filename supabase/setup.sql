@@ -175,7 +175,19 @@ begin
         end if;
         v_stat_total := 0;
         foreach v_stat_key in array array['vocal','dance','rap','visual','acting','produce'] loop
-          if coalesce(v_new -> 'stats' ->> v_stat_key,'') !~ '^\d+
+          if coalesce(v_new -> 'stats' ->> v_stat_key,'') !~ '^[0-9]+$' then
+            raise exception 'Character stat allocation is invalid';
+          end if;
+          v_stat_value := (v_new -> 'stats' ->> v_stat_key)::integer;
+          if v_stat_value < 10 or v_stat_value > 30 then
+            raise exception 'Character stat values must be between 10 and 30';
+          end if;
+          v_stat_total := v_stat_total + v_stat_value;
+        end loop;
+        if v_stat_total <> 90 then
+          raise exception 'Character stat allocation must total 90 points';
+        end if;
+      else
         if v_old ->> 'ownerId' is distinct from v_profile.app_user_id then
           raise exception 'Cannot modify another user''s character';
         end if;
