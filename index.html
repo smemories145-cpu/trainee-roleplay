@@ -471,6 +471,18 @@ async function cloudGetProfile(){
  if(error)throw error;
  return data||null;
 }
+async function cloudPreflight(){
+ if(!supaClient)return false;
+ try{
+  const [profiles,records]=await Promise.all([
+   supaClient.from('site_profiles').select('auth_user_id').limit(1),
+   supaClient.from('site_records').select('record_id').limit(1)
+  ]);
+  const err=profiles.error||records.error;
+  if(err){toast('ต้องติดตั้งฐานข้อมูลก่อน: เปิด supabase/setup.sql ใน GitHub แล้วรันใน Supabase → SQL Editor ('+(err.message||'ตารางยังไม่พร้อม')+')','bad');return false}
+  return true;
+ }catch(err){toast('เชื่อม Supabase ไม่ได้: '+(err?.message||String(err)),'bad');return false}
+}
 async function cloudImportLocalSnapshot(){
  const snapshot={};
  for(const collection of CLOUD_COLLECTIONS){
@@ -663,7 +675,7 @@ async function hash(s){
  return 'f'+(h2>>>0).toString(16)+(h1>>>0).toString(16);
 }
 function me(){const id=store.getItem('sa_session');return DB.get('users').find(u=>u.id===id)}
-const isAdmin=()=>me()?.role==='admin';
+const isAdmin=()=>cloudProfile?cloudProfile.role==='admin':me()?.role==='admin';
 const canCode=()=>S.allowPlayerCode||isAdmin();
 function update(k,id,fn){const a=DB.get(k);const o=a.find(x=>x.id===id);if(o){fn(o);DB.set(k,a)}return o}
 function toast(m,t='ok'){const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.className='show '+(t==='bad'?'bad':'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='',3500)}
@@ -1194,6 +1206,22 @@ async function doRegister(e){
  if(pw!==E.pw2.value)return toast('รหัสผ่านไม่ตรงกัน','bad');
  const users=DB.get('users');
  if(users.some(u=>u.username.toLowerCase()===username.toLowerCase()))return toast('ชื่อนี้ถูกใช้แล้ว','bad');
+ if(supaClient){
+  if(!await cloudPreflight())return;
+  const user={id:uid(),username,pass:await hash(pw),avatar:'',role:'player',createdAt:Date.now()};
+  const {data,error}=await supaClient.auth.signUp({email:cloudAuthEmail(username),password:pw,options:{data:{app_user_id:user.id,username:user.username}}});
+  if(error)return toast('สมัครบัญชี Cloud ไม่สำเร็จ: '+error.message,'bad');
+  if(!data.session)return toast('สมัครแล้วแต่ยังไม่มี Session: ไปที่ Supabase → Authentication → Providers → Email แล้วปิด Confirm email จากนั้นลองสมัคร/เข้าสู่ระบบอีกครั้ง','bad');
+  try{
+   const profile=await cloudCompleteAuth(data.user);
+   user.id=profile.app_user_id;user.role=profile.role;
+   const list=DB.get('users');if(!list.some(x=>x.id===user.id)){list.push(user);DB.set('users',list)}
+   store.setItem('sa_session',user.id);
+   toast('สมัครบัญชี Cloud สำเร็จ');
+   go('newchar');
+  }catch(err){console.error(err);toast('บัญชี Auth สร้างแล้ว แต่เริ่มข้อมูล Cloud ไม่สำเร็จ: '+(err?.message||String(err)),'bad')}
+  return;
+ }
  const user={id:uid(),username,pass:await hash(pw),avatar:'',role:users.length?'player':'admin',createdAt:Date.now()};
  users.push(user);DB.set('users',users);store.setItem('sa_session',user.id);
  if(user.role==='admin'){seedData(user.id);toast('คุณเป็นแอดมินคนแรก 👑');go('admin/settings')}else{toast('สมัครสำเร็จ! มาลงทะเบียนตัวละครกันเลย');go('newchar')}
@@ -1209,19 +1237,51 @@ function pageLogin(){
   <p style="text-align:center"><button type="button" class="btn sm bad" onclick="emergencyResetAdmin()">🔑 ลืมรหัสผ่านแอดมิน / รีเซ็ตด่วน</button></p></form>`);
 }
 async function doLogin(e){
- e.preventDefault();const E=e.target.elements,h=await hash(E.pw.value);
- const u=DB.get('users').find(x=>x.username.toLowerCase()===E.username.value.trim().toLowerCase()&&x.pass===h);
+ e.preventDefault();const E=e.target.elements,username=E.username.value.trim(),pw=E.pw.value,h=await hash(pw);
+ const legacy=DB.get('users').find(x=>x.username.toLowerCase()===username.toLowerCase());
+ if(supaClient){
+  if(!await cloudPreflight())return;
+  let authData=null,authError=null;
+  const signed=await supaClient.auth.signInWithPassword({email:cloudAuthEmail(username),password:pw});
+  authData=signed.data;authError=signed.error;
+  if(authError){
+   if(!legacy||!legacy.pass||legacy.pass!==h)return toast('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง','bad');
+   const created=await supaClient.auth.signUp({email:cloudAuthEmail(username),password:pw,options:{data:{app_user_id:legacy.id,username:legacy.username}});
+   if(created.error)return toast('ยืนยันรหัสผ่านเดิมแล้ว แต่สร้างบัญชี Cloud ไม่สำเร็จ: '+created.error.message,'bad');
+   if(!created.data.session)return toast('บัญชี Cloud ถูกสร้างแล้วแต่ยังไม่ได้ Session: ปิด Confirm email ใน Supabase → Authentication → Providers → Email แล้วลองเข้าสู่ระบบอีกครั้ง','bad');
+   authData=created.data;authError=null;
+  }
+  try{
+   const profile=await cloudCompleteAuth(authData.user);
+   const list=DB.get('users'),idx=list.findIndex(x=>x.id===profile.app_user_id);
+   const local=idx>=0?list[idx]:legacy;
+   if(local){
+    const next={...local,id:profile.app_user_id,username:profile.username,role:profile.role};
+    if(idx>=0)list[idx]=next;else list.push(next);
+   }else list.push({id:profile.app_user_id,username:profile.username,pass:'',avatar:'',role:profile.role,createdAt:Date.now()});
+   DB.set('users',list);
+   store.setItem('sa_session',profile.app_user_id);
+   toast('ยินดีต้อนรับกลับ, '+profile.username);
+   go('home');
+  }catch(err){console.error(err);toast('เข้าสู่ระบบได้ แต่เชื่อมข้อมูล Cloud ไม่สำเร็จ: '+(err?.message||String(err)),'bad')}
+  return;
+ }
+ const u=DB.get('users').find(x=>x.username.toLowerCase()===username.toLowerCase()&&x.pass===h);
  if(!u)return toast('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง','bad');
  store.setItem('sa_session',u.id);toast('ยินดีต้อนรับกลับ, '+u.username);go('home');
 }
 async function emergencyResetAdmin(){
+ if(supaClient)return toast('เมื่อใช้ Cloud แล้ว ให้รีเซ็ตรหัสผ่านบัญชีผ่าน Supabase Dashboard → Authentication → Users เพื่อไม่ให้รหัสผ่านเว็บกับ Cloud ไม่ตรงกัน','bad');
  if(!await ask('รีเซ็ตรหัสผ่านของแอดมินคนแรกเป็น "admin1234" ใช่ไหม?'))return;
  const users=DB.get('users'),h=await hash('admin1234');let admin=users.find(u=>u.role==='admin');
  if(admin)admin.pass=h;else{admin={id:uid(),username:'Admin',pass:h,avatar:'',role:'admin',createdAt:Date.now()};users.push(admin)}
  DB.set('users',users);store.setItem('sa_session',admin.id);
  toast(`รีเซ็ตแล้ว! ชื่อผู้ใช้ "${admin.username}" รหัสผ่าน "admin1234"`);go('admin/settings');
 }
-function logout(){store.removeItem('sa_session');toast('ออกจากระบบแล้ว');go('home')}
+async function logout(){
+ if(supaClient)try{await supaClient.auth.signOut()}catch(e){console.warn('Cloud sign out failed',e)}
+ cloudProfile=null;cloudReady=false;store.removeItem('sa_session');toast('ออกจากระบบแล้ว');go('home')
+}
 function seedData(adminId){
  const th=DB.get('threads');
  th.push({id:uid(),authorId:adminId,title:'📜 กฎของบอร์ด (อ่านก่อนเล่น)',type:'notice',forumId:'f_1',pinned:true,exp:0,won:0,train:[],statGain:0,minStage:0,maxStage:STAGES.length-1,deadline:'',status:'open',agencyId:'',css:'',tpl:'',createdAt:Date.now(),
