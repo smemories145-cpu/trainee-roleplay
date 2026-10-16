@@ -1510,10 +1510,10 @@ function pageHome(){
    ${avatar(users.find(x=>x.id===t.authorId),40)}<div class="home-recent-main"><div class="home-recent-title"><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b></div><div class="mut home-recent-meta">อัปเดต ${fmt(t.lastTime)} · โดย ${esc(users.find(x=>x.id===t.lastUser)?.username||'-')}</div></div>
    <div class="home-replies"><b>${t.cnt}</b><span>ตอบกลับ</span></div></a>`}).join(''):'<div class="home-empty"><span>✧</span><b>ยังไม่มีกระทู้</b><p class="mut">เริ่มต้นบทสนทนาแรกของชุมชนได้เลย</p><a class="btn sm" href="#threads">ไปที่ฟอรั่ม</a></div>';
  const forumHtml=cats.map(cat=>{
-  const sub=forums.filter(f=>f.catId===cat.id);if(!sub.length)return '';
+  const sub=forums.filter(f=>f.catId===cat.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));if(!sub.length)return '';
   return `<section class="cat-block"><div class="cat-header"><span class="home-cat-mark">✦</span>${esc(cat.name)}</div>`+sub.map(f=>{
    const ft=threads.filter(t=>t.forumId===f.id);
-   const subList=forums.filter(sf=>sf.parentId===f.id);
+   const subList=forums.filter(sf=>sf.parentId===f.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
    const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
    const lastTh=ft.sort((a,b)=>b.createdAt-a.createdAt)[0];
    const lastUser=lastTh?users.find(x=>x.id===lastTh.authorId):null;
@@ -2367,30 +2367,103 @@ function pageEditThread(id){if(!isAdmin())return go('home');const t=DB.get('thre
 
 /* ================= ADMIN: FORUMS ================= */
 function forumsBody(){
- const cats=DB.get('categories'),forums=DB.get('forums');
- return `<div class="row between"><h3>📂 หมวดหมู่และซับฟอรั่ม</h3><button class="btn sm" onclick="addCat()">+ เพิ่มหมวดหมู่หลัก</button></div>`+cats.map(cat=>{const sub=forums.filter(f=>f.catId===cat.id);
-  return `<div class="card"><div class="row between"><h3 style="margin:0">${esc(cat.name)}</h3><div class="row"><button class="btn sm ghost" onclick="editCat('${cat.id}')">แก้ไข</button><button class="btn sm bad" onclick="deleteCat('${cat.id}')">ลบ</button></div></div><br>
-   ${sub.map(f=>`<div class="row between" style="background:var(--card2);padding:10px 14px;border-radius:10px;margin-bottom:8px;${f.banner?`background-image:linear-gradient(90deg,var(--card2) 50%,transparent),url('${esc(f.banner)}');background-size:cover;background-position:center`:''}"><div><b>${esc(f.name)}</b><div class="mut">${esc(f.desc||'')}</div></div>
-   <div class="row"><button class="btn sm ghost" onclick="editForum('${f.id}')">แก้ไข</button><button class="btn sm bad" onclick="deleteForum('${f.id}')">ลบ</button></div></div>`).join('')||'<p class="mut">ยังไม่มีซับฟอรั่ม</p>'}
-   <button class="btn sm ghost" onclick="addForum('${cat.id}')">+ เพิ่มซับฟอรั่ม</button></div>`}).join('');
+ const cats=DB.get('categories').sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const forums=DB.get('forums');
+ return `<div class="row between" style="gap:10px;flex-wrap:wrap"><div><h3>📂 หมวดหมู่และซับฟอรั่ม</h3><p class="mut" style="margin:0">เลื่อนลำดับด้วยปุ่มขึ้น/ลง และตั้งค่าครบในป๊อปอัป</p></div><div class="row"><button class="btn sm ghost" onclick="openCategoryEditor('')">＋ หมวดหมู่หลัก</button><button class="btn sm" onclick="openForumEditor('','${esc(cats[0]?.id||'')}')">＋ ฟอรั่มใหม่</button></div></div>`+
+ cats.map(cat=>{
+  const sub=forums.filter(f=>f.catId===cat.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+  return `<div class="card forum-manager-category"><div class="row between" style="gap:10px;flex-wrap:wrap"><div><span class="qu-modal-kicker">FORUM CATEGORY</span><h3 style="margin:3px 0 0">${esc(cat.name)}</h3></div><div class="row"><button class="btn sm ghost" onclick="openCategoryEditor('${esc(cat.id)}')">✏️ ตั้งค่าหมวด</button><button class="btn sm bad" onclick="deleteCat('${esc(cat.id)}')">ลบหมวด</button></div></div>
+   <div class="forum-manager-list">${sub.map((f,i)=>`<div class="forum-manager-row"><div class="forum-order-tools"><button type="button" class="btn sm ghost forum-order-btn" title="เลื่อนขึ้น" ${i===0?'disabled':''} onclick="moveForum('${esc(f.id)}',-1)">↑</button><span>${i+1}</span><button type="button" class="btn sm ghost forum-order-btn" title="เลื่อนลง" ${i===sub.length-1?'disabled':''} onclick="moveForum('${esc(f.id)}',1)">↓</button></div>
+    <div class="forum-manager-info">${f.banner&&/^https?:\/\//i.test(f.banner)?`<img src="${esc(f.banner)}" alt="" loading="lazy">`:'<span class="forum-manager-placeholder">📂</span>'}<div><b>${esc(f.name)}</b><small>${esc(f.desc||'ไม่มีคำอธิบาย')}</small><span class="mut">ลำดับ ${i+1}${f.parentId?' · ซับฟอรั่มย่อย':''}</span></div></div>
+    <div class="row forum-manager-actions"><button class="btn sm ghost" onclick="openForumEditor('${esc(f.id)}','${esc(cat.id)}')">⚙️ ตั้งค่า</button><button class="btn sm bad" onclick="deleteForum('${esc(f.id)}')">ลบ</button></div>
+   </div>`).join('')||'<div class="mut forum-manager-empty">ยังไม่มีฟอรั่มในหมวดนี้</div>'}</div>
+   <button class="btn sm ghost" style="margin-top:12px" onclick="openForumEditor('','${esc(cat.id)}')">＋ เพิ่มฟอรั่มในหมวดนี้</button></div>`;
+ }).join('');
 }
-async function addCat(){const n=await askText('ชื่อหมวดหมู่หลัก:');if(!n)return;const c=DB.get('categories');c.push({id:uid(),name:n.trim(),order:c.length+1});DB.set('categories',c);render()}
-async function editCat(id){const c=DB.get('categories').find(x=>x.id===id);const n=await askText('แก้ไขชื่อหมวดหมู่:',c.name);if(!n)return;update('categories',id,x=>x.name=n.trim());render()}
-async function deleteCat(id){if(!await ask('ลบหมวดหมู่นี้และซับฟอรั่มข้างใน?'))return;DB.set('categories',DB.get('categories').filter(c=>c.id!==id));DB.set('forums',DB.get('forums').filter(f=>f.catId!==id));render()}
-async function addForum(catId){
- const n=await askText('ชื่อซับฟอรั่ม:');if(!n)return;
- const d=await askText('คำอธิบายซับฟอรั่ม:','');
- const b=await askText('ลิงก์รูปภาพพื้นหลัง Banner (https://... หากไม่ใส่ปล่อยว่าง):','');
- const fs=DB.get('forums');fs.push({id:uid(),catId,name:n.trim(),desc:(d||'').trim(),banner:(b||'').trim(),order:fs.length+1});DB.set('forums',fs);render();
+function openCategoryEditor(id){
+ if(!isAdmin())return;
+ const cat=DB.get('categories').find(x=>x.id===id);
+ document.getElementById('quickUtilityModal')?.remove();
+ const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';
+ wrap.innerHTML=`<section class="qu-modal" role="dialog" aria-modal="true" aria-labelledby="quCategoryTitle">
+  <div class="qu-modal-head"><div><span class="qu-modal-kicker">CATEGORY SETTINGS</span><h2 id="quCategoryTitle">${cat?'✏️ แก้ไขหมวดหมู่':'＋ เพิ่มหมวดหมู่หลัก'}</h2><p>ตั้งชื่อและลำดับหมวดหมู่ของฟอรั่ม</p></div><button type="button" class="qu-modal-close" data-qu-close>×</button></div>
+  <form id="quCategoryForm"><label class="qu-field-label">ชื่อหมวดหมู่ *</label><input name="name" required maxlength="80" class="qu-input" value="${esc(cat?.name||'')}" placeholder="เช่น ห้องพูดคุยทั่วไป">
+   <label class="qu-field-label">ลำดับหมวดหมู่</label><input name="order" type="number" min="1" max="99" class="qu-input" value="${cat?.order||DB.get('categories').length+1}">
+   <div class="qu-modal-actions"><button type="button" class="btn ghost" data-qu-close>ยกเลิก</button><button class="btn">${cat?'บันทึกหมวดหมู่':'เพิ่มหมวดหมู่'}</button></div>
+  </form></section>`;
+ document.body.appendChild(wrap);
+ wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('[data-qu-close]'))wrap.remove()});
+ wrap.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const n=e.target.elements.name.value.trim();if(!n)return;
+  const cats=DB.get('categories');
+  if(cat){const target=cats.find(x=>x.id===cat.id);if(target){target.name=n;target.order=Math.max(1,+e.target.elements.order.value||1)}}else cats.push({id:uid(),name:n,order:Math.max(1,+e.target.elements.order.value||cats.length+1)});
+  cats.sort((a,b)=>(+a.order||9999)-(+b.order||9999)).forEach((x,i)=>x.order=i+1);
+  DB.set('categories',cats);wrap.remove();toast(cat?'แก้ไขหมวดหมู่แล้ว':'เพิ่มหมวดหมู่แล้ว');render();
+ });
 }
-async function editForum(id){
- const f=DB.get('forums').find(x=>x.id===id);if(!f)return;
- const n=await askText('ชื่อซับฟอรั่ม:',f.name);if(!n)return;
- const d=await askText('คำอธิบาย:',f.desc||'');
- const b=await askText('ลิงก์รูปภาพพื้นหลัง Banner (https://...):',f.banner||'');
- update('forums',id,x=>{x.name=n.trim();x.desc=(d||'').trim();x.banner=(b||'').trim()});render();
+function addCat(){openCategoryEditor('')}
+function editCat(id){openCategoryEditor(id)}
+async function deleteCat(id){if(!isAdmin()||!await ask('ลบหมวดหมู่นี้และซับฟอรั่มข้างใน?'))return;DB.set('categories',DB.get('categories').filter(c=>c.id!==id));DB.set('forums',DB.get('forums').filter(f=>f.catId!==id));render()}
+function openForumEditor(id,catId){
+ if(!isAdmin())return;
+ const forums=DB.get('forums'),cats=DB.get('categories'),f=forums.find(x=>x.id===id);
+ if(!catId)catId=f?.catId||cats[0]?.id||'';
+ const currentCat=f?.catId||catId;
+ const siblings=forums.filter(x=>x.catId===currentCat).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const position=f?Math.max(1,siblings.findIndex(x=>x.id===f.id)+1):siblings.length+1;
+ const catOpts=cats.map(cat=>`<option value="${esc(cat.id)}" ${currentCat===cat.id?'selected':''}>${esc(cat.name)}</option>`).join('');
+ const parentOpts=[`<option value="">ไม่มี · ฟอรั่มหลัก</option>`,...forums.filter(x=>x.id!==id&&x.catId===currentCat).map(x=>`<option value="${esc(x.id)}" ${(f?.parentId||'')===x.id?'selected':''}>${esc(x.name)}</option>`)].join('');
+ document.getElementById('quickUtilityModal')?.remove();
+ const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';
+ wrap.innerHTML=`<section class="qu-modal qu-forum-editor-modal" role="dialog" aria-modal="true" aria-labelledby="quForumEditorTitle">
+  <div class="qu-modal-head"><div><span class="qu-modal-kicker">FORUM STUDIO · SETTINGS</span><h2 id="quForumEditorTitle">${f?'⚙️ ตั้งค่าฟอรั่ม':'＋ สร้างฟอรั่มใหม่'}</h2><p>ตั้งค่าชื่อ คำอธิบาย ภาพปก หมวดหมู่ และตำแหน่งในหน้าต่างเดียว</p></div><button type="button" class="qu-modal-close" data-qu-close aria-label="ปิด">×</button></div>
+  <form id="quForumEditorForm">
+   <div class="qu-forum-form-grid"><div class="qu-form-wide"><label class="qu-field-label">ชื่อฟอรั่ม *</label><input class="qu-input" name="name" required maxlength="100" value="${esc(f?.name||'')}" placeholder="ตั้งชื่อฟอรั่ม"></div>
+    <div><label class="qu-field-label">หมวดหมู่ *</label><select class="qu-input" name="catId" required>${catOpts}</select></div>
+    <div><label class="qu-field-label">ลำดับในหมวด</label><input class="qu-input" name="order" type="number" min="1" max="999" value="${position}"></div>
+    <div class="qu-form-wide"><label class="qu-field-label">คำอธิบาย</label><textarea class="qu-input" name="desc" rows="2" maxlength="300" placeholder="อธิบายสั้น ๆ ว่าฟอรั่มนี้ไว้คุยเรื่องอะไร">${esc(f?.desc||'')}</textarea></div>
+    <div class="qu-form-wide"><label class="qu-field-label">ภาพปก / Banner URL</label><input class="qu-input" name="banner" type="url" value="${esc(f?.banner||'')}" placeholder="https://..."><small class="mut">ใช้ลิงก์ภาพโดยตรง หรือเว้นว่างถ้าไม่ใช้ภาพปก</small></div>
+    <div><label class="qu-field-label">การแสดงภาพ</label><select class="qu-input" name="bannerFit"><option value="cover" ${(f?.bannerFit||'cover')==='cover'?'selected':''}>เต็มกรอบ (Cover)</option><option value="contain" ${f?.bannerFit==='contain'?'selected':''}>เห็นทั้งภาพ (Contain)</option></select></div>
+    <div><label class="qu-field-label">ตำแหน่งภาพ</label><select class="qu-input" name="bannerPosition"><option value="center" ${(f?.bannerPosition||'center')==='center'?'selected':''}>กึ่งกลาง</option><option value="top" ${f?.bannerPosition==='top'?'selected':''}>ด้านบน</option><option value="bottom" ${f?.bannerPosition==='bottom'?'selected':''}>ด้านล่าง</option><option value="left" ${f?.bannerPosition==='left'?'selected':''}>ด้านซ้าย</option><option value="right" ${f?.bannerPosition==='right'?'selected':''}>ด้านขวา</option></select></div>
+    <div class="qu-form-wide"><label class="qu-field-label">ซับฟอรั่มใต้ฟอรั่มอื่น (ไม่บังคับ)</label><select class="qu-input" name="parentId">${parentOpts}</select><small class="mut">เลือกฟอรั่มแม่ หรือปล่อยเป็นฟอรั่มหลักก็ได้</small></div>
+   </div>
+   <div class="qu-modal-actions"><button type="button" class="btn ghost" data-qu-close>ยกเลิก</button><button class="btn">${f?'💾 บันทึกการตั้งค่า':'＋ สร้างฟอรั่ม'}</button></div>
+  </form>
+ </section>`;
+ document.body.appendChild(wrap);
+ wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('[data-qu-close]'))wrap.remove()});
+ const form=wrap.querySelector('#quForumEditorForm');
+ form.elements.catId.addEventListener('change',()=>{
+  const newCat=form.elements.catId.value,selected=form.elements.parentId.value;
+  const opts=[`<option value="">ไม่มี · ฟอรั่มหลัก</option>`,...DB.get('forums').filter(x=>x.id!==id&&x.catId===newCat).map(x=>`<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(x.name)}</option>`)].join('');
+  form.elements.parentId.innerHTML=opts;
+  const count=DB.get('forums').filter(x=>x.catId===newCat&&x.id!==id).length;
+  form.elements.order.max=String(count+1);if(+form.elements.order.value>count+1)form.elements.order.value=count+1;
+ });
+ form.addEventListener('submit',e=>{
+  e.preventDefault();const E=form.elements,name=E.name.value.trim(),desc=E.desc.value.trim(),banner=E.banner.value.trim(),newCat=E.catId.value;
+  if(name.length<2)return toast('ชื่อฟอรั่มต้องมีอย่างน้อย 2 ตัวอักษร','bad');
+  if(banner&&!/^https?:\/\//i.test(banner))return toast('URL ภาพปกต้องขึ้นต้นด้วย https:// หรือ http://','bad');
+  const all=DB.get('forums'),oldCat=f?.catId||newCat,item=f?{...f}:{id:uid(),catId:newCat,order:1};
+  Object.assign(item,{name,desc,banner,catId:newCat,parentId:E.parentId.value||'',bannerFit:E.bannerFit.value,bannerPosition:E.bannerPosition.value});
+  if(item.parentId===item.id)return toast('ฟอรั่มไม่สามารถเป็นฟอรั่มย่อยของตัวเองได้','bad');
+  if(!f)all.push(item);else{const ix=all.findIndex(x=>x.id===id);if(ix>=0)all[ix]=item}
+  const peers=all.filter(x=>x.catId===newCat&&x.id!==item.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+  const order=Math.max(1,Math.min(peers.length+1,+E.order.value||peers.length+1));peers.splice(order-1,0,item);peers.forEach((x,i)=>x.order=i+1);
+  if(oldCat!==newCat)all.filter(x=>x.catId===oldCat).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999)).forEach((x,i)=>x.order=i+1);
+  DB.set('forums',all);wrap.remove();toast(f?'บันทึกฟอรั่มแล้ว':'สร้างฟอรั่มแล้ว');render();
+ });
 }
-async function deleteForum(id){if(!await ask('ลบซับฟอรั่มนี้?'))return;DB.set('forums',DB.get('forums').filter(f=>f.id!==id));render()}
+async function addForum(catId){openForumEditor('',catId)}
+function editForum(id){const f=DB.get('forums').find(x=>x.id===id);if(f)openForumEditor(id,f.catId)}
+function moveForum(id,delta){
+ if(!isAdmin())return;
+ const forums=DB.get('forums'),f=forums.find(x=>x.id===id);if(!f)return;
+ const siblings=forums.filter(x=>x.catId===f.catId).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const from=siblings.findIndex(x=>x.id===id),to=from+delta;if(from<0||to<0||to>=siblings.length)return;
+ [siblings[from],siblings[to]]=[siblings[to],siblings[from]];siblings.forEach((x,i)=>x.order=i+1);
+ DB.set('forums',forums);toast('เปลี่ยนลำดับฟอรั่มแล้ว');render();
+}
+async function deleteForum(id){if(!isAdmin()||!await ask('ลบฟอรั่มนี้? กระทู้เก่าจะยังอยู่แต่ไม่แสดงในรายการฟอรั่ม'))return;DB.set('forums',DB.get('forums').filter(f=>f.id!==id));render()}
 
 /* ================= ADMIN: SETTINGS ================= */
 function settingsForm(){
