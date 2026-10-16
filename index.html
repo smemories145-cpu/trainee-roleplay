@@ -635,19 +635,18 @@ function insertPostAnnouncement(button){
  const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
  const x=skins[pick]||skins.official;
  const html='<div style="max-width:760px;margin:12px auto;padding:clamp(18px,5vw,36px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:20px;line-height:1.8;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:14px;letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:28px;color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:32px;line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:15px;color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:15px;color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
- try{
-  area.dataset.htmlSource='1';
-  area.textContent=html;
-  ed.dataset.mode='rich';
-  edUI(ed);
-  area.dispatchEvent(new Event('input',{bubbles:true}));
-  edCount(ed);
-  area.focus();
-  const range=document.createRange();range.selectNodeContents(area);range.collapse(false);
-  const sel=window.getSelection();if(sel){sel.removeAllRanges();sel.addRange(range)}
-  if(typeof saveSel==='function')saveSel();
-  toast('ใส่โค้ด HTML ของแบบประกาศแล้ว');
-  return false;
+ area.dataset.htmlSource='1';
+ area.textContent=html;
+ ed.dataset.mode='rich';
+ edUI(ed);
+ area.dispatchEvent(new Event('input',{bubbles:true}));
+ edCount(ed);
+ area.focus();
+ const range=document.createRange();range.selectNodeContents(area);range.collapse(false);
+ const sel=window.getSelection();if(sel){sel.removeAllRanges();sel.addRange(range)}
+ if(typeof saveSel==='function')saveSel();
+ toast('ใส่โค้ด HTML ของแบบประกาศแล้ว');
+ return false;
  }catch(err){
   console.error('insertPostAnnouncement failed',err);
   toast('ใส่แบบประกาศไม่สำเร็จ: '+(err?.message||String(err)),'bad');
