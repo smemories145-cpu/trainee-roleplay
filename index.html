@@ -388,9 +388,167 @@ main{max-width:1380px}
 <div id="toast"></div>
 <div id="dlg" hidden></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 window.onerror=(m,s,l)=>{const a=document.getElementById('app');if(a)a.innerHTML=`<div class="card" style="border-color:var(--bad)">⚠️ เกิดข้อผิดพลาด: ${String(m).replace(/</g,'&lt;')} (บรรทัด ${l})<br><br><button class="btn sm" onclick="localStorage.clear();location.reload()">ล้างข้อมูลและรีเซ็ตเว็บ</button></div>`};
 const store=(()=>{try{const s=window.localStorage;s.setItem('sa__t','1');s.removeItem('sa__t');return s}catch(e){const m={};return{temp:true,getItem:k=>k in m?m[k]:null,setItem:(k,v)=>{m[k]=String(v)},removeItem:k=>{delete m[k]}}}})();
+/* ================= CLOUD SYNC ================= */
+const SUPABASE_URL='https://pmsueityhjuvkaeviixi.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_EQwQb-Yj2EBLqQNdzV5aSA_dv4Cp4Ma';
+const CLOUD_COLLECTIONS=['users','characters','posts','threads','forums','categories','settings','items','agencies','groups'];
+const CLOUD_AUTH_DOMAIN='starlight.invalid';
+let supaClient=null, cloudProfile=null, cloudReady=false, cloudApplying=false, cloudQueue=Promise.resolve(), cloudChannel=null;
+try{
+ if(window.supabase&&typeof window.supabase.createClient==='function'){
+  supaClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ }
+}catch(e){console.error('Supabase client initialization failed',e)}
+function cloudAuthEmail(username){return String(username||'').trim().toLowerCase()+'@'+CLOUD_AUTH_DOMAIN}
+function cloudPublicPayload(collection,row){
+ if(collection!=='users'||!row||typeof row!=='object')return row;
+ const clean={...row};delete clean.pass;return clean;
+}
+function cloudParse(raw, fallback){
+ try{return raw===null?fallback:JSON.parse(raw)}catch(e){return fallback}
+}
+function cloudRowMap(collection,value){
+ if(collection==='settings')return new Map([['__singleton__',value||{}]]);
+ return new Map((Array.isArray(value)?value:[]).filter(x=>x&&x.id!=null).map(x=>[String(x.id),cloudPublicPayload(collection,x)]));
+}
+function cloudSyncCollection(collection,oldValue,newValue){
+ if(!supaClient||!cloudReady||cloudApplying||!CLOUD_COLLECTIONS.includes(collection))return;
+ const isObject=collection==='settings';
+ const oldMap=cloudRowMap(collection,oldValue),newMap=cloudRowMap(collection,newValue),ops=[];
+ for(const [id] of oldMap)if(!newMap.has(id))ops.push({p_collection:collection,p_record_id:id,p_payload:null,p_delete:true});
+ for(const [id,row] of newMap){
+  const old=oldMap.get(id);
+  if(JSON.stringify(old)!==JSON.stringify(row))ops.push({p_collection:collection,p_record_id:id,p_payload:row,p_delete:false});
+ }
+ if(!ops.length)return;
+ cloudQueue=cloudQueue.then(async()=>{
+  for(const args of ops){
+   if(!cloudReady)return;
+   const {error}=await supaClient.rpc('site_record_write',args);
+   if(error)throw error;
+  }
+ }).catch(err=>{
+  console.error('Cloud sync failed for '+collection,err);
+  toast('ซิงก์ข้อมูลไม่สำเร็จ: '+(err?.message||'ตรวจสอบสิทธิ์/ฐานข้อมูล'),'bad');
+ });
+}
+async function cloudFetchRows(){
+ const {data,error}=await supaClient.from('site_records').select('collection,record_id,payload');
+ if(error)throw error;
+ return data||[];
+}
+function cloudApplyRows(rows,preserveLocalPasswords=true){
+ const grouped=Object.fromEntries(CLOUD_COLLECTIONS.filter(k=>k!=='settings').map(k=>[k,[]]));
+ let settings=null;
+ for(const r of rows||[]){
+  if(r.collection==='settings'&&r.record_id==='__singleton__'){settings=r.payload;continue}
+  if(grouped[r.collection])grouped[r.collection].push(r.payload);
+ }
+ const oldUsers=cloudParse(store.getItem('sa_users'),[]);
+ const passById=new Map((Array.isArray(oldUsers)?oldUsers:[]).filter(u=>u&&u.id&&u.pass).map(u=>[String(u.id),u.pass]));
+ cloudApplying=true;
+ try{
+  for(const collection of CLOUD_COLLECTIONS){
+   if(collection==='settings'){
+    if(settings)store.setItem('sa_settings',JSON.stringify(settings));
+    continue;
+   }
+   let value=grouped[collection]||[];
+   if(collection==='users')value=value.map(u=>preserveLocalPasswords&&passById.has(String(u.id))?{...u,pass:passById.get(String(u.id))}:u);
+   store.setItem('sa_'+collection,JSON.stringify(value));
+  }
+ }finally{cloudApplying=false}
+}
+async function cloudGetProfile(){
+ const {data:{user},error:userError}=await supaClient.auth.getUser();
+ if(userError)throw userError;
+ if(!user)return null;
+ const {data,error}=await supaClient.from('site_profiles').select('auth_user_id,app_user_id,username,role').eq('auth_user_id',user.id).maybeSingle();
+ if(error)throw error;
+ return data||null;
+}
+async function cloudImportLocalSnapshot(){
+ const snapshot={};
+ for(const collection of CLOUD_COLLECTIONS){
+  const value=cloudParse(store.getItem('sa_'+collection),collection==='settings'?{}:[]);
+  snapshot[collection]=collection==='users'&&Array.isArray(value)?value.map(u=>cloudPublicPayload('users',u)):value;
+ }
+ const {data,error}=await supaClient.rpc('site_import_local_snapshot',{p_snapshot:snapshot});
+ if(error)throw error;
+ return data;
+}
+async function cloudLoadForCurrentSession({allowImport=true}={}){
+ const profile=await cloudGetProfile();
+ if(!profile)throw new Error('ไม่พบโปรไฟล์ Cloud ของบัญชีนี้ กรุณาตรวจสอบว่าได้รัน supabase/setup.sql แล้ว');
+ cloudProfile=profile;
+ store.setItem('sa_session',profile.app_user_id);
+ let rows=await cloudFetchRows();
+ if(rows.length===0&&allowImport&&profile.role==='admin'){
+  await cloudImportLocalSnapshot();
+  rows=await cloudFetchRows();
+ }
+ if(rows.length){
+  cloudApplyRows(rows,true);
+  cloudReady=true;
+  cloudSubscribe();
+ }else{
+  cloudReady=false;
+ }
+ return {profile,rows};
+}
+async function cloudRefresh(){
+ if(!supaClient||!cloudReady||cloudApplying)return;
+ try{
+  const rows=await cloudFetchRows();
+  if(!rows.length)return;
+  cloudApplyRows(rows,true);
+  const active=document.activeElement;
+  if(!active||!active.matches('input,textarea,select,[contenteditable="true"]'))render();
+ }catch(e){console.warn('Cloud refresh failed',e)}
+}
+function cloudSubscribe(){
+ if(!supaClient||cloudChannel)return;
+ cloudChannel=supaClient.channel('starlight-site-records')
+  .on('postgres_changes',{event:'*',schema:'public',table:'site_records'},()=>cloudRefresh())
+  .subscribe();
+}
+async function cloudBootstrap(){
+ if(!supaClient)return;
+ try{
+  const {data:{session},error}=await supaClient.auth.getSession();
+  if(error)throw error;
+  if(session){
+   const state=await cloudLoadForCurrentSession({allowImport:true});
+   if(!state.rows.length&&state.profile.role!=='admin'){
+    toast('บัญชี Cloud เชื่อมแล้ว แต่รอแอดมินนำเข้าข้อมูลเดิมของเว็บ','bad');
+   }
+   return;
+  }
+  // Public site content may be read without signing in; all writes still require Supabase Auth.
+  const rows=await cloudFetchRows();
+  if(rows.length){
+   cloudApplyRows(rows,true);
+   store.removeItem('sa_session');
+  }
+ }catch(e){
+  console.warn('Cloud sync is not ready yet; keeping local data',e);
+ }
+}
+async function cloudCompleteAuth(authUser){
+ const {profile,rows}=await cloudLoadForCurrentSession({allowImport:true});
+ if(!rows.length&&profile.role!=='admin'){
+  const legacy=DB.get('users').find(u=>u.id===profile.app_user_id);
+  if(legacy&&legacy.role==='admin'){
+   toast('ล็อกอิน Cloud แล้ว: เปิด SQL Editor แล้วรัน UPDATE public.site_profiles SET role = \'admin\' WHERE lower(username) = lower(\'Admin\'); จากนั้นรีโหลดเว็บ','bad');
+  }else toast('บัญชีเชื่อมแล้ว แต่รอแอดมินตั้งค่าฐานข้อมูลและนำเข้าข้อมูลเดิม','bad');
+ }
+ return profile;
+}
+
 
 /* ================= CONFIG ================= */
 const DEFAULT_STAGES=[
@@ -459,7 +617,10 @@ const BOXES={
 };
 
 /* ================= HELPERS ================= */
-const DB={get:(k,d=[])=>{try{const raw=store.getItem('sa_'+k);if(raw===null)return d;const value=JSON.parse(raw);if(value===null)return d;if(Array.isArray(d)&&!Array.isArray(value))return d;if(d&&typeof d==='object'&&!Array.isArray(d)&&(typeof value!=='object'||Array.isArray(value)))return d;return value}catch(e){console.warn('Invalid saved data:',k,e);return d}},set:(k,v)=>store.setItem('sa_'+k,JSON.stringify(v))};
+const DB={
+ get:(k,d=[])=>{try{const raw=store.getItem('sa_'+k);if(raw===null)return d;const value=JSON.parse(raw);if(value===null)return d;if(Array.isArray(d)&&!Array.isArray(value))return d;if(d&&typeof d==='object'&&!Array.isArray(d)&&(typeof value!=='object'||Array.isArray(value)))return d;return value}catch(e){console.warn('Invalid saved data:',k,e);return d}},
+ set:(k,v)=>{const oldValue=cloudParse(store.getItem('sa_'+k),k==='settings'?{}:[]);store.setItem('sa_'+k,JSON.stringify(v));cloudSyncCollection(k,oldValue,v)}
+};
 let S,STAGES;
 function loadSettings(){
  S={...DEFAULT_SETTINGS,...DB.get('settings',{})};
@@ -1722,8 +1883,12 @@ document.addEventListener('click',function(e){
 });
 
 /* ================= START ================= */
-try{migrate();render()}catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
+async function startApp(){
+ try{await cloudBootstrap();migrate();render()}
+ catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
 if(store.temp)toast('โหมดพรีวิว: ข้อมูลจะหายเมื่อรีเฟรช — เปิดไฟล์ในเบราว์เซอร์โดยตรงเพื่อบันทึกถาวร','bad');
+}
+startApp();
 </script>
 </body>
 </html>
