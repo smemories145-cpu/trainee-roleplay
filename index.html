@@ -552,6 +552,31 @@ async function cloudCompleteAuth(authUser){
  const {profile}=await cloudLoadForCurrentSession({allowImport:true});
  return profile;
 }
+function cloudShowFirstAdminSetup(username){
+ const safe=String(username||'').trim().replace(/'/g,"''");
+ const sql="update public.site_profiles set role = 'admin' where lower(username) = lower('"+safe+"');";
+ const title=esc(username||'บัญชีที่สมัคร');
+ app(`<section class="card" style="max-width:850px;margin:28px auto;border-color:var(--pri)">
+  <div style="font-size:2rem">👑</div>
+  <h2 style="margin:4px 0 10px">ตั้งค่าแอดมินคนแรก</h2>
+  <p>ยังไม่มีบัญชีแอดมินในฐานข้อมูล Cloud ไม่ต้องมี ID แอดมินเก่าก่อน — บัญชี <b>${title}</b> ที่เพิ่งสมัครจะเป็นแอดมินคนแรกได้หลังยืนยันใน SQL Editor</p>
+  <ol style="line-height:1.9;padding-left:22px">
+   <li>เปิด <a href="https://supabase.com/dashboard/project/pmsueityhjuvkaeviixi/sql/new" target="_blank" rel="noopener">Supabase → SQL Editor</a></li>
+   <li>วางคำสั่งด้านล่าง แล้วกด Run</li>
+   <li>กลับมาหน้านี้ กด “ตรวจสิทธิ์และโหลดข้อมูล”</li>
+  </ol>
+  <pre id="firstAdminSQL" style="white-space:pre-wrap;overflow-wrap:anywhere;background:var(--card2);padding:14px;border-radius:10px;border:1px solid var(--line);color:var(--txt)"></pre>
+  <div class="row"><button type="button" class="btn" onclick="copyFirstAdminSQL()">คัดลอกคำสั่ง SQL</button><button type="button" class="btn ghost" onclick="location.reload()">ตรวจสิทธิ์และโหลดข้อมูล</button></div>
+  <p class="mut" style="margin:14px 0 0">ทำขั้นตอนนี้บนอุปกรณ์ที่มีข้อมูลเดิมของ STARLIGHT ACADEMY อยู่ และอย่าล้างข้อมูลเบราว์เซอร์จนกว่าจะนำเข้าข้อมูลสำเร็จ</p>
+ </section>`);
+ const pre=document.getElementById('firstAdminSQL');if(pre)pre.textContent=sql;
+}
+async function copyFirstAdminSQL(){
+ const pre=document.getElementById('firstAdminSQL');if(!pre)return;
+ const sql=pre.textContent||'';
+ try{await navigator.clipboard.writeText(sql);toast('คัดลอกคำสั่ง SQL แล้ว')}
+ catch(e){window.prompt('คัดลอกคำสั่ง SQL นี้:',sql)}
+}
 
 
 /* ================= CONFIG ================= */
@@ -1210,7 +1235,7 @@ async function doRegister(e){
    const list=DB.get('users');if(!list.some(x=>x.id===user.id)){list.push(user);DB.set('users',list)}
    store.setItem('sa_session',user.id);
    go('newchar');
-   if(!cloudReady)toast('บัญชี Cloud ถูกสร้างแล้ว รอแอดมินนำเข้าข้อมูลเดิมของเว็บไซต์ก่อนใช้งานร่วมกัน','bad');
+   if(!cloudReady)cloudShowFirstAdminSetup(profile.username);
    else toast('สมัครบัญชี Cloud สำเร็จ');
   }catch(err){console.error(err);toast('บัญชี Auth สร้างแล้ว แต่เริ่มข้อมูล Cloud ไม่สำเร็จ: '+(err?.message||String(err)),'bad')}
   return;
@@ -1257,11 +1282,8 @@ async function doLogin(e){
    store.setItem('sa_session',profile.app_user_id);
    const needsAdminPromotion=!!(local&&local.role==='admin'&&profile.role!=='admin'&&!cloudReady);
    go('home');
-   if(needsAdminPromotion){
-    const safeName=String(profile.username||'Admin').replace(/'/g,"''");
-    const sql="UPDATE public.site_profiles SET role = 'admin' WHERE lower(username) = lower('"+safeName+"');";
-    toast('เปิด Supabase → SQL Editor แล้วรัน: '+sql+' จากนั้นรีโหลดเว็บ','bad');
-   }else toast('ยินดีต้อนรับกลับ, '+profile.username);
+   if(needsAdminPromotion)cloudShowFirstAdminSetup(profile.username);
+   else toast('ยินดีต้อนรับกลับ, '+profile.username);
   }catch(err){console.error(err);toast('เข้าสู่ระบบได้ แต่เชื่อมข้อมูล Cloud ไม่สำเร็จ: '+(err?.message||String(err)),'bad')}
   return;
  }
