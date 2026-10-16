@@ -1761,9 +1761,10 @@ function pageEditChar(id){
  <button type="button" class="btn sm ghost" onclick="this.previousElementSibling.insertAdjacentHTML('beforeend',scRow());this.form.dispatchEvent(new Event('input'))">+ เพิ่มกล่อง</button></div>
  ${full?`<div class="card"><label>นิสัย / บุคลิก</label>${richEditor('personality',toRich(c.personality,c.bioMode))}<label>ประวัติ</label>${richEditor('background',toRich(c.background,c.bioMode))}</div>`
   :'<div class="card mut">ตัวละครได้รับอนุมัติแล้ว หากต้องการแก้ชื่อหรือประวัติให้ติดต่อแอดมิน</div>'}
- ${canCode()?`<div class="card"><div class="row between"><label>💻 หน้าโปรไฟล์แบบโค้ดอิสระ (ไม่บังคับ)</label><button type="button" class="btn sm ghost" onclick="this.form.elements.profileHtml.value=SAMPLE_PROFILE">ใส่ตัวอย่างโปรไฟล์</button></div>
- <textarea name="profileHtml" rows="10" class="code">${esc(c.profileHtml||'')}</textarea>
- <button type="button" class="btn sm ghost" onclick="pvField(this.form,'profileHtml')">👁 พรีวิว</button><div class="preview" hidden></div></div>`:''}
+  ${canCode()?`<div class="card profile-code-panel"><div class="row between"><label>💻 หน้าโปรไฟล์แบบโค้ดอิสระ (ไม่บังคับ)</label><button type="button" class="btn sm ghost" onclick="this.form.elements.profileHtml.value=SAMPLE_PROFILE;this.form.elements.profileHtml.dispatchEvent(new Event('input',{bubbles:true}))">ใส่ตัวอย่างโปรไฟล์</button></div>
+ <p class="field-help" style="margin:4px 0 10px">วางโค้ด HTML สำหรับตกแต่งหน้าโปรไฟล์ ระบบจะแสดงผลในพรีวิวเมื่อกดปุ่มด้านล่าง</p>
+ <textarea name="profileHtml" rows="14" spellcheck="false" autocapitalize="off" autocomplete="off" class="code" placeholder="<div class=&quot;profile-container&quot;> ... </div>">${esc(c.profileHtml||'')}</textarea>
+ <div class="row between"><span class="mut" style="font-size:.78rem">รองรับ HTML · กดพรีวิวเพื่อตรวจดูก่อนบันทึก</span><button type="button" class="btn sm" onclick="pvField(this.form,'profileHtml')">👁 แสดงตัวอย่าง</button></div><div class="preview profile-code-preview" hidden></div></div>`:''}
  <button class="btn">💾 บันทึก</button></div>
  <div><div class="mut" style="text-align:center;margin-bottom:6px">👁 ตัวอย่างรูปข้าง</div><div class="side-pv">${sideCard(c,u,0)}</div></div></form></div>`);
 }
