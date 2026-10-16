@@ -573,19 +573,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Tab'&&e.target.classList?.co
 let EDN=0,SEL=null;
 try{document.execCommand('defaultParagraphSeparator',false,'p')}catch(e){}
 function richEditor(name,val='',o={}){
- const id='ed'+(++EDN),m=o.mode==='html'?'code':'rich';
- return `<div class="ed" id="${id}" data-name="${name}" data-mode="${m}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
- <div class="ed-tabs">
-  <button type="button" data-t="rich" onclick="edTab('${id}','rich')">✨ เขียนง่าย</button>
-  <button type="button" data-t="src" onclick="edTab('${id}','src')">&lt;/&gt; แก้ HTML</button>
-  ${o.code&&canCode()?`<button type="button" data-t="code" onclick="edTab('${id}','code')">💻 โค้ดอิสระ</button>`:''}
-  <span class="ed-count"></span></div>
- ${o.code&&canCode()?'<div class="announcement-tools"><label>📄 โค้ดประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" onclick="insertPostAnnouncement(this)">＋ ใส่แบบประกาศ</button><small>เลือกแบบ แล้วแก้ข้อความในแท็บโค้ดอิสระได้เลย</small></div>':''}
+ const id='ed'+(++EDN);
+ return `<div class="ed" id="${id}" data-name="${name}" data-mode="rich" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
+ <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><span class="ed-count"></span></div>
+ ${o.code&&canCode()?'<div class="announcement-tools"><label>📄 แบบประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" onclick="insertPostAnnouncement(this)">＋ ใส่แบบประกาศ</button></div>':''}
  <div class="ed-bar">${edBar(id)}</div>
- <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... เลือกข้อความแล้วกดปุ่มด้านบนเพื่อแต่ง ✨')}">${m==='rich'?sanitize(val):''}</div>
- <textarea class="ed-src code" rows="12" spellcheck="false"></textarea>
- <textarea class="ed-code code" rows="14" spellcheck="false" placeholder="<style>...</style>&#10;<div>...</div>">${m==='code'?esc(val):''}</textarea>
- <div class="ed-foot"><span class="ed-hint"></span><span>Ctrl+Enter = ส่ง</span></div></div>`;
+ <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sanitize(val)}</div>
+ <div class="ed-foot"><span class="ed-hint">💡 พิมพ์ข้อความและแทรก HTML ในช่องเดียวกันได้ · โค้ดจะถูกกรองเพื่อความปลอดภัย</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function edBar(id){
  const b=(t,cmd,lbl,val)=>`<button type="button" title="${t}" onmousedown="event.preventDefault()" onclick="ex('${id}','${cmd}'${val?`,'${val}'`:''})">${lbl}</button>`;
@@ -640,27 +634,8 @@ function insertPostAnnouncement(button){
  if(area.innerHTML.trim()&&!confirm('แทนที่เนื้อหาที่เขียนอยู่ด้วยแบบประกาศนี้หรือไม่?'))return;
  area.innerHTML=sanitize(html);ed.dataset.mode='rich';edUI(ed);area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);toast('ใส่แบบประกาศในช่องเขียนง่ายแล้ว ✦ แก้ข้อความในวงเล็บเหลี่ยมได้เลย');
 }
-function edTab(id,t){
- const ed=document.getElementById(id);if(!ed)return;
- const a=ed.querySelector('.ed-area'),s=ed.querySelector('.ed-src'),c=ed.querySelector('.ed-code'),cur=ed.dataset.mode;
- if(cur===t)return;
- if(cur==='rich'&&t==='src')s.value=fmtHtml(a.innerHTML);
- if(cur==='src'&&t==='rich')a.innerHTML=sanitize(s.value);
- if(t==='code'&&c&&!c.value.trim()&&ed.dataset.tpl)c.value=ed.dataset.tpl;
- ed.dataset.mode=t;edUI(ed);
-}
-function edUI(ed){
- const t=ed.dataset.mode;
- ed.querySelectorAll('.ed-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
- const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area'),src=ed.querySelector('.ed-src'),code=ed.querySelector('.ed-code');
- if(bar)bar.hidden=t!=='rich';
- if(area)area.hidden=t!=='rich';
- if(src)src.hidden=t!=='src';
- if(code)code.hidden=t!=='code';
- const hint=ed.querySelector('.ed-hint');
- if(hint)hint.textContent={rich:'💡 เลือกข้อความแล้วกดปุ่ม · วางรูป/ข้อความจากที่อื่นได้เลย',src:'แก้โค้ด HTML ได้โดยตรง (ไม่รองรับ <script>)',code:'โค้ดอิสระ: ใส่ <style> และ <script> ได้ · CSS ของกระทู้ใส่ให้อัตโนมัติ'}[t];
- edCount(ed);
-}
+function edTab(id,t){const ed=document.getElementById(id);if(ed)edUI(ed)}
+function edUI(ed){if(!ed)return;ed.dataset.mode='rich';const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area');if(bar)bar.hidden=false;if(area)area.hidden=false;edCount(ed)}
 function edParseInlineHTML(area){
  if(!area)return false;
  let changed=false;
@@ -686,10 +661,8 @@ function edCount(ed){
 }
 function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
- const t=ed.dataset.mode;
- if(t==='code')return{mode:'html',content:ed.querySelector('.ed-code')?.value.trim()||''};
- const clean=sanitize(t==='src'?ed.querySelector('.ed-src')?.value||'':ed.querySelector('.ed-area')?.innerHTML||'').trim();
- return{mode:'rich',content:textLen(clean,'rich')||/<(img|iframe|hr)/i.test(clean)?clean:''};
+ const clean=sanitize(ed.querySelector('.ed-area')?.innerHTML||'').trim();
+ return{mode:'rich',content:textLen(clean,'rich')||/<(img|iframe|hr|table|div)/i.test(clean)?clean:''};
 }
 const edOf=(f,name)=>f?.querySelector(`.ed[data-name="${name}"]`);
 function initEditors(){
@@ -697,7 +670,6 @@ function initEditors(){
   ed.dataset.ok=1;const a=ed.querySelector('.ed-area'),dk=ed.dataset.draft?'sa_draft_'+ed.dataset.draft:'';
   if(dk&&a&&!a.innerHTML.trim()){const d=store.getItem(dk);if(d){a.innerHTML=sanitize(d);setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300)}}
   if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.innerHTML)});
-  ed.querySelectorAll('textarea').forEach(x=>x.addEventListener('input',()=>edCount(ed)));
   if(a)a.addEventListener('paste',e=>{const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();document.execCommand('insertHTML',false,h?sanitize(h):esc(tx).replace(/\n/g,'<br>'))});
   ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
   a?.addEventListener('blur',()=>{edParseInlineHTML(a);saveSel();});
