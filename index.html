@@ -627,7 +627,7 @@ async function edInsertHTML(id){
  area.dispatchEvent(new Event('input',{bubbles:true}));
  edCount(ed);
 }
-function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
+async function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
 async function edImg(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์รูปภาพ (https://...)\n\n💡 อัปรูปฟรีที่ postimages.org หรือ imgur.com\nแล้วคัดลอก "Direct link" มาวาง','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;ins(id,`<img src="${esc(u)}" style="max-width:100%;border-radius:8px"><p><br></p>`)}
 async function edYT(id){saveSel();const r=SEL;const u=await askText('วางลิงก์ YouTube','');SEL=r;if(!u)return;const m=u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);if(!m)return toast('ลิงก์ YouTube ไม่ถูกต้อง','bad');ins(id,`<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}" width="100%" height="315" allowfullscreen frameborder="0"></iframe><p><br></p>`)}
 async function edSpoiler(id){saveSel();const r=SEL;const t=await askText('หัวข้อของกล่องซ่อน','คลิกเพื่อเปิด');SEL=r;if(t===null)return;ins(id,`<details><summary>${esc(t)}</summary><p>เนื้อหาที่ซ่อนไว้...</p></details><p><br></p>`)}
