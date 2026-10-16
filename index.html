@@ -1426,8 +1426,7 @@ function threadForm(t,preForumId){
   <div style="max-width:260px"><label>ค่าสถานะที่ได้ต่อโพสต์</label><input type="number" name="statGain" min="0" max="10" value="${v.statGain}"></div>
   <label>📖 เนื้อเรื่อง / สถานการณ์ *</label>${richEditor('plot',toRich(v.plot,v.plotMode),{code:true,mode:v.plotMode})}
   <div class="row"><button type="button" class="btn ghost" onclick="previewEditor(this,'plot')">👁 พรีวิวเนื้อเรื่อง</button></div><div class="preview" data-preview-for="plot" hidden></div>
-  <label>⚠️ ขอบเขตและกติกา</label>${richEditor('rules',toRich(v.rules,v.rulesMode),{ph:'เช่น ฉากเกิดในห้องซ้อม B2 เท่านั้น...'})}
-  <div class="row"><button type="button" class="btn ghost" onclick="previewEditor(this,'rules')">👁 พรีวิวกติกา</button></div><div class="preview" data-preview-for="rules" hidden></div>
+
   <details ${v.css||v.tpl?'open':''}><summary>🎨 CSS ประจำกระทู้ + เทมเพลตโพสต์แบบโค้ด (ไม่บังคับ)</summary><br>
    <div class="row between"><label>CSS ของกระทู้</label><button type="button" class="btn sm ghost" onclick="fillSample(this.form)">ใส่ตัวอย่าง</button></div>
    <textarea name="css" rows="6" class="code">${esc(v.css)}</textarea>
@@ -1439,11 +1438,11 @@ function threadForm(t,preForumId){
 async function fillSample(f){const E=f.elements;if((E.css.value||E.tpl.value)&&!await ask('แทนที่โค้ดเดิม?'))return;E.css.value=SAMPLE_CSS;E.tpl.value=SAMPLE_TPL}
 function doSaveThread(e,id){
  e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
- const plot=edGet(edOf(f,'plot')),rules=edGet(edOf(f,'rules'));
+ const plot=edGet(edOf(f,'plot'));
  if(!plot.content)return toast('กรุณาเขียนเนื้อเรื่อง','bad');
  const d={title:E.title.value.trim(),type:E.type.value,forumId:E.forumId.value,exp:+E.exp.value||0,won:Math.max(0,+E.won.value||0),minStage:+E.minStage.value,maxStage:+E.maxStage.value,agencyId:E.agencyId.value,
   train:[...f.querySelectorAll('[name=train]:checked')].map(x=>x.value),statGain:+E.statGain.value||0,
-  plot:plot.content,plotMode:plot.mode,rules:rules.content,rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked};
+  plot:plot.content,plotMode:plot.mode,rules:'',rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked};
  if(d.minStage>d.maxStage)return toast('ระดับต่ำสุดต้องไม่มากกว่าระดับสูงสุด','bad');
  if(id){update('threads',id,t=>Object.assign(t,d));toast('บันทึกแล้ว');return go('thread/'+id)}
  const th=DB.get('threads'),nt={id:uid(),authorId:me().id,status:'open',createdAt:Date.now(),...d};th.push(nt);DB.set('threads',th);toast('สร้างกระทู้แล้ว');go('thread/'+nt.id);
