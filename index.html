@@ -1708,6 +1708,7 @@ function pageThread(id){
  let form='';
  if(!u)form='<div class="card mut">กรุณา <a href="#login">เข้าสู่ระบบ</a> เพื่อร่วมโรลเพลย์</div>';
  else if(closed)form='<div class="card mut">🔒 กระทู้นี้ปิดรับโพสต์แล้ว</div>';
+ else if(t.characterBio)form='<div class="card mut">📖 นี่คือกระทู้ประวัติตัวละคร อ่านได้อย่างเดียวเพื่อให้เรื่องราวต่อเนื่องและไม่ถูกกลบด้วยโพสต์ตอบกลับ</div>';
  else if(t.type==='notice'&&!isAdmin())form='';
  else{
   const ac=getActiveChar(u),canChar=!!(ac&&canPost(ac,t,u));
@@ -1727,14 +1728,14 @@ function pageThread(id){
     <div class="preview topic-preview" hidden></div></form>`;
   }
  }
-   app(`<div class="thread-page-toolbar"><div>${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}</div>${!closed&&u&&(t.type!=='notice'||isAdmin())?'<button type="button" class="btn thread-reply-jump" onclick="document.getElementById(\'reply-composer\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">✍️ ตอบกระทู้</button>':''}</div>
+   app(`<div class="thread-page-toolbar"><div>${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}</div>${!closed&&!t.characterBio&&u&&(t.type!=='notice'||isAdmin())?'<button type="button" class="btn thread-reply-jump" onclick="document.getElementById(\'reply-composer\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">✍️ ตอบกระทู้</button>':''}</div>
   <div class="card post thread-opening-post"><div class="post-layout">
    ${openingSide}
    <div class="post-content-column">
     <div class="thread-opening-meta"><span class="mut">${esc(opener?.username||S.gmName||'ผู้ดำเนินเรื่อง')} · ${fmt(t.createdAt)}</span><span class="mut">#1 · กระทู้ต้นเรื่อง</span></div>
     <div class="row" style="gap:7px;margin-bottom:8px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${closed?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}${ag?agencyBadge(ag.id):''}</div>
     <h2 class="thread-opening-title">${esc(t.title)}</h2>
-    ${t.type!=='notice'?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
+    ${t.type!=='notice'&&!t.characterBio?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
     <h3 class="thread-opening-story-title">📖 เนื้อเรื่อง</h3>
     ${renderBody(t.plot,t.plotMode,t.css)}
     ${t.characterBio&&u&&(u.id===t.authorId||isAdmin())?`<br><div class="row"><a class="btn sm ghost" href="#editbio/${t.id}">✏️ แก้ไขประวัติ</a></div>`:''}
