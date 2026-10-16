@@ -356,6 +356,53 @@ main{max-width:1380px}
  .thread-list-meta{flex-direction:column;align-items:flex-start;gap:2px}
 }
 </style>
+<style id="topicComposerDesign">
+.topic-composer.card{padding:0;overflow:hidden}
+.topic-composer .topic-composer-heading{padding:18px 22px 14px;background:var(--card2);border-bottom:1px solid var(--line)}
+.topic-composer .topic-composer-heading h2{margin:0;font-size:1.3rem;line-height:1.45;color:var(--txt)}
+.topic-composer .topic-composer-heading p{margin:4px 0 0;color:var(--mut);font-size:.86rem}
+.topic-composer .topic-field-row{display:grid;grid-template-columns:minmax(160px,22%) minmax(0,1fr);gap:18px;padding:12px 18px;background:var(--card);border-bottom:1px solid var(--line);align-items:start}
+.topic-composer .topic-field-label{display:block;padding-top:7px;color:var(--txt);font-size:.9rem;font-weight:600;line-height:1.6}
+.topic-composer .topic-field-value{min-width:0;color:var(--txt)}
+.topic-composer .topic-field-value>input,.topic-composer .topic-field-value>select,.topic-composer .topic-field-value>textarea{margin-top:0}
+.topic-composer .topic-subject{width:min(100%,620px);margin:0;padding:10px 12px}
+.topic-composer .topic-identity{display:flex;align-items:center;gap:11px;min-height:42px;flex-wrap:wrap}
+.topic-composer .topic-identity>div{min-width:0}
+.topic-composer .topic-identity small{display:block;margin-top:2px;color:var(--mut);font-size:.78rem}
+.topic-composer .topic-role-choice{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.topic-composer .topic-role-choice label{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--card2);border:1px solid var(--line);border-radius:7px;color:var(--txt);cursor:pointer}
+.topic-composer .topic-role-choice input{width:auto;margin:0;accent-color:var(--pri)}
+.topic-composer .topic-field-row .chk{margin:0}
+.topic-composer .topic-editor-wrap{min-width:0;width:100%}
+.topic-composer .ed{margin:0}
+.topic-composer .ed-area{min-height:310px;max-height:70vh}
+.topic-composer .topic-subsection{padding:14px 18px;background:var(--card);border-bottom:1px solid var(--line)}
+.topic-composer .topic-subsection>label:first-child{display:block;color:var(--txt);font-weight:600;margin-bottom:7px}
+.topic-composer .topic-reward-line{font-size:.9rem;font-weight:600;color:var(--txt);line-height:1.8}
+.topic-composer .topic-help{margin:6px 0 0;color:var(--mut);font-size:.78rem}
+.topic-composer .topic-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:15px 20px;background:var(--card2);border-top:1px solid var(--line)}
+.topic-composer .topic-actions .btn{min-width:125px}
+.topic-composer .topic-preview{margin:0 18px 18px}
+.topic-composer details.topic-details{margin:0;padding:14px 18px;border-radius:0;border-bottom:1px solid var(--line)}
+.topic-composer details.topic-details>summary{color:var(--txt)}
+.topic-composer .topic-details-inner{padding-top:12px}
+.topic-composer .topic-check{display:flex;align-items:center;gap:7px;color:var(--txt)}
+.topic-composer .topic-check input{width:auto;margin:0;accent-color:var(--pri)}
+.topic-composer .topic-compact-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.topic-composer .topic-compact-row.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.topic-composer .topic-compact-row .f1{min-width:0}
+@media(max-width:760px){
+ .topic-composer .topic-field-row{grid-template-columns:minmax(0,1fr);gap:5px;padding:11px 12px}
+ .topic-composer .topic-field-label{padding-top:0}
+ .topic-composer .topic-composer-heading{padding:16px 14px}
+ .topic-composer .topic-compact-row,.topic-composer .topic-compact-row.three{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .topic-composer .ed-area{min-height:260px}
+ .topic-composer .topic-actions{padding:12px;justify-content:stretch}
+ .topic-composer .topic-actions .btn{flex:1;min-width:0}
+ .topic-composer .topic-preview{margin:0 12px 12px}
+ .topic-composer details.topic-details{padding:12px}
+}
+</style>
 <style id="customCss"></style>
 </head>
 <body>
@@ -1341,21 +1388,17 @@ function pageThread(id){
   if(!canChar&&!isAdmin()){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
-   form=`<form class="card" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
-    <h3 style="margin-top:0">✍️ ตอบกลับโพสต์ใหม่</h3>
-    <label>ตอบกระทู้</label><div class="row" style="margin-bottom:10px"><a href="#thread/${t.id}" class="badge" style="--c:${ty.c}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div>
-    <label>ชื่อผู้ใช้ / ตัวละคร</label><div class="row" style="background:var(--card2);padding:10px 12px;border-radius:10px;margin:4px 0 14px">
-      ${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<div class="mut">บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</div></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><div class="mut">กำลังเขียนในนามบัญชีผู้ใช้</div></div>`}
-    </div>
-    ${isAdmin()?`<div class="row" style="margin-bottom:12px"><div class="seg">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div></div>`:''}
-    <label>หัวข้อโพสต์</label><input name="postSubject" maxlength="140" value="${esc('RE: '+t.title)}" aria-label="หัวข้อโพสต์ตอบกลับ">
-    ${train.length&&canChar?`<label>🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</label><div class="chk">${train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div>`:''}
-    <label>ข้อความของคุณ</label>${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}
-    <div class="row between" style="margin-top:12px"><span class="mut">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</span>
-     <div class="row"><button type="button" class="btn ghost" data-editor-action="preview">👁 พรีวิว</button><button class="btn">📨 ตอบกระทู้</button></div>
-    </div>
-    <div class="mut" style="margin-top:8px">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</div>
-    <div class="preview" hidden></div></form>`;
+   form=`<form class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
+    <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
+    <div class="topic-field-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
+    <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
+    ${isAdmin()?`<div class="topic-role-choice">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div>`:''}</div></div>
+    <div class="topic-field-row"><label class="topic-field-label" for="replySubject">หัวข้อโพสต์:</label><div class="topic-field-value"><input id="replySubject" name="postSubject" class="topic-subject" maxlength="140" value="${esc('RE: '+t.title)}" aria-label="หัวข้อโพสต์ตอบกลับ"></div></div>
+    ${train.length&&canChar?`<div class="topic-field-row"><div class="topic-field-label">ตัวเลือกเพิ่มเติม:</div><div class="topic-field-value"><div style="font-weight:600;margin-bottom:8px">🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</div><div class="chk">${train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div></div></div>`:''}
+    <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}</div></div></div>
+    <div class="topic-field-row"><div class="topic-field-label">รายละเอียดโพสต์:</div><div class="topic-field-value"><div class="topic-reward-line">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</div><p class="topic-help">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</p></div></div>
+    <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">📨 ตอบกระทู้</button></div>
+    <div class="preview topic-preview" hidden></div></form>`;
   }
  }
  app(`${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}<br><br>
@@ -1413,11 +1456,12 @@ function pageEditPost(id){
  if(!p||!u||(p.userId!==u.id&&!isAdmin()))return go('home');
  const t=DB.get('threads').find(x=>x.id===p.threadId);
  app(`<a href="#thread/${p.threadId}">← กลับไปกระทู้</a><br><br>
- <form class="card" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')"><h3 style="margin-top:0">✏️ แก้ไขโพสต์</h3>
-  <div class="reply-field-row"><label class="reply-field-label" for="replySubjectEdit">หัวข้อกระทู้:</label><div class="reply-field-value"><input id="replySubjectEdit" name="postSubject" class="reply-subject" maxlength="140" value="${esc(p.subject||('RE: '+(t?.title||'')))}"></div></div>
-  <div class="reply-field-row reply-message-row"><div class="reply-field-label">ข้อความของคุณ:</div><div class="reply-field-value">${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}</div></div>
-  <div class="row"><button type="button" class="btn ghost" data-editor-action="preview">👁 พรีวิว</button><button class="btn">💾 บันทึก</button></div>
-  <div class="preview" hidden></div></form>`);
+ <form class="card topic-composer" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')">
+  <div class="topic-composer-heading"><h2>✏️ แก้ไขโพสต์</h2><p>ปรับหัวข้อและข้อความตอบกลับ</p></div>
+  <div class="topic-field-row"><label class="topic-field-label" for="replySubjectEdit">หัวข้อโพสต์:</label><div class="topic-field-value"><input id="replySubjectEdit" name="postSubject" class="topic-subject" maxlength="140" value="${esc(p.subject||('RE: '+(t?.title||'')))}"></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}</div></div></div>
+  <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">💾 บันทึก</button></div>
+  <div class="preview topic-preview" hidden></div></form>`);
 }
 function doEditPost(e,id){
  e.preventDefault();const u=me(),p=DB.get('posts').find(x=>x.id===id);
@@ -1826,28 +1870,30 @@ async function deleteGroup(id){if(!isAdmin()||!await ask('ลบวงนี้�
 function threadForm(t,preForumId){
  const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',...(t||{})};
  const so=sel=>STAGES.map((s,i)=>`<option value="${i}" ${i==sel?'selected':''}>${i} — ${esc(s.n)}</option>`).join('');
- return `<form class="card" onsubmit="doSaveThread(event,'${t?.id||''}')"><h3 style="margin-top:0">${t?'✏️ แก้ไขกระทู้':'🆕 สร้างกระทู้ใหม่'}</h3>
-  <label>ชื่อกระทู้ *</label><input name="title" required maxlength="120" value="${esc(v.title)}">
-  <div class="row"><div class="f1"><label>ประเภทกระทู้</label><select name="type">${Object.entries(TYPES).map(([k,x])=>`<option value="${k}" ${k===v.type?'selected':''}>${x.n}</option>`).join('')}</select></div>
-  <div class="f1"><label>ซับฟอรั่ม *</label><select name="forumId">${forumOptions(v.forumId)}</select></div>
-  <div class="f1"><label>จำกัดเฉพาะค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'ทุกค่าย / ไม่จำกัด')}</select></div></div>
-  <div class="row"><div class="f1"><label>🏅 EXP ต่อโพสต์</label><input type="number" name="exp" min="0" max="200" value="${v.exp}"></div>
-  <div class="f1"><label>💰 เงินวอนต่อโพสต์</label><input type="number" name="won" min="0" value="${v.won||0}"></div>
-  <div class="f1"><label>ระดับต่ำสุด</label><select name="minStage">${so(v.minStage)}</select></div>
-  <div class="f1"><label>ระดับสูงสุด</label><select name="maxStage">${so(v.maxStage)}</select></div></div>
-  <label>🏋️ ทักษะที่ฝึกได้ในกระทู้นี้ (ไม่เลือก = ไม่ได้ค่าสถานะ)</label>
-  <div class="chk">${STATS.map(s=>`<label><input type="checkbox" name="train" value="${s.k}" ${v.train.includes(s.k)?'checked':''}>${s.e} ${s.n}</label>`).join('')}</div>
-  <div style="max-width:260px"><label>ค่าสถานะที่ได้ต่อโพสต์</label><input type="number" name="statGain" min="0" max="10" value="${v.statGain}"></div>
-  <label>📖 เนื้อเรื่อง / สถานการณ์ *</label>${richEditor('plot',toRich(v.plot,v.plotMode),{code:true,mode:v.plotMode})}
-  <div class="row"><button type="button" class="btn ghost" onclick="previewEditor(this,'plot')">👁 พรีวิวเนื้อเรื่อง</button></div><div class="preview" data-preview-for="plot" hidden></div>
-
-  <details ${v.css||v.tpl?'open':''}><summary>🎨 CSS ประจำกระทู้ + เทมเพลตโพสต์แบบโค้ด (ไม่บังคับ)</summary><br>
+ return `<form class="card topic-composer thread-composer" onsubmit="doSaveThread(event,'${t?.id||''}')">
+  <div class="topic-composer-heading"><h2>${t?'✏️ แก้ไขกระทู้':'🆕 สร้างกระทู้ใหม่'}</h2><p>กำหนดหัวข้อ เนื้อเรื่อง และเงื่อนไขของกระทู้</p></div>
+  <div class="topic-field-row"><label class="topic-field-label" for="threadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="threadTitle" name="title" required maxlength="120" class="topic-subject" value="${esc(v.title)}" placeholder="ใส่ชื่อกระทู้"></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">ประเภทและพื้นที่:</div><div class="topic-field-value"><div class="topic-compact-row three">
+   <div class="f1"><label>ประเภทกระทู้</label><select name="type">${Object.entries(TYPES).map(([k,x])=>`<option value="${k}" ${k===v.type?'selected':''}>${x.n}</option>`).join('')}</select></div>
+   <div class="f1"><label>ซับฟอรั่ม *</label><select name="forumId">${forumOptions(v.forumId)}</select></div>
+   <div class="f1"><label>จำกัดเฉพาะค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'ทุกค่าย / ไม่จำกัด')}</select></div>
+  </div></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">รางวัลและระดับ:</div><div class="topic-field-value"><div class="topic-compact-row">
+   <div class="f1"><label>🏅 EXP ต่อโพสต์</label><input type="number" name="exp" min="0" max="200" value="${v.exp}"></div>
+   <div class="f1"><label>💰 เงินวอนต่อโพสต์</label><input type="number" name="won" min="0" value="${v.won||0}"></div>
+   <div class="f1"><label>ระดับต่ำสุด</label><select name="minStage">${so(v.minStage)}</select></div>
+   <div class="f1"><label>ระดับสูงสุด</label><select name="maxStage">${so(v.maxStage)}</select></div>
+  </div></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">ทักษะที่ฝึกได้:</div><div class="topic-field-value"><div class="chk">${STATS.map(s=>`<label><input type="checkbox" name="train" value="${s.k}" ${v.train.includes(s.k)?'checked':''}>${s.e} ${s.n}</label>`).join('')}</div><div style="max-width:260px;margin-top:10px"><label>ค่าสถานะที่ได้ต่อโพสต์</label><input type="number" name="statGain" min="0" max="10" value="${v.statGain}"></div></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">เนื้อเรื่อง / สถานการณ์ *</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('plot',toRich(v.plot,v.plotMode),{code:true,mode:v.plotMode})}</div><div class="row" style="margin-top:10px"><button type="button" class="btn ghost" onclick="previewEditor(this,'plot')">👁 พรีวิวเนื้อเรื่อง</button></div><div class="preview" data-preview-for="plot" hidden></div></div></div>
+  <details class="topic-details" ${v.css||v.tpl?'open':''}><summary>🎨 CSS ประจำกระทู้ + เทมเพลตโพสต์แบบโค้ด (ไม่บังคับ)</summary><div class="topic-details-inner">
    <div class="row between"><label>CSS ของกระทู้</label><button type="button" class="btn sm ghost" onclick="fillSample(this.form)">ใส่ตัวอย่าง</button></div>
    <textarea name="css" rows="6" class="code">${esc(v.css)}</textarea>
-   <label>เทมเพลตโพสต์</label><textarea name="tpl" rows="6" class="code">${esc(v.tpl)}</textarea></details>
-  <label>กำหนดปิดรับโพสต์ (ไม่บังคับ)</label><input type="datetime-local" name="deadline" value="${esc(v.deadline)}">
-  <label class="row" style="color:var(--txt)"><input type="checkbox" name="pinned" ${v.pinned?'checked':''} style="width:auto;margin:0"> 📌 ปักหมุดกระทู้</label><br>
-  <button class="btn">${t?'บันทึก':'สร้างกระทู้'}</button></form>`;
+   <label>เทมเพลตโพสต์</label><textarea name="tpl" rows="6" class="code">${esc(v.tpl)}</textarea></div></details>
+  <div class="topic-field-row"><label class="topic-field-label" for="threadDeadline">กำหนดปิดรับโพสต์</label><div class="topic-field-value"><input id="threadDeadline" type="datetime-local" name="deadline" value="${esc(v.deadline)}"><div class="topic-help">ไม่บังคับ — เว้นว่างได้หากไม่กำหนดวันปิดรับ</div></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">สถานะกระทู้:</div><div class="topic-field-value"><label class="topic-check"><input type="checkbox" name="pinned" ${v.pinned?'checked':''}> 📌 ปักหมุดกระทู้</label></div></div>
+  <div class="topic-actions"><button class="btn">${t?'บันทึกการแก้ไข':'สร้างกระทู้'}</button></div>
+ </form>`;
 }
 async function fillSample(f){const E=f.elements;if((E.css.value||E.tpl.value)&&!await ask('แทนที่โค้ดเดิม?'))return;E.css.value=SAMPLE_CSS;E.tpl.value=SAMPLE_TPL}
 function doSaveThread(e,id){
