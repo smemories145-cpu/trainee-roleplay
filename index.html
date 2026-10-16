@@ -1126,7 +1126,7 @@ function richEditor(name,val='',o={}){
  ${o.code&&canCode()?'<div class="announcement-tools"><label>📄 แบบประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" data-editor-action="announcement">＋ ใส่แบบประกาศ</button></div>':''}
  <div class="ed-bar">${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sanitize(val)}</div>
- <div class="ed-foot"><span class="ed-hint">💡 พิมพ์ข้อความและแทรก HTML ในช่องเดียวกันได้ · โค้ดจะถูกกรองเพื่อความปลอดภัย</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
+ <div class="ed-foot"><span class="ed-hint">💡 โค้ด HTML จะแสดงเป็นข้อความในช่องเขียน · กดพรีวิวเพื่อตรวจผลลัพธ์</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function edBar(id){
  const b=(t,cmd,lbl,val)=>`<button type="button" title="${t}" onmousedown="event.preventDefault()" onclick="ex('${id}','${cmd}'${val?`,'${val}'`:''})">${lbl}</button>`;
@@ -1138,7 +1138,7 @@ function edBar(id){
   <label class="ed-c" title="สีตัวอักษร"><span style="border-bottom:3px solid var(--pri);line-height:1.2">A</span><input type="color" value="#ff5fa2" onchange="ex('${id}','foreColor',this.value)"></label>
   <label class="ed-c" title="ไฮไลต์"><span style="background:#ffc85766;padding:0 4px;border-radius:3px">ab</span><input type="color" value="#ffc857" onchange="ex('${id}','hiliteColor',this.value)"></label></div>
  <div class="ed-g">${b('ชิดซ้าย','justifyLeft','⇤')}${b('กึ่งกลาง','justifyCenter','≡')}${b('ชิดขวา','justifyRight','⇥')}${b('เต็มแนว','justifyFull','☰')}${b('รายการจุด','insertUnorderedList','•')}${b('รายการตัวเลข','insertOrderedList','1.')}</div>
- <div class="ed-g">${fn('แทรกลิงก์','edLink','🔗')}${fn('แทรกรูปภาพ','edImg','🖼')}${fn('แทรก YouTube','edYT','▶')}${b('เส้นคั่น','insertHorizontalRule','―')}${fn('กล่องซ่อนข้อความ','edSpoiler','🙈')}</div>
+ <div class="ed-g">${fn('แทรกลิงก์','edLink','🔗')}${fn('แทรกรูปภาพ','edImg','🖼')}${fn('แทรก YouTube','edYT','▶')}${b('ขึ้นบรรทัดใหม่','insertHTML','↵','<br>')}${b('เส้นคั่น','insertHorizontalRule','―')}${fn('กล่องซ่อนข้อความ','edSpoiler','🙈')}</div>
  <div class="ed-g"><button type="button" title="แทรกโค้ด HTML ในช่องเขียนง่าย" onclick="edInsertHTML('${id}')">&lt;/&gt; แทรกโค้ด</button></div>`;
 }
 function saveSel(){const s=getSelection();if(!s.rangeCount)return;const r=s.getRangeAt(0),n=r.startContainer,el=n.nodeType===1?n:n.parentElement;if(el?.closest('.ed-area'))SEL=r.cloneRange()}
@@ -1148,20 +1148,83 @@ function edFocus(id){
  else{const r=document.createRange();r.selectNodeContents(a);r.collapse(false);s.removeAllRanges();s.addRange(r)}
  return a;
 }
+function htmlSourceSelection(ed){
+ const sel=window.getSelection();if(!ed||!sel||!sel.rangeCount)return null;
+ const range=sel.getRangeAt(0),node=range.startContainer;
+ const pre=(node.nodeType===1?node:node.parentElement)?.closest('pre.html-source-block');
+ if(!pre||!ed.contains(pre)||!pre.contains(range.endContainer))return null;
+ const offset=(container,pos)=>{const r=document.createRange();r.selectNodeContents(pre);r.setEnd(container,pos);return r.toString().length};
+ const a=offset(range.startContainer,range.startOffset),b=offset(range.endContainer,range.endOffset);
+ return{pre,text:pre.textContent||'',start:Math.min(a,b),end:Math.max(a,b)};
+}
+function setHtmlSourceSelection(pre,text,start,end){
+ pre.textContent=text;
+ let node=pre.firstChild;
+ if(!node){node=document.createTextNode('');pre.appendChild(node)}
+ const len=node.nodeValue.length;
+ const a=Math.max(0,Math.min(len,start)),b=Math.max(a,Math.min(len,end));
+ const r=document.createRange();r.setStart(node,a);r.setEnd(node,b);
+ const sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);
+ SEL=r.cloneRange();
+}
+function applyHtmlSourceCommand(ed,cmd,val){
+ const source=htmlSourceSelection(ed);if(!source)return false;
+ const pre=source.pre,text=source.text,start=source.start,end=source.end,selected=text.slice(start,end);
+ let replacement='',innerStart=0,innerEnd=0;
+ const wrap=(open,close,fallback)=>{
+  const inner=selected||fallback||'';
+  replacement=open+inner+close;
+  innerStart=start+open.length;innerEnd=innerStart+inner.length;
+ };
+ if(cmd==='bold')wrap('<strong>','</strong>','ข้อความ');
+ else if(cmd==='italic')wrap('<em>','</em>','ข้อความ');
+ else if(cmd==='underline')wrap('<u>','</u>','ข้อความ');
+ else if(cmd==='strikeThrough')wrap('<s>','</s>','ข้อความ');
+ else if(cmd==='fontSize'){
+  const px=({'2':12,'3':16,'5':24,'6':30,'7':36})[String(val)]||16;
+  wrap('<span style="font-size:'+px+'px">','</span>','ข้อความ');
+ }else if(cmd==='foreColor')wrap('<span style="color:'+esc(val)+'">','</span>','ข้อความ');
+ else if(cmd==='hiliteColor')wrap('<span style="background-color:'+esc(val)+'">','</span>','ข้อความ');
+ else if(cmd==='formatBlock'){
+  const tag=String(val||'p').replace(/[<>/]/g,'').toLowerCase();
+  if(!/^(p|h2|h3|blockquote|div)$/.test(tag))return false;
+  wrap('<'+tag+'>','</'+tag+'>',tag==='h2'?'หัวข้อใหญ่':tag==='h3'?'หัวข้อย่อย':'ข้อความ');
+ }else if(cmd==='justifyLeft'||cmd==='justifyCenter'||cmd==='justifyRight'||cmd==='justifyFull'){
+  const align=cmd==='justifyCenter'?'center':cmd==='justifyRight'?'right':cmd==='justifyFull'?'justify':'left';
+  wrap('<div style="text-align:'+align+'">','</div>','ข้อความ');
+ }else if(cmd==='insertUnorderedList'||cmd==='insertOrderedList'){
+  const tag=cmd==='insertOrderedList'?'ol':'ul';
+  const rows=(selected||'รายการ').split(/\r?\n/).map(x=>'<li>'+x+'</li>').join('');
+  replacement='<'+tag+'>'+rows+'</'+tag+'>';innerStart=start;innerEnd=start+replacement.length;
+ }else if(cmd==='insertHorizontalRule'){replacement='<hr>';innerStart=innerEnd=start+replacement.length}
+ else if(cmd==='insertHTML'){replacement=String(val||'');innerStart=innerEnd=start+replacement.length}
+ else if(cmd==='createLink'){
+  const url=String(val||'');if(!/^https?:\/\//i.test(url))return false;
+  wrap('<a href="'+esc(url)+'">','</a>',esc(url));
+ }else return false;
+ const updated=text.slice(0,start)+replacement+text.slice(end);
+ setHtmlSourceSelection(pre,updated,innerStart,innerEnd);
+ edCount(ed);
+ ed.querySelector('.ed-area')?.dispatchEvent(new Event('input',{bubbles:true}));
+ return true;
+}
 function ex(id,cmd,val=null){
+ const ed=document.getElementById(id);
  edFocus(id);
+ if(applyHtmlSourceCommand(ed,cmd,val)){saveSel();return}
  try{document.execCommand('styleWithCSS',false,cmd==='foreColor'||cmd==='hiliteColor')}catch(e){}
  document.execCommand(cmd,false,val);saveSel();
- const ed=document.getElementById(id);if(ed){edCount(ed);ed.querySelector('.ed-area')?.dispatchEvent(new Event('input'))}
+ if(ed){edCount(ed);ed.querySelector('.ed-area')?.dispatchEvent(new Event('input',{bubbles:true}))}
 }
 const ins=(id,html)=>ex(id,'insertHTML',html);
 async function edInsertHTML(id){
  const ed=document.getElementById(id),area=ed?.querySelector('.ed-area');
  if(!area)return;
- const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรกได้เลย (เช่น <div>, <b>, <img>)\\nระบบจะแสดงผลในช่องเขียนง่าย ไม่ต้องเปิดแท็บโค้ดอิสระ');
+ const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรกได้เลย (เช่น <div>, <b>, <img>)\\nโค้ดจะแสดงเป็นข้อความในช่องเขียน และจะประมวลผลเฉพาะในพรีวิว/หลังโพสต์');
  if(!snippet)return;
  area.focus();
- document.execCommand('insertHTML',false,sanitize(snippet));
+ try{document.execCommand('insertHTML',false,'<pre class="html-source-block">'+esc(snippet)+'</pre><p><br></p>')}catch(err){const pre=document.createElement('pre');pre.className='html-source-block';pre.textContent=snippet;area.appendChild(pre)}
+ area.removeAttribute('data-html-source');
  area.dispatchEvent(new Event('input',{bubbles:true}));
  edCount(ed);
 }
@@ -1248,8 +1311,8 @@ function insertPostAnnouncement(button){
  const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
  const x=skins[pick]||skins.official;
  const html='<div style="max-width:760px;margin:12px auto;padding:clamp(18px,5vw,36px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:20px;line-height:1.8;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:14px;letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:28px;color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:32px;line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:15px;color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:15px;color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
- area.dataset.htmlSource='1';
- area.textContent=html;
+ area.removeAttribute('data-html-source');
+ area.innerHTML='<pre class="html-source-block">'+esc(html)+'</pre>';
  ed.dataset.mode='rich';
  edUI(ed);
  area.dispatchEvent(new Event('input',{bubbles:true}));
@@ -1322,7 +1385,14 @@ function initEditors(){
   if(a)a.addEventListener('paste',e=>{const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();document.execCommand('insertHTML',false,h?sanitize(h):esc(tx).replace(/\n/g,'<br>'))});
   ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
   a?.addEventListener('blur',()=>{if(a.dataset.htmlSource!=='1')edParseInlineHTML(a);saveSel();});
-  ed.addEventListener('keydown',e=>{if(e.target?.matches('.char-bio-code'))return;if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();ed.closest('form')?.requestSubmit()}});
+  ed.addEventListener('keydown',e=>{
+   if(e.target?.matches('.char-bio-code'))return;
+   if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();ed.closest('form')?.requestSubmit();return}
+   if(e.key==='Enter'){
+    const sel=window.getSelection(),node=sel?.anchorNode,pre=(node?.nodeType===1?node:node?.parentElement)?.closest('pre.html-source-block');
+    if(pre&&ed.contains(pre)){e.preventDefault();ex(ed.id,'insertHTML','<br>')}
+   }
+  });
   edUI(ed);
  });
 }
@@ -1997,6 +2067,7 @@ function pageThread(id){
   }else{
    form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
     <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
+    <div class="preview topic-preview" hidden></div>
     <div class="topic-field-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
     <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
     ${isAdmin()?`<div class="topic-role-choice">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div>`:''}</div></div>
@@ -2005,7 +2076,7 @@ function pageThread(id){
     <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}</div></div></div>
     <div class="topic-field-row"><div class="topic-field-label">รายละเอียดโพสต์:</div><div class="topic-field-value"><div class="topic-reward-line">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</div><p class="topic-help">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</p></div></div>
     <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">📨 ตอบกระทู้</button></div>
-    <div class="preview topic-preview" hidden></div></form>`;
+   </form>`;
   }
  }
    app(`<div class="thread-page-toolbar"><div>${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}</div>${!closed&&!t.characterBio&&u&&(t.type!=='notice'||isAdmin())?'<button type="button" class="btn thread-reply-jump" onclick="document.getElementById(\'reply-composer\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">✍️ ตอบกระทู้</button>':''}</div>
@@ -2068,10 +2139,10 @@ function pageEditPost(id){
  app(`<a href="#thread/${p.threadId}">← กลับไปกระทู้</a><br><br>
  <form class="card topic-composer" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')">
   <div class="topic-composer-heading"><h2>✏️ แก้ไขโพสต์</h2><p>ปรับหัวข้อและข้อความตอบกลับ</p></div>
+  <div class="preview topic-preview" hidden></div>
   <div class="topic-field-row"><label class="topic-field-label" for="replySubjectEdit">หัวข้อโพสต์:</label><div class="topic-field-value"><input id="replySubjectEdit" name="postSubject" class="topic-subject" maxlength="140" value="${esc(p.subject||('RE: '+(t?.title||'')))}"></div></div>
   <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}</div></div></div>
-  <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">💾 บันทึก</button></div>
-  <div class="preview topic-preview" hidden></div></form>`);
+  <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">💾 บันทึก</button></div></form>`);
 }
 function doEditPost(e,id){
  e.preventDefault();const u=me(),p=DB.get('posts').find(x=>x.id===id);
