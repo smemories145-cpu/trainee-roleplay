@@ -1222,7 +1222,7 @@ function openForumSwitcher(){
  const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';wrap.innerHTML=`<section class="qu-modal qu-forum-modal" role="dialog" aria-modal="true" aria-labelledby="quForumTitle">
   <div class="qu-modal-head"><div><span class="qu-modal-kicker">FORUM NAVIGATION</span><h2 id="quForumTitle">↔ สลับฟอรั่ม</h2><p>เลือกฟอรั่มที่ต้องการได้ทันที ไม่ต้องกดย้อนกลับหลายหน้า</p></div><button type="button" class="qu-modal-close" data-qu-close aria-label="ปิด">×</button></div>
   <input class="qu-input qu-forum-search" type="search" placeholder="⌕ ค้นหาฟอรั่ม…" aria-label="ค้นหาฟอรั่ม"><div class="qu-forum-scroll">${sections}${extraHtml}</div>
-  <div class="qu-modal-actions"><a class="btn ghost" href="#threads">ดูฟอรั่มทั้งหมด</a><button type="button" class="btn ghost" data-qu-close>ปิดหน้าต่าง</button></div>
+  <div class="qu-modal-actions"><a class="btn ghost" href="#threads" data-qu-close>ดูฟอรั่มทั้งหมด</a><button type="button" class="btn ghost" data-qu-close>ปิดหน้าต่าง</button></div>
  </section>`;
  document.body.appendChild(wrap);const close=()=>wrap.remove();
  wrap.addEventListener('click',ev=>{if(ev.target===wrap||ev.target.closest('[data-qu-close]'))return close();const choice=ev.target.closest('[data-forum-id]');if(choice){const id=choice.dataset.forumId;close();go('forum/'+id)}});
