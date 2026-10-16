@@ -301,7 +301,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
   v_profile public.site_profiles%rowtype;
   v_thread jsonb;
@@ -387,14 +387,14 @@ begin
 
   return jsonb_build_object('ok',true,'post',v_post,'character',v_char,'gain',v_new_stat-v_old_stat);
 end;
-$;
+$$;
 
 create or replace function public.site_practice(p_character_id text,p_stat text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
   v_profile public.site_profiles%rowtype;
   v_char jsonb;
@@ -429,14 +429,14 @@ begin
     where collection='characters' and record_id=p_character_id;
   return jsonb_build_object('ok',true,'character',v_char,'stat',p_stat,'gain',v_gain,'exp_gain',3);
 end;
-$;
+$$;
 
 create or replace function public.site_claim_salary(p_character_id text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
   v_profile public.site_profiles%rowtype;
   v_char jsonb;
@@ -463,7 +463,7 @@ begin
     where collection='characters' and record_id=p_character_id;
   return jsonb_build_object('ok',true,'character',v_char,'amount',v_amount);
 end;
-$;
+$$;
 
 create or replace function public.site_transfer(
  p_sender_id text,p_recipient_id text,p_amount integer,p_note text default ''
@@ -472,7 +472,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
  v_profile public.site_profiles%rowtype;
  v_sender jsonb;
@@ -508,14 +508,14 @@ begin
  update public.site_records set payload=v_recipient,updated_at=now(),updated_by=auth.uid() where collection='characters' and record_id=p_recipient_id;
  return jsonb_build_object('ok',true,'sender',v_sender,'recipient',v_recipient);
 end;
-$;
+$$;
 
 create or replace function public.site_buy_item(p_character_id text,p_item_id text)
 returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
  v_profile public.site_profiles%rowtype;
  v_char jsonb;
@@ -551,7 +551,7 @@ begin
  update public.site_records set payload=v_char,updated_at=now(),updated_by=auth.uid() where collection='characters' and record_id=p_character_id;
  return jsonb_build_object('ok',true,'character',v_char,'item',v_item);
 end;
-$;
+$$;
 
 revoke all on function public.site_create_post(jsonb,text) from public, anon;
 grant execute on function public.site_create_post(jsonb,text) to authenticated;
