@@ -555,8 +555,10 @@ async function cloudCompleteAuth(authUser){
  if(!rows.length&&profile.role!=='admin'){
   const legacy=DB.get('users').find(u=>u.id===profile.app_user_id);
   if(legacy&&legacy.role==='admin'){
-   toast('ล็อกอิน Cloud แล้ว: เปิด SQL Editor แล้วรัน UPDATE public.site_profiles SET role = \'admin\' WHERE lower(username) = lower(\'Admin\'); จากนั้นรีโหลดเว็บ','bad');
-  }else toast('บัญชีเชื่อมแล้ว แต่รอแอดมินตั้งค่าฐานข้อมูลและนำเข้าข้อมูลเดิม','bad');
+   const safeName=String(profile.username||'Admin').replace(/'/g,"''");
+   const sql="UPDATE public.site_profiles SET role = 'admin' WHERE lower(username) = lower('"+safeName+"');";
+   toast('บัญชีเชื่อมแล้ว แต่ต้องตั้งสิทธิ์แอดมินใน Supabase SQL Editor: '+sql,'bad');
+  }else toast('บัญชีเชื่อมแล้ว แต่รอแอดมินนำเข้าข้อมูลเดิมของเว็บ','bad');
  }
  return profile;
 }
@@ -1256,7 +1258,8 @@ async function doLogin(e){
    const list=DB.get('users'),idx=list.findIndex(x=>x.id===profile.app_user_id);
    const local=idx>=0?list[idx]:legacy;
    if(local){
-    const next={...local,id:profile.app_user_id,username:profile.username,role:profile.role};
+    const keepLegacyAdmin=local.role==='admin'&&profile.role!=='admin'&&!cloudReady;
+    const next={...local,id:profile.app_user_id,username:profile.username,role:keepLegacyAdmin?'admin':profile.role};
     if(idx>=0)list[idx]=next;else list.push(next);
    }else list.push({id:profile.app_user_id,username:profile.username,pass:'',avatar:'',role:profile.role,createdAt:Date.now()});
    DB.set('users',list);
