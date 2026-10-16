@@ -1153,11 +1153,17 @@ function setActiveChar(id){const u=me();if(!u)return;store.setItem('sa_active_ch
 function ensureKimAdminCharacter(u){
  if(!u||u.role!=='admin')return;
  const cs=DB.get('characters');
+ let changed=false;
+ // Make the specifically requested existing character available to the admin selector.
+ const requested=cs.find(c=>c.id==='mv9rwjaqw4ypx');
+ if(requested&&requested.status!=='approved'){requested.status='approved';requested.reason='';changed=true}
  const kim=cs.find(c=>c.status==='approved'&&/kim\s*hyunsuk|คิม\s*ฮยอนซอก/i.test(`${c.stageName||''} ${c.name||''}`));
- if(kim)return;
- const id=uid();
- cs.push({id,ownerId:u.id,name:'Kim Hyunsuk',stageName:'Kim Hyunsuk',age:26,gender:'ชาย',nationality:'เกาหลีใต้',positions:['ร้องนำ (Vocal)','เต้น (Dance)','วิชวล (Visual)'],avatar:'',banner:'',portrait:'',personality:'ตัวละครสำหรับใช้โรลเพลย์โดยแอดมิน',background:'Kim Hyunsuk',bioMode:'rich',agencyId:'',stats:Object.fromEntries(STATS.map(st=>[st.k,STAT_BASE])),won:START_WON,inv:[],ledger:[],showcase:[],profileHtml:'',status:'approved',reason:'',stage:STAGES.length-1,exp:STAGES[STAGES.length-1].exp,createdAt:Date.now(),adminPersona:'kim-hyunsuk'});
- DB.set('characters',cs);
+ if(!kim){
+  const id=uid();
+  cs.push({id,ownerId:u.id,name:'Kim Hyunsuk',stageName:'Kim Hyunsuk',age:26,gender:'ชาย',nationality:'เกาหลีใต้',positions:['ร้องนำ (Vocal)','เต้น (Dance)','วิชวล (Visual)'],avatar:'',banner:'',portrait:'',personality:'ตัวละครสำหรับใช้โรลเพลย์โดยแอดมิน',background:'Kim Hyunsuk',bioMode:'rich',agencyId:'',stats:Object.fromEntries(STATS.map(st=>[st.k,STAT_BASE])),won:START_WON,inv:[],ledger:[],showcase:[],profileHtml:'',status:'approved',reason:'',stage:STAGES.length-1,exp:STAGES[STAGES.length-1].exp,createdAt:Date.now(),adminPersona:'kim-hyunsuk'});
+  changed=true;
+ }
+ if(changed)DB.set('characters',cs);
 }
 function renderNav(){
  const u=me(),pc=pendingCount();
