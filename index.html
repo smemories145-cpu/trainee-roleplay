@@ -1410,22 +1410,65 @@ function pageThreads(){
 }
 function pageForum(fid){
  const f=DB.get('forums').find(x=>x.id===fid);if(!f)return app('<div class="card">ไม่พบซับฟอรั่มนี้</div>');
- const th=DB.get('threads').filter(t=>t.forumId===fid).sort(sortThreads);
+ const u=me(),th=DB.get('threads').filter(t=>t.forumId===fid).sort(sortThreads);
  const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
+ const createAction=f.id===CHARACTER_BIO_FORUM_ID
+  ?(u?`<a class="btn" href="#newbio">＋ เขียนกระทู้ประวัติตัวละคร</a>`:`<a class="btn" href="#login">เข้าสู่ระบบเพื่อเขียนประวัติ</a>`)
+  :(isAdmin()?`<a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในซับฟอรั่มนี้</a>`:'');
  app(`<a href="#home">← หน้าแรก</a><br><br>
  <div class="forum-card-banner" style="margin-bottom:20px">
   <div class="forum-card-bg" ${bgStyle}></div>
   <div class="forum-card-overlay"></div>
   <div class="forum-card-content">
    <div><h2 style="margin:0 0 6px;color:var(--txt)">📂 ${esc(f.name)}</h2><div class="mut">${esc(f.desc||'')}</div></div>
-   <a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในซับฟอรั่มนี้</a>
+   ${createAction}
   </div>
  </div>
+ ${f.id===CHARACTER_BIO_FORUM_ID?`<div class="card bio-forum-guide"><h3 style="margin-top:0">📖 วิธีลงทะเบียนประวัติตัวละคร</h3><ol><li>กด “เขียนกระทู้ประวัติตัวละคร” แล้วตั้งชื่อกระทู้ให้จำง่าย</li><li>เขียนประวัติยาวได้เต็มที่ จะตกแต่งด้วย HTML หรือเลือกโครงสำเร็จรูปก็ได้</li><li>เผยแพร่กระทู้ แล้วคัดลอก URL จากแถบที่อยู่มาใส่ในใบสมัครตัวละคร</li></ol><p class="mut" style="margin-bottom:0">ระบบตรวจว่ากระทู้อยู่ในคลังนี้และเป็นของบัญชีเดียวกับผู้สมัคร</p></div>`:''}
  ${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้ในซับฟอรั่มนี้ — เริ่มสร้างกระทู้แรกกันเลย!</div>'}`);
 }
 function pageNewThreadToForum(fid){
  const f=DB.get('forums').find(x=>x.id===fid);if(!f)return go('home');
  app(`<a href="#forum/${fid}">← กลับไป ${esc(f.name)}</a><br><br>`+threadForm(null,fid));
+}
+
+function pageNewBioThread(){
+ const u=me();if(!u)return go('login');
+ app(`<div class="bio-thread-page">
+  <a class="mut" href="#forum/${CHARACTER_BIO_FORUM_ID}">← กลับคลังประวัติตัวละคร</a>
+  <header class="bio-thread-hero"><div class="bio-thread-eyebrow">CHARACTER ARCHIVE · YOUR STORY</div><h1>สร้างกระทู้ประวัติตัวละคร</h1><p>ใช้พื้นที่นี้เล่าที่มา บุคลิก ความฝัน และเรื่องราวฉบับเต็มของตัวละคร กระทู้นี้จะแยกจากหน้าโปรไฟล์เพื่อให้อ่านง่ายและเขียนได้ยาวตามต้องการ</p></header>
+  <form class="card topic-composer bio-thread-composer" onsubmit="doCreateCharacterBioThread(event)">
+   <div class="topic-composer-heading"><h2>📖 แฟ้มประวัติใหม่</h2><p>หลังสร้างกระทู้แล้ว ให้คัดลอก URL ไปแนบในใบสมัครตัวละคร</p></div>
+   <div class="topic-field-row"><label class="topic-field-label" for="bioThreadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="bioThreadTitle" name="title" required maxlength="120" class="topic-subject" placeholder="เช่น Kim Hyunsuk — Character Archive"></div></div>
+   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนะนำให้ใส่</b><span>ภูมิหลัง · บุคลิก · จุดแข็ง/จุดอ่อน · เหตุการณ์สำคัญ · ความสัมพันธ์ · เป้าหมายของตัวละคร</span></div>${characterBioEditor('background','',{ph:'เลือกโครงสำเร็จรูปหรือเริ่มเขียน HTML ประวัติของตัวละครได้เลย...'})}</div></div>
+   <div class="topic-actions"><a class="btn ghost" href="#forum/${CHARACTER_BIO_FORUM_ID}">ยกเลิก</a><button class="btn">📚 เผยแพร่กระทู้ประวัติ</button></div>
+  </form>
+ </div>`);
+}
+async function doCreateCharacterBioThread(e){
+ e.preventDefault();const u=me(),f=e.target,E=f.elements;if(!u)return go('login');
+ const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
+ if(title.length<3)return toast('กรุณาตั้งชื่อกระทู้ให้ชัดเจน','bad');
+ if(!bio.content||textLen(bio.content,'rich')<80)return toast('กรุณาเขียนประวัติอย่างน้อย 80 ตัวอักษร','bad');
+ if(!DB.get('forums').some(x=>x.id===CHARACTER_BIO_FORUM_ID))return toast('ไม่พบคลังประวัติตัวละคร กรุณารีเฟรชหน้าเว็บ','bad');
+ const th={id:uid(),authorId:u.id,authorCharId:getActiveChar(u)?.id||null,title,type:'bio',forumId:CHARACTER_BIO_FORUM_ID,
+  exp:0,won:0,minStage:0,maxStage:STAGES.length-1,agencyId:'',train:[],statGain:0,plot:bio.content,plotMode:'rich',rules:'',rulesMode:'rich',
+  css:'',tpl:'',deadline:'',pinned:false,status:'open',createdAt:Date.now(),characterBio:true};
+ const threads=DB.get('threads');threads.push(th);DB.set('threads',threads);
+ if(cloudReady)await cloudQueue;
+ toast('เผยแพร่กระทู้ประวัติแล้ว — คัดลอก URL มาแนบในใบสมัครตัวละครได้เลย');
+ go('thread/'+th.id);
+}
+function characterBioUrl(id){return id?location.origin+location.pathname+'#thread/'+encodeURIComponent(id):''}
+function getCharacterBioThreadFromUrl(value,expectedOwnerId){
+ const raw=String(value||'').trim();if(!raw)return null;
+ let link;try{link=new URL(raw,location.href)}catch(e){return null}
+ if(link.origin!==location.origin||link.pathname.replace(/\/+$/,'')!==location.pathname.replace(/\/+$/,''))return null;
+ const match=link.hash.match(/^#thread\/([^/?&]+)/);if(!match)return null;
+ const id=decodeURIComponent(match[1]);
+ const thread=DB.get('threads').find(t=>t.id===id);
+ if(!thread||thread.characterBio!==true||thread.forumId!==CHARACTER_BIO_FORUM_ID||thread.authorId!==expectedOwnerId)return null;
+ return thread;
 }
 
 /* ================= PROFILE & SETTINGS ================= */
