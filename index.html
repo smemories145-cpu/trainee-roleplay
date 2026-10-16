@@ -84,6 +84,7 @@ summary{cursor:pointer;font-weight:600}
 .ed-tabs button.on{background:var(--card2);color:var(--txt);font-weight:600}
 .ed-count{margin-left:auto;font-size:.78rem;color:var(--mut);padding:0 6px 6px}
 .ed-bar{display:flex;flex-wrap:wrap;align-items:center;gap:3px;padding:5px 6px;border-bottom:1px solid var(--line);position:sticky;top:58px;background:var(--card2);z-index:3}.ed-bar .ed-g{display:flex;align-items:center;gap:2px;padding-right:5px;margin-right:2px;border-right:1px solid var(--line)}.ed-bar .ed-g:last-child{border-right:0}.ed-bar button,.ed-c{height:30px;min-width:30px;padding:0 6px}.ed-bar select{height:30px;max-width:150px}.ed-area{min-height:360px;max-height:75vh;overflow:auto;padding:18px;outline:0}
+.ed-area .html-source-block{display:block;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--txt);font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}.ed-area .html-source-block code{font:inherit;white-space:inherit}
 .ed-g{display:flex;gap:2px;align-items:center;padding-right:6px;border-right:1px solid var(--line)}
 .ed-g:last-child{border:0}
 .ed-bar button,.ed-c{height:32px;min-width:32px;background:transparent;border:1px solid transparent;border-radius:7px;color:var(--txt);font:inherit;font-size:.88rem;cursor:pointer;display:inline-grid;place-items:center;padding:0 7px;margin:0}
@@ -632,7 +633,7 @@ function insertPostAnnouncement(button){
  const html='<div style="max-width:760px;margin:12px auto;padding:clamp(18px,5vw,36px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:20px;line-height:1.8;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:14px;letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:28px;color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:32px;line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:15px;color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:15px;color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
  const area=ed.querySelector('.ed-area');if(!area)return;
  if(area.innerHTML.trim()&&!confirm('แทนที่เนื้อหาที่เขียนอยู่ด้วยแบบประกาศนี้หรือไม่?'))return;
- area.innerHTML=sanitize(html);ed.dataset.mode='rich';edUI(ed);area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);area.focus();const range=document.createRange();range.selectNodeContents(area);range.collapse(false);const sel=getSelection();sel.removeAllRanges();sel.addRange(range);saveSel();toast('ใส่โครงประกาศลงในช่องเขียนแล้ว ✦ คลิกข้อความในแบบเพื่อแก้ไขได้ทันที');
+ area.innerHTML='<pre class="html-source-block"><code>'+esc(html)+'</code></pre>';ed.dataset.mode='rich';edUI(ed);area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);area.focus();const range=document.createRange();range.selectNodeContents(area.querySelector('.html-source-block code'));range.collapse(false);const sel=getSelection();sel.removeAllRanges();sel.addRange(range);saveSel();toast('แสดงโค้ด HTML ของแบบประกาศแล้ว ✦ แก้โค้ดได้ในช่องนี้ และระบบจะแปลงเป็นประกาศตอนพรีวิว/โพสต์');
 }
 function edTab(id,t){const ed=document.getElementById(id);if(ed)edUI(ed)}
 function edUI(ed){if(!ed)return;ed.dataset.mode='rich';const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area');if(bar)bar.hidden=false;if(area)area.hidden=false;edCount(ed)}
@@ -661,7 +662,15 @@ function edCount(ed){
 }
 function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
- const clean=sanitize(ed.querySelector('.ed-area')?.innerHTML||'').trim();
+ const area=ed.querySelector('.ed-area');
+ if(!area)return{mode:'rich',content:''};
+ const copy=area.cloneNode(true);
+ copy.querySelectorAll('pre.html-source-block').forEach(block=>{
+  const rendered=document.createElement('div');
+  rendered.innerHTML=sanitize(block.textContent||'');
+  block.replaceWith(...rendered.childNodes);
+ });
+ const clean=sanitize(copy.innerHTML).trim();
  return{mode:'rich',content:textLen(clean,'rich')||/<(img|iframe|hr|table|div)/i.test(clean)?clean:''};
 }
 const edOf=(f,name)=>f?.querySelector(`.ed[data-name="${name}"]`);
