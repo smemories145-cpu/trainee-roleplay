@@ -988,7 +988,7 @@ function pageThread(id){
   <h2 style="margin:10px 0">${esc(t.title)}</h2>
   ${t.type!=='notice'?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
   <h3>📖 เนื้อเรื่อง</h3>${renderBody(t.plot,t.plotMode,t.css)}
-  ${t.rules?`<h3>⚠️ ขอบเขตและกติกา</h3><div class="rules">${renderBody(t.rules,t.rulesMode)}</div>`:''}
+
   ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
  </div>
  <h3>💬 โรลเพลย์ (${posts.length})</h3>
