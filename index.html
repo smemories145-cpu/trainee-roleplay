@@ -580,6 +580,7 @@ function richEditor(name,val='',o={}){
   <button type="button" data-t="src" onclick="edTab('${id}','src')">&lt;/&gt; แก้ HTML</button>
   ${o.code&&canCode()?`<button type="button" data-t="code" onclick="edTab('${id}','code')">💻 โค้ดอิสระ</button>`:''}
   <span class="ed-count"></span></div>
+ \${o.code&&canCode()?'<div class="announcement-tools"><label>📄 โค้ดประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" onclick="insertPostAnnouncement(this)">＋ ใส่แบบประกาศ</button><small>เลือกแบบ แล้วแก้ข้อความในแท็บโค้ดอิสระได้เลย</small></div>':''}
  <div class="ed-bar">${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... เลือกข้อความแล้วกดปุ่มด้านบนเพื่อแต่ง ✨')}">${m==='rich'?sanitize(val):''}</div>
  <textarea class="ed-src code" rows="12" spellcheck="false"></textarea>
@@ -620,6 +621,16 @@ async function edImg(id){saveSel();const r=SEL;const u=await askText('ใส่�
 async function edYT(id){saveSel();const r=SEL;const u=await askText('วางลิงก์ YouTube','');SEL=r;if(!u)return;const m=u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);if(!m)return toast('ลิงก์ YouTube ไม่ถูกต้อง','bad');ins(id,`<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}" width="100%" height="315" allowfullscreen frameborder="0"></iframe><p><br></p>`)}
 async function edSpoiler(id){saveSel();const r=SEL;const t=await askText('หัวข้อของกล่องซ่อน','คลิกเพื่อเปิด');SEL=r;if(t===null)return;ins(id,`<details><summary>${esc(t)}</summary><p>เนื้อหาที่ซ่อนไว้...</p></details><p><br></p>`)}
 function fmtHtml(h){return String(h||'').replace(/(<\/(p|div|h2|h3|blockquote|li|ul|ol|details)>|<br>)/g,'$1\n')}
+function insertPostAnnouncement(button){
+ const ed=button&&button.closest('.ed');if(!ed)return;
+ const pick=ed.querySelector('.announcement-pick')?.value||'official';
+ const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
+ const x=skins[pick]||skins.official;
+ const html='<div style="max-width:760px;margin:12px auto;padding:clamp(18px,5vw,36px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:20px;line-height:1.8;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:14px;letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:28px;color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:32px;line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:15px;color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:15px;color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
+ const area=ed.querySelector('.ed-code');if(!area)return;
+ if(area.value.trim()&&!confirm('แทนที่โค้ดที่มีอยู่ด้วยแบบประกาศนี้หรือไม่?'))return;
+ area.value=html;edTab(ed.id,'code');edCount(ed);toast('ใส่แบบประกาศในโพสต์แล้ว ✦ แก้ข้อความในวงเล็บเหลี่ยมได้เลย');
+}
 function edTab(id,t){
  const ed=document.getElementById(id);if(!ed)return;
  const a=ed.querySelector('.ed-area'),s=ed.querySelector('.ed-src'),c=ed.querySelector('.ed-code'),cur=ed.dataset.mode;
@@ -1155,16 +1166,6 @@ function collectSide(f){ const E=f.elements;
  return{avatar:E.avatar.value.trim(),banner:E.banner.value.trim(),portrait:E.portrait.value.trim(),sideTag:E.sideTag.value.trim(),sideColor:E.sideColor.value,hoverOwner:E.hoverOwner.checked,showcase:[...inv,...cus].slice(0,MAX_SHOW)};
 }
 function previewSide(f,id){const c=DB.get('characters').find(x=>x.id===id);if(!c)return;const box=f.querySelector('.side-pv');if(box)box.innerHTML=sideCard({...c,...collectSide(f)},me(),0)}
-function insertAnnouncementCode(form){
- const pick=form&&form.elements.announcementTemplate?form.elements.announcementTemplate.value:'official';
- const styles={official:'background:#fffdf8;color:#29251f;border:1px solid #d8d0c2;box-shadow:0 5px 18px #0002;',bulletin:'background:#f4ead4;color:#40382c;border:1px solid #d4c29f;box-shadow:3px 5px 0 #bca984;',minimal:'background:#fff;color:#262626;border:1px solid #ddd;',executive:'background:#f7f4ed;color:#242c35;border:1px solid #c7b887;'};
- const labels={official:'ประกาศ / OFFICIAL ANNOUNCEMENT',bulletin:'NOTICE BOARD · ประกาศสำคัญ',minimal:'COMMUNITY NOTICE',executive:'OFFICE OF THE CHAIRMAN'};
- const area=form&&form.elements.profileHtml;if(!area)return;
- area.value='<div class="announcement-paper '+pick+'" style="'+styles[pick]+'"><div class="ann-top">'+labels[pick]+'</div><div class="ann-emblem">✦</div><h1>[หัวข้อประกาศ]</h1><p class="ann-ref">เลขที่ประกาศ 001 / 20XX</p><div class="ann-rule"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณในส่วนนี้ ระบุวัตถุประสงค์และรายละเอียดให้ชัดเจน]</p><div class="ann-details"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการที่มีผล]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div class="ann-sign"><b>[ชื่อผู้ประกาศ]</b><span>ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div class="ann-footer">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url(https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap);.announcement-paper{max-width:760px;margin:12px auto;padding:34px;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:18px;line-height:1.85;box-sizing:border-box;position:relative}.announcement-paper.bulletin{background-color:#f4ead4!important;background-image:repeating-linear-gradient(0deg,transparent,transparent 31px,#d5c6a8 32px)!important}.ann-top{text-align:center;font-size:14px;letter-spacing:2px;border-bottom:1px solid #c9c1b3;padding-bottom:12px}.ann-emblem{text-align:center;font-size:28px;margin-top:18px}.announcement-paper h1{text-align:center;font-size:30px;line-height:1.4;margin:6px 0;font-weight:700}.ann-ref{text-align:center;font-size:14px;color:#777;margin:0 0 18px}.ann-rule{height:3px;width:65px;background:#a58b55;margin:0 auto 22px}.announcement-paper p,.announcement-paper li{margin:10px 0}.ann-details{padding:12px 16px;margin:20px 0;background:#a58b5512;border-left:3px solid #a58b55}.ann-details ol{padding-left:24px}.ann-sign{text-align:right;display:flex;flex-direction:column;margin:28px 0 18px}.ann-sign span{font-size:14px;color:#777}.ann-footer{border-top:1px solid #c9c1b3;padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888}@media(max-width:480px){.announcement-paper{padding:23px 17px}.announcement-paper h1{font-size:25px}}</style>';
- area.dispatchEvent(new Event('input',{bubbles:true}));
- toast('ใส่โค้ดประกาศแล้ว ✦ แก้ข้อความในวงเล็บเหลี่ยมได้เลย');
-}
-
 function pageEditChar(id){
  const u=me(),c=DB.get('characters').find(x=>x.id===id);
  if(!c||!u||(c.ownerId!==u.id&&!isAdmin()))return go('home');
@@ -1190,10 +1191,8 @@ function pageEditChar(id){
  ${full?`<div class="card"><label>นิสัย / บุคลิก</label>${richEditor('personality',toRich(c.personality,c.bioMode))}<label>ประวัติ</label>${richEditor('background',toRich(c.background,c.bioMode))}</div>`
   :'<div class="card mut">ตัวละครได้รับอนุมัติแล้ว หากต้องการแก้ชื่อหรือประวัติให้ติดต่อแอดมิน</div>'}
  \${canCode()?\`<div class="card"><div class="row between"><label>💻 หน้าโปรไฟล์แบบโค้ดอิสระ (ไม่บังคับ)</label><button type="button" class="btn sm ghost" onclick="this.form.elements.profileHtml.value=SAMPLE_PROFILE">ใส่ตัวอย่างโปรไฟล์</button></div>
- <label>📄 เลือกโครงสร้างโค้ดประกาศ</label><div class="row"><div class="f1"><select name="announcementTemplate"><option value="official">ประกาศทางการ — กระดาษขาว / ตราประทับ</option><option value="bulletin">ประกาศติดบอร์ด — กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล — ขาวสะอาด</option><option value="executive">ประกาศผู้บริหาร — ครีม / กรม / ทอง</option></select></div><button type="button" class="btn sm" onclick="insertAnnouncementCode(this.form)">＋ ใส่โค้ดประกาศ</button></div>
- <p class="mut" style="font-size:.8rem;margin:4px 0 10px">เลือกแบบแล้วกดใส่โค้ดประกาศ จากนั้นแก้ข้อความในวงเล็บเหลี่ยมได้เลย ฟอนต์หลัก TH Sarabun New / Sarabun</p>
- <textarea name="profileHtml" rows="12" class="code" placeholder="เลือกโครงสร้างประกาศด้านบน หรือวาง HTML/CSS ของตัวเอง">${esc(c.profileHtml||'')}</textarea>
- <div class="row"><button type="button" class="btn sm ghost" onclick="pvField(this.form,'profileHtml')">👁 พรีวิว</button><button type="button" class="btn sm ghost" onclick="this.form.elements.profileHtml.value=''">ล้างโค้ด</button></div><div class="preview" hidden></div></div>\`:''}
+ <textarea name="profileHtml" rows="10" class="code">${esc(c.profileHtml||'')}</textarea>
+ <button type="button" class="btn sm ghost" onclick="pvField(this.form,'profileHtml')">👁 พรีวิว</button><div class="preview" hidden></div></div>\`:''}
  <button class="btn">💾 บันทึก</button></div>
  <div><div class="mut" style="text-align:center;margin-bottom:6px">👁 ตัวอย่างรูปข้าง</div><div class="side-pv">${sideCard(c,u,0)}</div></div></form>`);
 }
