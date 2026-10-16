@@ -474,12 +474,10 @@ async function cloudGetProfile(){
 async function cloudPreflight(){
  if(!supaClient)return false;
  try{
-  const [profiles,records]=await Promise.all([
-   supaClient.from('site_profiles').select('auth_user_id').limit(1),
-   supaClient.from('site_records').select('record_id').limit(1)
-  ]);
-  const err=profiles.error||records.error;
-  if(err){toast('ต้องติดตั้งฐานข้อมูลก่อน: เปิด supabase/setup.sql ใน GitHub แล้วรันใน Supabase → SQL Editor ('+(err.message||'ตารางยังไม่พร้อม')+')','bad');return false}
+  // site_profiles is intentionally hidden from anonymous users by RLS; checking it
+  // before authentication would always fail. site_records is the public schema probe.
+  const {error}=await supaClient.from('site_records').select('record_id').limit(1);
+  if(error){toast('ต้องติดตั้งฐานข้อมูลก่อน: เปิด supabase/setup.sql ใน GitHub แล้วรันใน Supabase → SQL Editor ('+(error.message||'ตารางยังไม่พร้อม')+')','bad');return false}
   return true;
  }catch(err){toast('เชื่อม Supabase ไม่ได้: '+(err?.message||String(err)),'bad');return false}
 }
@@ -551,15 +549,7 @@ async function cloudBootstrap(){
  }
 }
 async function cloudCompleteAuth(authUser){
- const {profile,rows}=await cloudLoadForCurrentSession({allowImport:true});
- if(!rows.length&&profile.role!=='admin'){
-  const legacy=DB.get('users').find(u=>u.id===profile.app_user_id);
-  if(legacy&&legacy.role==='admin'){
-   const safeName=String(profile.username||'Admin').replace(/'/g,"''");
-   const sql="UPDATE public.site_profiles SET role = 'admin' WHERE lower(username) = lower('"+safeName+"');";
-   toast('บัญชีเชื่อมแล้ว แต่ต้องตั้งสิทธิ์แอดมินใน Supabase SQL Editor: '+sql,'bad');
-  }else toast('บัญชีเชื่อมแล้ว แต่รอแอดมินนำเข้าข้อมูลเดิมของเว็บ','bad');
- }
+ const {profile}=await cloudLoadForCurrentSession({allowImport:true});
  return profile;
 }
 
@@ -1219,8 +1209,9 @@ async function doRegister(e){
    user.id=profile.app_user_id;user.role=profile.role;
    const list=DB.get('users');if(!list.some(x=>x.id===user.id)){list.push(user);DB.set('users',list)}
    store.setItem('sa_session',user.id);
-   toast('สมัครบัญชี Cloud สำเร็จ');
    go('newchar');
+   if(!cloudReady)toast('บัญชี Cloud ถูกสร้างแล้ว รอแอดมินนำเข้าข้อมูลเดิมของเว็บไซต์ก่อนใช้งานร่วมกัน','bad');
+   else toast('สมัครบัญชี Cloud สำเร็จ');
   }catch(err){console.error(err);toast('บัญชี Auth สร้างแล้ว แต่เริ่มข้อมูล Cloud ไม่สำเร็จ: '+(err?.message||String(err)),'bad')}
   return;
  }
@@ -1264,8 +1255,13 @@ async function doLogin(e){
    }else list.push({id:profile.app_user_id,username:profile.username,pass:'',avatar:'',role:profile.role,createdAt:Date.now()});
    DB.set('users',list);
    store.setItem('sa_session',profile.app_user_id);
-   toast('ยินดีต้อนรับกลับ, '+profile.username);
+   const needsAdminPromotion=!!(local&&local.role==='admin'&&profile.role!=='admin'&&!cloudReady);
    go('home');
+   if(needsAdminPromotion){
+    const safeName=String(profile.username||'Admin').replace(/'/g,"''");
+    const sql="UPDATE public.site_profiles SET role = 'admin' WHERE lower(username) = lower('"+safeName+"');";
+    toast('เปิด Supabase → SQL Editor แล้วรัน: '+sql+' จากนั้นรีโหลดเว็บ','bad');
+   }else toast('ยินดีต้อนรับกลับ, '+profile.username);
   }catch(err){console.error(err);toast('เข้าสู่ระบบได้ แต่เชื่อมข้อมูล Cloud ไม่สำเร็จ: '+(err?.message||String(err)),'bad')}
   return;
  }
