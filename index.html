@@ -599,7 +599,7 @@ function edBar(id){
  <div class="ed-g">${b('ชิดซ้าย','justifyLeft','⇤')}${b('กึ่งกลาง','justifyCenter','≡')}${b('ชิดขวา','justifyRight','⇥')}${b('เต็มแนว','justifyFull','☰')}${b('รายการจุด','insertUnorderedList','•')}${b('รายการตัวเลข','insertOrderedList','1.')}</div>
  <div class="ed-g">${fn('แทรกลิงก์','edLink','🔗')}${fn('แทรกรูปภาพ','edImg','🖼')}${fn('แทรก YouTube','edYT','▶')}${b('เส้นคั่น','insertHorizontalRule','―')}${fn('กล่องซ่อนข้อความ','edSpoiler','🙈')}</div>
  <div class="ed-g"><button type="button" title="แทรกโค้ด HTML ในช่องเขียนง่าย" onclick="edInsertHTML('${id}')">&lt;/&gt; แทรกโค้ด</button></div>
-;
+ </div>`;
 }
 function saveSel(){const s=getSelection();if(!s.rangeCount)return;const r=s.getRangeAt(0),n=r.startContainer,el=n.nodeType===1?n:n.parentElement;if(el?.closest('.ed-area'))SEL=r.cloneRange()}
 function edFocus(id){
