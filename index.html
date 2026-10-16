@@ -1412,6 +1412,137 @@ function gmSide(){
   <div class="side-body"><span class="badge" style="--c:var(--warn);margin:auto">👑 GM</span></div></aside>`;
 }
 
+/* ================= PRIVATE MAILBOX ================= */
+function mailCacheFor(ownerId){
+ if(MAIL_CACHE.ownerId!==ownerId)MAIL_CACHE={ownerId,inbox:[],sent:[],loaded:{},loading:{},error:{}};
+ return MAIL_CACHE;
+}
+function mailUnreadCount(){
+ const u=me();if(!u||MAIL_CACHE.ownerId!==u.id)return 0;
+ return (MAIL_CACHE.inbox||[]).filter(m=>!m.readAt&&!m.recipientDeleted).length;
+}
+function mailPageMarkup(folder){
+ const u=me(),cache=mailCacheFor(u.id),items=cache[folder]||[];
+ let content='';
+ if(cache.loading[folder])content='<div class="card mut">กำลังเปิดคลังจดหมาย…</div>';
+ else if(cache.error[folder])content=`<div class="card"><h3>เปิดคลังจดหมายไม่สำเร็จ</h3><p class="mut">${esc(cache.error[folder])}</p>${cloudReady?'<p>หากเป็นการตั้งค่าใหม่ ให้ผู้ดูแลรันไฟล์ <code>supabase/user_mail_system.sql</code> ใน Supabase SQL Editor ก่อน</p><a class="btn sm ghost" href="https://github.com/smemories145-cpu/trainee-roleplay/blob/main/supabase/user_mail_system.sql" target="_blank" rel="noopener">เปิดไฟล์ SQL</a>':'<p class="mut">คลังในเครื่องใช้ได้เฉพาะเบราว์เซอร์นี้</p>'}<button class="btn sm" onclick="retryMailFolder('${folder}')">ลองอีกครั้ง</button></div>`;
+ else if(!items.length)content=`<div class="card mail-empty"><h3>${folder==='inbox'?'📭 ยังไม่มีจดหมายเข้า':'📤 ยังไม่มีจดหมายที่ส่ง'}</h3><p class="mut">${folder==='inbox'?'จดหมายที่ผู้เล่นส่งถึงคุณจะแสดงที่นี่':'จดหมายที่คุณส่งออกจะแสดงที่นี่'}</p><button class="btn sm" onclick="openMailCompose()">✉️ เขียนจดหมายฉบับแรก</button></div>`;
+ else content=`<div class="mail-list">${items.map(m=>{
+  const other=folder==='inbox'?(m.senderUsername||'สมาชิก'):(m.recipientUsername||'ผู้รับ');
+  const unread=folder==='inbox'&&!m.readAt;
+  return `<div class="mail-row ${unread?'unread':''}"><button type="button" class="mail-row-open" onclick="openMailRead('${esc(m.id)}','${folder}')"><b>${unread?'● ':''}${esc(m.subject||'(ไม่มีหัวข้อ)')}</b><small>${folder==='inbox'?'จาก':'ถึง'}: ${esc(other)} · ${fmt(m.createdAt)}</small><span>${esc(String(m.body||'').replace(/\s+/g,' ').slice(0,170))}</span></button><div class="mail-row-tools"><time>${fmt(m.createdAt)}</time><button class="btn sm ghost" onclick="deleteMailMessage('${esc(m.id)}','${folder}')">ลบ</button></div></div>`;
+ }).join('')}</div>`;
+ return `<div class="mail-page"><div class="mail-page-head"><div><span class="qu-modal-kicker">STARLIGHT MESSAGES</span><h2>✉️ คลังจดหมาย</h2><p class="mut" style="margin:4px 0 0">ส่งข้อความส่วนตัวถึงสมาชิกคนอื่นได้ที่นี่</p></div><button class="btn" onclick="openMailCompose()">＋ เขียนจดหมาย</button></div>
+  <div class="mail-tabs"><a href="#mail/inbox" class="${folder==='inbox'?'on':''}">📥 กล่องจดหมายเข้า ${folder==='inbox'&&mailUnreadCount()?'<span class="mail-unread-badge">'+mailUnreadCount()+'</span>':''}</a><a href="#mail/sent" class="${folder==='sent'?'on':''}">📤 จดหมายที่ส่ง</a></div>
+  ${cloudReady?'':'<p class="mail-muted-note">โหมดในเครื่อง: จดหมายชุดนี้เก็บในเบราว์เซอร์ที่ใช้อยู่เท่านั้น หากต้องการส่งข้ามบัญชี/อุปกรณ์ต้องเปิดใช้ Supabase และติดตั้ง migration ของคลังจดหมาย</p>'}
+  ${content}
+ </div>`;
+}
+function pageMail(folder){
+ const u=me();if(!u)return go('login');
+ folder=folder==='sent'?'sent':'inbox';
+ const cache=mailCacheFor(u.id);
+ app(mailPageMarkup(folder));
+ if(!cache.loaded[folder]&&!cache.loading[folder]&&!cache.error[folder])loadMailFolder(folder,u.id);
+}
+async function loadMailFolder(folder,ownerId){
+ const cache=mailCacheFor(ownerId);if(cache.loading[folder])return;
+ cache.loading[folder]=true;cache.error[folder]='';
+ if(ROUTE==='mail/'+folder)app(mailPageMarkup(folder));
+ try{
+  if(supaClient&&cloudReady){
+   const {data,error}=await supaClient.rpc('site_mail_list',{p_folder:folder});
+   if(error)throw error;
+   cache[folder]=Array.isArray(data)?data:[];
+  }else{
+   const all=DB.get('mail');
+   cache[folder]=all.filter(m=>folder==='inbox'?(m.recipientId===ownerId&&!m.recipientDeleted):(m.senderId===ownerId&&!m.senderDeleted)).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  }
+  cache.loaded[folder]=true;
+ }catch(err){
+  cache.error[folder]=err?.message||String(err);cache.loaded[folder]=false;
+ }finally{
+  cache.loading[folder]=false;
+  if(me()?.id===ownerId&&ROUTE.split('/')[0]==='mail')render();
+ }
+}
+function retryMailFolder(folder){
+ const u=me();if(!u)return go('login');
+ const cache=mailCacheFor(u.id);cache.error[folder]='';cache.loaded[folder]=false;cache.loading[folder]=false;pageMail(folder);
+}
+function openMailCompose(toUsername='',subject=''){
+ const u=me();if(!u)return go('login');
+ document.getElementById('quickUtilityModal')?.remove();
+ const recipients=DB.get('users').filter(x=>x.id!==u.id).map(x=>`<option value="${esc(x.username)}"></option>`).join('');
+ const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';
+ wrap.innerHTML=`<section class="qu-modal mail-compose-modal" role="dialog" aria-modal="true" aria-labelledby="mailComposeTitle"><div class="qu-modal-head"><div><span class="qu-modal-kicker">PRIVATE MESSAGE</span><h2 id="mailComposeTitle">✉️ เขียนจดหมาย</h2><p>ส่งจดหมายถึงสมาชิกคนอื่นแบบส่วนตัว</p></div><button type="button" class="qu-modal-close" data-mail-close>×</button></div>
+  <form id="mailComposeForm" class="mail-form"><label>ถึงผู้ใช้ *</label><input class="qu-input" name="to" required maxlength="20" list="mailRecipientList" autocomplete="off" value="${esc(toUsername)}" placeholder="พิมพ์ชื่อผู้ใช้ผู้รับ"><datalist id="mailRecipientList">${recipients}</datalist>
+   <label>หัวข้อ *</label><input class="qu-input" name="subject" required maxlength="120" value="${esc(subject)}" placeholder="หัวข้อจดหมาย">
+   <label>ข้อความ *</label><textarea class="qu-input" name="body" required maxlength="12000" placeholder="เขียนข้อความของคุณตรงนี้…"></textarea>
+   <p class="mail-muted-note">ข้อความจะถูกจัดเก็บในคลังจดหมายของผู้ส่งและผู้รับ ไม่มีการส่งอีเมลออกไปภายนอก</p>
+   <div class="qu-modal-actions"><button type="button" class="btn ghost" data-mail-close>ยกเลิก</button><button class="btn">📨 ส่งจดหมาย</button></div>
+  </form></section>`;
+ document.body.appendChild(wrap);
+ wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('[data-mail-close]'))wrap.remove()});
+ wrap.querySelector('#mailComposeForm').addEventListener('submit',doSendMail);
+ wrap.addEventListener('keydown',e=>{if(e.key==='Escape')wrap.remove()});
+}
+async function doSendMail(e){
+ e.preventDefault();const u=me(),form=e.target;if(!u)return go('login');
+ const toName=form.elements.to.value.trim(),subject=form.elements.subject.value.trim(),body=form.elements.body.value.trim();
+ const recipient=DB.get('users').find(x=>String(x.username).toLowerCase()===toName.toLowerCase());
+ if(!recipient)return toast('ไม่พบชื่อผู้รับ กรุณาเลือกชื่อผู้ใช้ที่มีบัญชีในเว็บไซต์','bad');
+ if(recipient.id===u.id)return toast('ไม่สามารถส่งจดหมายให้ตัวเองได้','bad');
+ if(!subject||!body)return toast('กรุณากรอกหัวข้อและข้อความ','bad');
+ if(subject.length>120||body.length>12000)return toast('ข้อความยาวเกินกว่าที่กำหนด','bad');
+ const id=uid();
+ if(supaClient&&cloudReady){
+  const {error}=await supaClient.rpc('site_mail_send',{p_mail:{id,recipientId:recipient.id,subject,body}});
+  if(error)return toast('ส่งจดหมายไม่สำเร็จ: '+error.message+' · ผู้ดูแลอาจต้องติดตั้ง user_mail_system.sql','bad');
+  MAIL_CACHE={ownerId:u.id,inbox:[],sent:[],loaded:{},loading:{},error:{}};
+ }else{
+  const all=DB.get('mail');all.push({id,senderId:u.id,senderUsername:u.username,recipientId:recipient.id,recipientUsername:recipient.username,subject,body,createdAt:Date.now(),readAt:null,senderDeleted:false,recipientDeleted:false});DB.set('mail',all);
+  const cache=mailCacheFor(u.id);
+  cache.sent=all.filter(m=>m.senderId===u.id&&!m.senderDeleted).sort((a,b)=>b.createdAt-a.createdAt);cache.loaded.sent=true;
+ }
+ document.getElementById('quickUtilityModal')?.remove();toast('ส่งจดหมายแล้ว ✉️');go('mail/sent');
+}
+async function openMailRead(id,folder){
+ const u=me();if(!u)return go('login');
+ const cache=mailCacheFor(u.id),mail=(cache[folder]||[]).find(m=>m.id===id);if(!mail)return toast('ไม่พบจดหมายฉบับนี้','bad');
+ if(folder==='inbox'&&!mail.readAt){
+  if(supaClient&&cloudReady){
+   const {error}=await supaClient.rpc('site_mail_mark_read',{p_mail_id:id});
+   if(error)toast('เปิดอ่านแล้ว แต่ปรับสถานะอ่านไม่สำเร็จ: '+error.message,'bad');
+   else mail.readAt=Date.now();
+  }else{
+   mail.readAt=Date.now();const all=DB.get('mail');const saved=all.find(x=>x.id===id&&x.recipientId===u.id);if(saved)saved.readAt=mail.readAt;DB.set('mail',all);
+  }
+ }
+ const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';
+ const other=folder==='inbox'?(mail.senderUsername||'สมาชิก'):(mail.recipientUsername||'ผู้รับ');
+ wrap.innerHTML=`<section class="qu-modal" role="dialog" aria-modal="true" aria-labelledby="mailReadTitle"><div class="qu-modal-head"><div><span class="qu-modal-kicker">${folder==='inbox'?'INBOX MESSAGE':'SENT MESSAGE'}</span><h2 id="mailReadTitle">${esc(mail.subject||'(ไม่มีหัวข้อ)')}</h2><p>${folder==='inbox'?'จาก':'ถึง'}: <b>${esc(other)}</b> · ${fmt(mail.createdAt)}</p></div><button type="button" class="qu-modal-close" data-mail-close>×</button></div>
+  <div class="mail-read-body">${esc(mail.body||'')}</div><div class="qu-modal-actions">${folder==='inbox'?'<button type="button" class="btn ghost" data-mail-reply>↩ ตอบกลับ</button>':''}<button type="button" class="btn bad" data-mail-delete>ลบจดหมาย</button><button type="button" class="btn ghost" data-mail-close>ปิด</button></div></section>`;
+ document.body.appendChild(wrap);
+ wrap.addEventListener('click',async e=>{
+  if(e.target===wrap||e.target.closest('[data-mail-close]')){wrap.remove();return}
+  if(e.target.closest('[data-mail-reply]')){wrap.remove();openMailCompose(mail.senderUsername,'RE: '+mail.subject);return}
+  if(e.target.closest('[data-mail-delete]')){wrap.remove();await deleteMailMessage(id,folder);return}
+ });
+ wrap.addEventListener('keydown',e=>{if(e.key==='Escape')wrap.remove()});
+ if(folder==='inbox')renderNav();
+}
+async function deleteMailMessage(id,folder){
+ const u=me();if(!u||!await ask('ต้องการลบจดหมายฉบับนี้จาก'+(folder==='inbox'?'กล่องจดหมายเข้า':'รายการที่ส่ง')+'หรือไม่?'))return;
+ if(supaClient&&cloudReady){
+  const {error}=await supaClient.rpc('site_mail_delete',{p_mail_id:id,p_folder:folder});
+  if(error)return toast('ลบจดหมายไม่สำเร็จ: '+error.message,'bad');
+ }else{
+  const all=DB.get('mail'),m=all.find(x=>x.id===id);if(m){if(folder==='inbox'&&m.recipientId===u.id)m.recipientDeleted=true;if(folder==='sent'&&m.senderId===u.id)m.senderDeleted=true;DB.set('mail',all)}
+ }
+ const cache=mailCacheFor(u.id);cache.loaded[folder]=false;cache.error[folder]='';cache.loading[folder]=false;toast('ลบจดหมายแล้ว');pageMail(folder);
+}
+
 /* ================= ROUTER ================= */
 const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
  chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editbio:pageEditCharacterBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
