@@ -733,7 +733,8 @@ const TYPES={
  audition:{n:'🎤 ออดิชั่น',c:'#ffc857'},
  mission:{n:'🎯 ภารกิจ/ประเมินผล',c:'#8b7bff'},
  event:{n:'🎉 อีเวนต์',c:'#3ddc97'},
- daily:{n:'☕ ชีวิตประจำวัน',c:'#5fc8ff'}
+ daily:{n:'☕ ชีวิตประจำวัน',c:'#5fc8ff'},
+ bio:{n:'📚 ประวัติตัวละคร',c:'#c5a8ed'}
 };
 const POSITIONS=['ร้องนำ (Vocal)','เต้น (Dance)','แร็ป (Rap)','วิชวล (Visual)','แต่งเพลง (Producing)','การแสดง (Acting)'];
 const GROUP_TYPES=['บอยกรุ๊ป','เกิร์ลกรุ๊ป','วงผสม','ยูนิต','ศิลปินเดี่ยว'];
@@ -754,6 +755,8 @@ const DEFAULT_FORUMS=[
  {id:'f_2',catId:'cat_2',name:'ทำเนียบสภาแห่งเอเดียน',desc:'สถานที่ทำงานของสมาชิกสภาและเจ้าหน้าที่',banner:'',order:2},
  {id:'f_3',catId:'cat_3',name:'ห้องซ้อมและสังสรรค์',desc:'พูดคุยและโรลเพลย์ชีวิตประจำวันของเด็กฝึก',banner:'',order:3}
 ];
+const CHARACTER_BIO_CATEGORY_ID='cat_character_bio';
+const CHARACTER_BIO_FORUM_ID='f_char_bio';
 const SAMPLE_CSS=`.sheet{background:linear-gradient(135deg,#2b1640,#13213f);border:1px solid #ff5fa2;border-radius:16px;padding:18px 20px;box-shadow:0 0 24px #ff5fa244}
 .sheet .tag{display:inline-block;background:#ff5fa2;color:#fff;border-radius:99px;padding:0 10px;font-size:12px;letter-spacing:1px}
 .sheet h2{margin:6px 0;color:#ffc857}
@@ -802,6 +805,16 @@ function migrate(){
   DB.set('characters',cs);
   if(!DB.get('categories').length)DB.set('categories',DEFAULT_CATEGORIES);
   if(!DB.get('forums').length)DB.set('forums',DEFAULT_FORUMS);
+const bioCats=DB.get('categories');
+if(!bioCats.some(c=>c.id===CHARACTER_BIO_CATEGORY_ID)){
+ bioCats.push({id:CHARACTER_BIO_CATEGORY_ID,name:'📚 ทำเนียบและประวัติตัวละคร',order:Math.max(0,...bioCats.map(c=>Number(c.order)||0))+1});
+ DB.set('categories',bioCats);
+}
+const bioForums=DB.get('forums');
+if(!bioForums.some(f=>f.id===CHARACTER_BIO_FORUM_ID)){
+ bioForums.push({id:CHARACTER_BIO_FORUM_ID,catId:CHARACTER_BIO_CATEGORY_ID,name:'คลังประวัติตัวละคร',desc:'สร้างกระทู้เล่าเรื่องราวตัวละครฉบับเต็ม แล้วนำลิงก์มาแนบตอนลงทะเบียน',banner:'',order:Math.max(0,...bioForums.map(f=>Number(f.order)||0))+1});
+ DB.set('forums',bioForums);
+}
   const th=DB.get('threads');th.forEach(t=>{if(!t.forumId)t.forumId='f_1';if(t.won===undefined)t.won=t.type==='notice'?0:300});DB.set('threads',th);
   if(store.getItem('sa_items')===null)DB.set('items',[
    {id:uid(),name:'ชุดซ้อมเต้นสีดำ',cat:'ชุดตัวละคร',price:5000,img:'',desc:'ชุดซ้อมมาตรฐานของเด็กฝึก',stock:-1},
@@ -1266,7 +1279,7 @@ function gmSide(){
 
 /* ================= ROUTER ================= */
 const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
- chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
+ chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
  agencies:pageAgencies,agency:pageAgency,editagency:pageEditAgency,groups:pageGroups,group:pageGroup,editgroup:pageEditGroup,
  admin:pageAdmin,editthread:pageEditThread,newthreadtoforum:pageNewThreadToForum};
 let ROUTE=(()=>{try{return location.hash.slice(1)}catch(e){return ''}})()||'home';
