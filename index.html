@@ -577,7 +577,7 @@ function richEditor(name,val='',o={}){
  const id='ed'+(++EDN);
  return `<div class="ed" id="${id}" data-name="${name}" data-mode="rich" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
  <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><span class="ed-count"></span></div>
- ${o.code&&canCode()?'<div class="announcement-tools"><label>📄 แบบประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" onclick="window.insertPostAnnouncement(this);return false" type="button">＋ ใส่แบบประกาศ</button></div>':''}
+ ${o.code&&canCode()?'<div class="announcement-tools"><label>📄 แบบประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" onclick="return insertPostAnnouncement(this)" type="button">＋ ใส่แบบประกาศ</button></div>':''}
  <div class="ed-bar">${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sanitize(val)}</div>
  <div class="ed-foot"><span class="ed-hint">💡 พิมพ์ข้อความและแทรก HTML ในช่องเดียวกันได้ · โค้ดจะถูกกรองเพื่อความปลอดภัย</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
@@ -625,11 +625,12 @@ async function edImg(id){saveSel();const r=SEL;const u=await askText('ใส่�
 async function edYT(id){saveSel();const r=SEL;const u=await askText('วางลิงก์ YouTube','');SEL=r;if(!u)return;const m=u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);if(!m)return toast('ลิงก์ YouTube ไม่ถูกต้อง','bad');ins(id,`<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}" width="100%" height="315" allowfullscreen frameborder="0"></iframe><p><br></p>`)}
 async function edSpoiler(id){saveSel();const r=SEL;const t=await askText('หัวข้อของกล่องซ่อน','คลิกเพื่อเปิด');SEL=r;if(t===null)return;ins(id,`<details><summary>${esc(t)}</summary><p>เนื้อหาที่ซ่อนไว้...</p></details><p><br></p>`)}
 function fmtHtml(h){return String(h||'').replace(/(<\/(p|div|h2|h3|blockquote|li|ul|ol|details)>|<br>)/g,'$1\n')}
-window.insertPostAnnouncement = function(button){
+function insertPostAnnouncement(button){
+ try{
  const ed=button&&button.closest('.ed');
- if(!ed){if(typeof toast==='function')toast('หาเครื่องมือเขียนประกาศไม่พบ','bad');return}
+ if(!ed){toast('หาเครื่องมือเขียนประกาศไม่พบ','bad');return false}
  const area=ed.querySelector('.ed-area');
- if(!area){if(typeof toast==='function')toast('หาแถบเขียนข้อความไม่พบ','bad');return}
+ if(!area){toast('หาแถบเขียนข้อความไม่พบ','bad');return false}
  const pick=ed.querySelector('.announcement-pick')?.value||'official';
  const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
  const x=skins[pick]||skins.official;
@@ -645,14 +646,14 @@ window.insertPostAnnouncement = function(button){
   const range=document.createRange();range.selectNodeContents(area);range.collapse(false);
   const sel=window.getSelection();if(sel){sel.removeAllRanges();sel.addRange(range)}
   if(typeof saveSel==='function')saveSel();
-  if(typeof toast==='function')toast('แสดงโค้ด HTML ของแบบประกาศแล้ว');
+  toast('ใส่โค้ด HTML ของแบบประกาศแล้ว');
+  return false;
  }catch(err){
   console.error('insertPostAnnouncement failed',err);
-  area.textContent=html;
-  area.dataset.htmlSource='1';
-  if(typeof toast==='function')toast('ใส่โค้ดแล้ว แต่จัดตำแหน่งเคอร์เซอร์ไม่สำเร็จ','bad');
+  toast('ใส่แบบประกาศไม่สำเร็จ: '+(err?.message||String(err)),'bad');
+  return false;
  }
-};
+}
 function edTab(id,t){const ed=document.getElementById(id);if(ed)edUI(ed)}
 function edUI(ed){if(!ed)return;ed.dataset.mode='rich';const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area');if(bar)bar.hidden=false;if(area)area.hidden=false;edCount(ed)}
 function edParseInlineHTML(area){
@@ -711,7 +712,7 @@ function initEditors(){
   edUI(ed);
  });
 }
-window.preview = function(target){
+function preview(target){
  try{
   const f=target?.matches?.('form')?target:target?.closest?.('form');
   if(!f){toast('ไม่พบแบบฟอร์มสำหรับพรีวิว','bad');return}
@@ -731,7 +732,8 @@ window.preview = function(target){
   if(box){box.hidden=false;box.style.display='block';box.innerHTML='<div class="mut">พรีวิวผิดพลาด: '+esc(err?.message||String(err))+'</div>'}
   toast('พรีวิวผิดพลาด กรุณาดูข้อความแจ้งเตือน','bad');
  }
-};
+}
+window.preview=preview;
 function previewEditor(button,name){
  const f=button?.closest?.('form');
  if(!f)return;
