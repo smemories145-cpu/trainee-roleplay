@@ -301,6 +301,32 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--pri);outline-offset
 @media(max-width:560px){.home-hero{grid-template-columns:1fr;min-height:0;padding:26px 20px;border-radius:18px}.home-hero-orbit{position:absolute;right:-60px;top:4px;width:170px;opacity:.28;pointer-events:none}.home-hero-content{max-width:100%}.home-hero h1{font-size:2rem;overflow-wrap:anywhere}.home-hero-content>p{max-width:90%;font-size:.9rem}.home-hero-actions{margin-top:18px}.home-stats{gap:15px;margin-top:23px}.home-quicklinks{gap:8px;margin-bottom:32px}.home-quicklinks>a{padding:11px 9px;gap:8px}.quick-icon{width:32px;height:32px;flex-basis:32px}.home-quicklinks small{white-space:normal;line-height:1.35}.home-section{margin-bottom:32px}.home-section-heading{align-items:flex-start}.home-section-heading h2{font-size:1.35rem}.home-section-heading p{font-size:.8rem}.home-text-link{font-size:.75rem}.home-recent{padding:11px 10px;gap:9px}.home-recent-icon{width:30px;flex-basis:30px;height:30px}.home-recent-title{gap:5px}.home-recent-title b{font-size:.86rem}.home-recent-meta{font-size:.7rem}.home-replies{min-width:37px}.home-replies span{font-size:.62rem}}
 
 </style>
+<style id="postReadability">
+/* ---------- อ่านโพสต์โรลเพลย์ได้สบายขึ้น ---------- */
+main{max-width:1380px}
+.post>.post-layout{grid-template-columns:210px minmax(0,1fr);gap:24px}
+.post .rich{
+  font-size:clamp(16.5px,1.2vw,18px);
+  line-height:1.95;
+  letter-spacing:.005em;
+  overflow-wrap:anywhere;
+}
+.post .rich p{margin:0 0 1em}
+.post .rich li{margin:.22em 0}
+.post .rich blockquote{padding:10px 16px;margin:14px 0}
+.post .post-top{margin-bottom:12px;gap:12px}
+.post .post-top .mut{font-size:.82rem;line-height:1.7}
+@media(max-width:820px){
+  .post>.post-layout{grid-template-columns:minmax(0,1fr);gap:18px}
+}
+@media(max-width:600px){
+  main{padding-left:10px;padding-right:10px}
+  .post .rich{font-size:16px;line-height:1.85}
+  .post.card{padding:14px}
+  .post .post-top{align-items:flex-start}
+  .post .post-top .mut{font-size:.78rem}
+}
+</style>
 <style id="customCss"></style>
 </head>
 <body>
