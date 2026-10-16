@@ -120,7 +120,7 @@ summary{cursor:pointer;font-weight:600}
 .forum-pro-card:hover{border-color:var(--pri)}
 @media(max-width:900px){.forum-pro-card{grid-template-columns:1fr}}
 
-.forum-pro-banner{position:relative;min-height:120px;background:var(--card2);background-size:cover;background-position:center}
+.forum-pro-banner{position:relative;min-height:120px;background:var(--card2);background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}}
 .forum-pro-banner .overlay{position:absolute;inset:0;background:linear-gradient(90deg,transparent 60%,var(--card));}
 @media(max-width:900px){.forum-pro-banner .overlay{background:linear-gradient(0deg,var(--card),transparent)}}
 
@@ -1645,7 +1645,7 @@ function pageHome(){
   return `<section class="cat-block"><div class="cat-header"><span class="home-cat-mark">✦</span>${esc(cat.name)}</div>`+sub.map(f=>{
    const ft=threads.filter(t=>t.forumId===f.id);
    const subList=forums.filter(sf=>sf.parentId===f.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
-   const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
+   const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}');background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}"`:'';
    const lastTh=ft.sort((a,b)=>b.createdAt-a.createdAt)[0];
    const lastUser=lastTh?users.find(x=>x.id===lastTh.authorId):null;
    return `<div class="forum-pro-card">
@@ -1677,7 +1677,7 @@ function pageThreads(){
 function pageForum(fid){
  const f=DB.get('forums').find(x=>x.id===fid);if(!f)return app('<div class="card">ไม่พบซับฟอรั่มนี้</div>');
  const u=me(),th=DB.get('threads').filter(t=>t.forumId===fid).sort(sortThreads);
- const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}')"`:'';
+ const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}');background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}"`:'';
  const createAction=f.id===CHARACTER_BIO_FORUM_ID
   ?(u?`<a class="btn" href="#newbio">＋ เขียนกระทู้ประวัติตัวละคร</a>`:`<a class="btn" href="#login">เข้าสู่ระบบเพื่อเขียนประวัติ</a>`)
   :(isAdmin()?`<a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในซับฟอรั่มนี้</a>`:'');
@@ -1806,12 +1806,16 @@ async function doSaveProfile(e){
  const users=DB.get('users');if(users.some(x=>x.id!==u.id&&String(x.username).toLowerCase()===username.toLowerCase()))return toast('ชื่อนี้ถูกใช้แล้ว','bad');
  const prefs={...(u.prefs||{}),compactMode:E.compactMode.checked,reduceMotion:E.reduceMotion.checked};
  if(supaClient&&cloudReady){
-  if(pw){const {error}=await supaClient.auth.updateUser({password:pw});if(error)return toast('เปลี่ยนรหัสผ่านไม่สำเร็จ: '+error.message,'bad')}
+  // Update the profile first, so a missing migration never changes only the Auth password.
   const {data,error}=await supaClient.rpc('site_profile_update',{p_username:username,p_avatar:avatarUrl});
   if(error)return toast('อัปเดตข้อมูลบัญชี Cloud ไม่สำเร็จ: '+error.message+' · ผู้ดูแลอาจต้องติดตั้ง user_mail_system.sql','bad');
   if(data&&data.username)cloudProfile={...cloudProfile,username:data.username};
   const idx=users.findIndex(x=>x.id===u.id);if(idx>=0)users[idx]={...users[idx],username,avatar:avatarUrl,prefs};
   DB.set('users',users);await cloudQueue;await cloudRefresh(false);
+  if(pw){
+   const {error:passwordError}=await supaClient.auth.updateUser({password:pw});
+   if(passwordError){loadSettings();render();return toast('บันทึกชื่อผู้ใช้และรูปโปรไฟล์แล้ว แต่เปลี่ยนรหัสผ่านไม่สำเร็จ: '+passwordError.message,'bad')}
+  }
   try{await supaClient.auth.refreshSession()}catch(err){console.warn('Session refresh after profile update failed',err)}
  }else{
   const pass=pw?await hash(pw):u.pass,idx=users.findIndex(x=>x.id===u.id);
@@ -2625,7 +2629,7 @@ function doSaveSettings(e){
  toast('บันทึกการตั้งค่าแล้ว');render();
 }
 function resetTheme(){DB.set('settings',{...DB.get('settings',{}),pri:DEFAULT_SETTINGS.pri,sec:DEFAULT_SETTINGS.sec,bg:DEFAULT_SETTINGS.bg});toast('คืนค่าสีแล้ว');render()}
-const BACKUP_KEYS=['users','characters','threads','posts','agencies','groups','categories','forums','items','settings'];
+const BACKUP_KEYS=['users','characters','threads','posts','agencies','groups','categories','forums','items','settings','mail'];
 function exportData(){
  const d={};BACKUP_KEYS.forEach(k=>d[k]=DB.get(k,null));
  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));a.download='rp-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove()}
