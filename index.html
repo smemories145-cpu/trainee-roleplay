@@ -1412,6 +1412,11 @@ function gmSide(){
   <div class="side-body"><span class="badge" style="--c:var(--warn);margin:auto">👑 GM</span></div></aside>`;
 }
 
+function academySide(owner){
+ const img=owner?.avatar||'';
+ return `<aside class="side" style="--ac:#9b89ff;border-color:#9b89ff"><div class="side-por" style="background:linear-gradient(150deg,#9b89ff,#ff5fa2)"><div class="ini">✦</div>${/^https?:\/\//.test(img)?`<img src="${esc(img)}" loading="lazy" onerror="this.remove()">`:''}<div class="side-name"><small>OFFICIAL ACCOUNT</small><b>Starlight_Academy</b><span>STARLIGHT ROLEPLAY</span></div></div><div class="side-body"><span class="badge" style="--c:#9b89ff;margin:auto">🏫 บัญชีสถาบัน</span><a class="side-btn" href="#profile/${owner?.id||''}">ดูโปรไฟล์บัญชี</a></div></aside>`;
+}
+
 /* ================= PRIVATE MAILBOX ================= */
 function mailCacheFor(ownerId){
  if(MAIL_CACHE.ownerId!==ownerId)MAIL_CACHE={ownerId,inbox:[],sent:[],loaded:{},loading:{},error:{}};
@@ -1616,6 +1621,36 @@ function renderNav(){
 function threadStarterUser(t){
  return DB.get('users').find(x=>x.id===t?.authorId)||null;
 }
+function threadAuthorCharacter(t){
+ if(!t||t.authorMode==='academy'||t.authorMode==='gm'||(!t.authorMode&&t.type==='notice'))return null;
+ const chars=DB.get('characters');
+ return chars.find(c=>c.id===t.authorCharId&&c.ownerId===t.authorId&&c.status==='approved')||
+  (!t.authorMode?chars.find(c=>c.ownerId===t.authorId&&c.status==='approved'):null)||null;
+}
+function threadAuthorName(t){
+ if(t?.authorMode==='academy')return 'Starlight_Academy';
+ if(t?.authorMode==='gm'||(!t?.authorMode&&t?.type==='notice'))return S.gmName||'ผู้ดำเนินเรื่อง';
+ const c=threadAuthorCharacter(t);
+ return c?(c.stageName||c.name):(threadStarterUser(t)?.username||'สมาชิก');
+}
+function threadAuthorSubtitle(t){
+ const c=threadAuthorCharacter(t);
+ if(t?.authorMode==='academy')return 'บัญชีสถาบัน';
+ if(t?.authorMode==='gm'||(!t?.authorMode&&t?.type==='notice'))return 'ผู้ดำเนินเรื่อง';
+ return c?'ตัวละคร · '+(threadStarterUser(t)?.username||'สมาชิก'):'ผู้เปิดกระทู้';
+}
+function threadAuthorAvatar(t,size=54){
+ const user=threadStarterUser(t);
+ if(t?.authorMode==='academy')return avatar(user,size);
+ const c=threadAuthorCharacter(t);
+ return avatar(c||user,size);
+}
+function threadStarterSide(t,opener,openingChar,cnt){
+ if(t?.authorMode==='academy')return academySide(opener);
+ if(t?.authorMode==='gm'||(!t?.authorMode&&t?.type==='notice'))return gmSide();
+ if(openingChar)return sideCard(openingChar,opener,cnt(openingChar.id));
+ return `<aside class="side" style="--ac:var(--pri)"><div class="side-por"><div class="ini">${esc((opener?.username||'?')[0])}</div>${String(opener?.avatar||'').startsWith('http')?`<img src="${esc(opener.avatar)}" loading="lazy" onerror="this.remove()">`:''}<div class="side-name"><small>THREAD STARTER</small><b><a href="#profile/${opener?.id||''}" style="color:inherit">${esc(opener?.username||'สมาชิก')}</a></b><span>ผู้เปิดกระทู้</span></div></div><div class="side-body"><a class="side-btn" href="#profile/${opener?.id||''}">ดูโปรไฟล์</a></div></aside>`;
+}
 function threadItem(t){
  const user=threadStarterUser(t),ty=TYPES[t.type]||TYPES.main;
  const fo=DB.get('forums').find(x=>x.id===t.forumId);
@@ -1623,12 +1658,12 @@ function threadItem(t){
  const last=replies.reduce((a,p)=>!a||p.createdAt>a.createdAt?p:a,null);
  const lastUser=last?DB.get('users').find(x=>x.id===last.userId):user;
  return `<a class="card item thread-list-card" href="#thread/${t.id}">
-  <div class="thread-list-starter">${avatar(user,54)}<div><b>${esc(user?.username||'สมาชิก')}</b><small>ผู้เปิดกระทู้</small><small>${fmt(t.createdAt)}</small></div></div>
+  <div class="thread-list-starter">${threadAuthorAvatar(t,54)}<div><b>${esc(threadAuthorName(t))}</b><small>${esc(threadAuthorSubtitle(t))}</small><small>${fmt(t.createdAt)}</small></div></div>
   <div class="thread-list-main">
    <div class="row" style="gap:7px;margin-bottom:6px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${fo?`<span class="badge">${esc(fo.name)}</span>`:''}</div>
    <h3 class="thread-list-title">${esc(t.title)}</h3>
    <div class="mut thread-list-summary">${esc(String(t.plot||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim().slice(0,180))}</div>
-   <div class="row thread-list-meta"><span>💬 ${replies.length} ตอบกลับ</span><span>อัปเดต ${fmt(last?.createdAt||t.createdAt)} · ${esc(lastUser?.username||user?.username||'-')}</span></div>
+   <div class="row thread-list-meta"><span>💬 ${replies.length} ตอบกลับ</span><span>อัปเดต ${fmt(last?.createdAt||t.createdAt)} · ${esc(last?.userId?(lastUser?.username||'-'):threadAuthorName(t))}</span></div>
   </div>
   <div class="thread-list-arrow">↗</div>
  </a>`;
@@ -1638,7 +1673,7 @@ function pageHome(){
  const u=me(),threads=DB.get('threads'),posts=DB.get('posts'),users=DB.get('users'),cats=DB.get('categories'),forums=DB.get('forums');
  const recent=threads.map(t=>{const pl=posts.filter(p=>p.threadId===t.id);const last=pl.sort((a,b)=>b.createdAt-a.createdAt)[0];return{...t,cnt:pl.length,lastTime:last?last.createdAt:t.createdAt,lastUser:last?last.userId:t.authorId}}).sort((a,b)=>b.lastTime-a.lastTime).slice(0,6);
  const recentHtml=recent.length?recent.map(t=>{const ty=TYPES[t.type]||TYPES.main;return `<a class="home-recent item" href="#thread/${t.id}">
-   ${avatar(users.find(x=>x.id===t.authorId),40)}<div class="home-recent-main"><div class="home-recent-title"><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b></div><div class="mut home-recent-meta">อัปเดต ${fmt(t.lastTime)} · โดย ${esc(users.find(x=>x.id===t.lastUser)?.username||'-')}</div></div>
+   ${threadAuthorAvatar(t,40)}<div class="home-recent-main"><div class="home-recent-title"><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b></div><div class="mut home-recent-meta">อัปเดต ${fmt(t.lastTime)} · โดย ${esc(t.cnt===0?threadAuthorName(t):(users.find(x=>x.id===t.lastUser)?.username||'-'))}</div></div>
    <div class="home-replies"><b>${t.cnt}</b><span>ตอบกลับ</span></div></a>`}).join(''):'<div class="home-empty"><span>✧</span><b>ยังไม่มีกระทู้</b><p class="mut">เริ่มต้นบทสนทนาแรกของชุมชนได้เลย</p><a class="btn sm" href="#threads">ไปที่ฟอรั่ม</a></div>';
  const forumHtml=cats.map(cat=>{
   const sub=forums.filter(f=>f.catId===cat.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));if(!sub.length)return '';
@@ -1940,7 +1975,7 @@ function pageThread(id){
  const cnt=cid=>all.filter(p=>p.charId===cid).length;
   const opener=threadStarterUser(t);
   const openingChar=(t.authorCharId&&chars.find(c=>c.id===t.authorCharId&&c.ownerId===t.authorId&&c.status==='approved'))||chars.find(c=>c.ownerId===t.authorId&&c.status==='approved')||null;
-  const openingSide=t.type==='notice'?gmSide():openingChar?sideCard(openingChar,opener,cnt(openingChar.id)):`<aside class="side" style="--ac:var(--pri)"><div class="side-por"><div class="ini">${esc((opener?.username||'?')[0])}</div>${String(opener?.avatar||'').startsWith('http')?`<img src="${esc(opener.avatar)}" loading="lazy" onerror="this.remove()">`:''}<div class="side-name"><small>THREAD STARTER</small><b><a href="#profile/${opener?.id||''}" style="color:inherit">${esc(opener?.username||'สมาชิก')}</a></b><span>ผู้เปิดกระทู้</span></div></div><div class="side-body"><a class="side-btn" href="#profile/${opener?.id||''}">ดูโปรไฟล์</a></div></aside>`;
+  const openingSide=threadStarterSide(t,opener,openingChar,cnt);
  const postHtml=p=>{
   const c=chars.find(x=>x.id===p.charId),o=users.find(x=>x.id===p.userId),st=statOf(p.train),canEdit=u&&(u.id===p.userId||isAdmin());
   const info=p.gm?'📢 ประกาศจากผู้ดำเนินเรื่อง':`ผู้เล่น: <a href="#profile/${o?.id}"><b>${esc(o?.username||'-')}</b></a>${st?` · 🏋️ ฝึก${st.n} +${p.gain||0}`:''}${p.wonGain?` · 💰 +${wonFmt(p.wonGain)}`:''}`;
@@ -1977,7 +2012,7 @@ function pageThread(id){
   <div class="card post thread-opening-post"><div class="post-layout">
    ${openingSide}
    <div class="post-content-column">
-    <div class="thread-opening-meta"><span class="mut">${esc(opener?.username||S.gmName||'ผู้ดำเนินเรื่อง')} · ${fmt(t.createdAt)}</span><span class="mut">#1 · กระทู้ต้นเรื่อง</span></div>
+    <div class="thread-opening-meta"><span class="mut">${esc(threadAuthorName(t))} · ${fmt(t.createdAt)}</span><span class="mut">#1 · กระทู้ต้นเรื่อง</span></div>
     <div class="row" style="gap:7px;margin-bottom:8px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${closed?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}${ag?agencyBadge(ag.id):''}</div>
     <h2 class="thread-opening-title">${esc(t.title)}</h2>
     ${t.type!=='notice'&&!t.characterBio?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
@@ -2461,11 +2496,12 @@ async function deleteGroup(id){if(!isAdmin()||!await ask('ลบวงนี้�
 
 /* ================= ADMIN: THREADS ================= */
 function threadForm(t,preForumId){
- const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',...(t||{})};
+ const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',authorMode:t?.authorMode||(t?.type==='notice'?'gm':'character'),...(t||{})};
  const so=sel=>STAGES.map((s,i)=>`<option value="${i}" ${i==sel?'selected':''}>${i} — ${esc(s.n)}</option>`).join('');
  return `<form class="card topic-composer thread-composer" onsubmit="doSaveThread(event,'${t?.id||''}')">
   <div class="topic-composer-heading"><h2>${t?'✏️ แก้ไขกระทู้':'🆕 สร้างกระทู้ใหม่'}</h2><p>กำหนดหัวข้อ เนื้อเรื่อง และเงื่อนไขของกระทู้</p></div>
   <div class="topic-field-row"><label class="topic-field-label" for="threadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="threadTitle" name="title" required maxlength="120" class="topic-subject" value="${esc(v.title)}" placeholder="ใส่ชื่อกระทู้"></div></div>
+  <div class="topic-field-row"><label class="topic-field-label" for="threadAuthorMode">โพสต์ในนาม</label><div class="topic-field-value"><select id="threadAuthorMode" name="authorMode"><option value="character" ${v.authorMode==='character'?'selected':''}>🎭 ตัวละครที่เลือกมุมขวาบน (${esc((getActiveChar(me())?.stageName||getActiveChar(me())?.name)||'ยังไม่ได้เลือกตัวละคร')})</option><option value="academy" ${v.authorMode==='academy'?'selected':''}>🏫 Starlight_Academy — บัญชีสถาบัน</option><option value="gm" ${v.authorMode==='gm'?'selected':''}>📢 ผู้ดำเนินเรื่อง (GM)</option></select><div class="topic-help">เลือกได้ว่าจะเปิดกระทู้ในนามตัวละครที่กำลังเลือก, บัญชี Starlight_Academy หรือ GM โดยไม่ต้องสลับบัญชี</div></div></div>
   <div class="topic-field-row"><div class="topic-field-label">ประเภทและพื้นที่:</div><div class="topic-field-value"><div class="topic-compact-row three">
    <div class="f1"><label>ประเภทกระทู้</label><select name="type">${Object.entries(TYPES).map(([k,x])=>`<option value="${k}" ${k===v.type?'selected':''}>${x.n}</option>`).join('')}</select></div>
    <div class="f1"><label>ซับฟอรั่ม *</label><select name="forumId">${forumOptions(v.forumId)}</select></div>
@@ -2493,12 +2529,13 @@ function doSaveThread(e,id){
  e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
  const plot=edGet(edOf(f,'plot'));
  if(!plot.content)return toast('กรุณาเขียนเนื้อเรื่อง','bad');
- const d={title:E.title.value.trim(),type:E.type.value,forumId:E.forumId.value,exp:+E.exp.value||0,won:Math.max(0,+E.won.value||0),minStage:+E.minStage.value,maxStage:+E.maxStage.value,agencyId:E.agencyId.value,
+ const authorMode=E.authorMode?.value||'character';
+ const d={title:E.title.value.trim(),type:E.type.value,forumId:E.forumId.value,authorMode,authorCharId:authorMode==='character'?(getActiveChar(me())?.id||null):null,exp:+E.exp.value||0,won:Math.max(0,+E.won.value||0),minStage:+E.minStage.value,maxStage:+E.maxStage.value,agencyId:E.agencyId.value,
   train:[...f.querySelectorAll('[name=train]:checked')].map(x=>x.value),statGain:+E.statGain.value||0,
   plot:plot.content,plotMode:plot.mode,rules:'',rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked};
  if(d.minStage>d.maxStage)return toast('ระดับต่ำสุดต้องไม่มากกว่าระดับสูงสุด','bad');
  if(id){update('threads',id,t=>Object.assign(t,d));toast('บันทึกแล้ว');return go('thread/'+id)}
- const th=DB.get('threads'),nt={id:uid(),authorId:me().id,authorCharId:d.type==='notice'?null:(getActiveChar(me())?.id||null),status:'open',createdAt:Date.now(),...d};th.push(nt);DB.set('threads',th);toast('สร้างกระทู้แล้ว');go('thread/'+nt.id);
+ const th=DB.get('threads'),nt={id:uid(),authorId:me().id,status:'open',createdAt:Date.now(),...d};th.push(nt);DB.set('threads',th);toast('สร้างกระทู้แล้ว');go('thread/'+nt.id);
 }
 function pageEditThread(id){if(!isAdmin())return go('home');const t=DB.get('threads').find(x=>x.id===id);app(t?`<a href="#thread/${id}">← กลับ</a><br><br>`+threadForm(t):'<div class="card">ไม่พบกระทู้</div>')}
 
