@@ -512,14 +512,14 @@ async function cloudLoadForCurrentSession({allowImport=true}={}){
  }
  return {profile,rows};
 }
-async function cloudRefresh(){
+async function cloudRefresh(renderAfter=true){
  if(!supaClient||!cloudReady||cloudApplying)return;
  try{
   const rows=await cloudFetchRows();
   if(!rows.length)return;
   cloudApplyRows(rows,true);
   const active=document.activeElement;
-  if(!active||!active.matches('input,textarea,select,[contenteditable="true"]'))render();
+  if(renderAfter&&(!active||!active.matches('input,textarea,select,[contenteditable="true"]')))render();
  }catch(e){console.warn('Cloud refresh failed',e)}
 }
 function cloudSubscribe(){
@@ -1339,23 +1339,37 @@ function pageThread(id){
  ${posts.map(postHtml).join('')||'<div class="card mut">ยังไม่มีโพสต์ — เป็นคนแรกที่เริ่มเรื่องสิ!</div>'}
  ${form}`);
 }
-function doReply(e,tid){
+async function doReply(e,tid){
  e.preventDefault();const f=e.target,E=f.elements,u=me();if(!u)return;
  const t=DB.get('threads').find(x=>x.id===tid);if(!t||isClosed(t))return toast('กระทู้นี้ปิดแล้ว','bad');
  const {content,mode}=edGet(edOf(f,'content'));
  if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
  if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
  const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),createdAt:Date.now()};
- if(isAdmin()&&E.as?.value==='gm'){posts.push({...base,charId:null,gm:true});DB.set('posts',posts);toast('โพสต์ในฐานะ GM แล้ว')}
- else{
+ if(isAdmin()&&E.as?.value==='gm'){
+  posts.push({...base,charId:null,gm:true});DB.set('posts',posts);
+  if(cloudReady)await cloudQueue;
+  toast('โพสต์ในฐานะ GM แล้ว');
+ }else{
   const ac=getActiveChar(u);if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
   const len=textLen(content,mode);if(len<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร (ตอนนี้ ${len})`,'bad');
-  const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;let gain=0,capped=false;
-  const nc=update('characters',ac.id,o=>{o.exp+=Number(t.exp)||0;
-   if(tr){const cap=statCap(o.stage),b=o.stats[tr]||0;o.stats[tr]=Math.max(b,Math.min(cap,b+(Number(t.statGain)||0)));gain=o.stats[tr]-b;capped=b>=cap}});
-  const w=Number(t.won)||0;if(w)addWon(ac.id,w,'โพสต์: '+t.title);
-  posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w});DB.set('posts',posts);
-  toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}${capped?' (ถึงเพดานขั้นนี้แล้ว)':''}${eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''}`);
+  const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;
+  if(cloudReady){
+   const cloudPost={...base,charId:ac.id,gm:false,train:tr};
+   const {data,error}=await supaClient.rpc('site_create_post',{p_post:cloudPost,p_train:tr});
+   if(error)return toast('โพสต์ไม่สำเร็จ: '+error.message,'bad');
+   await cloudRefresh(false);
+   const actual=data?.post||{};
+   const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0;
+   toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
+  }else{
+   let gain=0,capped=false;
+   const nc=update('characters',ac.id,o=>{o.exp+=Number(t.exp)||0;
+    if(tr){const cap=statCap(o.stage),old=o.stats[tr]||0;o.stats[tr]=Math.max(old,Math.min(cap,old+(Number(t.statGain)||0)));gain=o.stats[tr]-old;capped=old>=cap}});
+   const w=Number(t.won)||0;if(w)addWon(ac.id,w,'โพสต์: '+t.title);
+   posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w});DB.set('posts',posts);
+   toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}${capped?' (ถึงเพดานขั้นนี้แล้ว)':''}${eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''}`);
+  }
  }
  store.removeItem('sa_draft_'+tid);
  render();setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),300);
@@ -1505,28 +1519,44 @@ function saveCharAdmin(e,id){
  if(diff)addWon(id,diff,'แอดมินปรับยอดเงิน');
  toast('บันทึกแล้ว');render();
 }
-function practice(id,k){
+async function practice(id,k){
  const u=me(),c=DB.get('characters').find(x=>x.id===id),st=statOf(k);
  if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
  const left=(c.lastPractice||0)+PRACTICE_CD-Date.now();if(left>0)return toast(`ยังเหนื่อยอยู่! ซ้อมได้อีกใน ${fmtLeft(left)}`,'bad');
  const cap=statCap(c.stage);if((c.stats[k]||0)>=cap)return toast(`${st.n}ถึงเพดานของขั้นนี้แล้ว (${cap})`,'bad');
+ if(cloudReady){
+  const {data,error}=await supaClient.rpc('site_practice',{p_character_id:id,p_stat:k});
+  if(error)return toast('ซ้อมไม่สำเร็จ: '+error.message,'bad');
+  await cloudRefresh(false);
+  toast(`${Number(data?.gain)===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':''}${st.e} ${st.n} +${Number(data?.gain)||0} · +${Number(data?.exp_gain)||PRACTICE_EXP} EXP`);render();return;
+ }
  const g=Math.random()<.3?2:1;
  update('characters',id,o=>{o.stats[k]=Math.min(cap,(o.stats[k]||0)+g);o.exp+=PRACTICE_EXP;o.lastPractice=Date.now()});
  toast(`${g===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':''}${st.e} ${st.n} +${g} · +${PRACTICE_EXP} EXP`);render();
 }
-function claimSalary(id){
+async function claimSalary(id){
  const u=me(),c=DB.get('characters').find(x=>x.id===id);if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
  const left=(c.lastSalary||0)+SALARY_CD-Date.now();if(left>0)return toast('รับเงินเดือนได้อีกใน '+fmtLeft(left),'bad');
+ if(cloudReady){
+  const {data,error}=await supaClient.rpc('site_claim_salary',{p_character_id:id});
+  if(error)return toast('รับเงินเดือนไม่สำเร็จ: '+error.message,'bad');
+  await cloudRefresh(false);toast(`💵 ได้รับเงินเดือน ${wonFmt(data?.amount||0)}`);render();return;
+ }
  const amt=salaryOf(c.stage);addWon(id,amt,'เงินเดือนประจำวัน');update('characters',id,o=>o.lastSalary=Date.now());
  toast(`💵 ได้รับเงินเดือน ${wonFmt(amt)}`);render();
 }
-function doTransfer(e,id){
+async function doTransfer(e,id){
  e.preventDefault();const E=e.target.elements,u=me(),cs=DB.get('characters'),c=cs.find(x=>x.id===id),to=cs.find(x=>x.id===E.to.value),amt=Math.floor(+E.amt.value);
  if(!c||c.ownerId!==u?.id)return;
  if(!to)return toast('กรุณาเลือกผู้รับ','bad');
  if(!(amt>0))return toast('จำนวนเงินไม่ถูกต้อง','bad');
  if(amt>(c.won||0))return toast('เงินไม่พอ','bad');
  const note=E.note.value.trim();
+ if(cloudReady){
+  const {error}=await supaClient.rpc('site_transfer',{p_sender_id:c.id,p_recipient_id:to.id,p_amount:amt,p_note:note});
+  if(error)return toast('โอนเงินไม่สำเร็จ: '+error.message,'bad');
+  await cloudRefresh(false);toast(`โอน ${wonFmt(amt)} ให้ ${to.stageName||to.name} แล้ว`);render();return;
+ }
  addWon(c.id,-amt,`โอนให้ ${to.stageName||to.name}${note?' · '+note:''}`);
  addWon(to.id,amt,`รับโอนจาก ${c.stageName||c.name}${note?' · '+note:''}`);
  toast(`โอน ${wonFmt(amt)} ให้ ${to.stageName||to.name} แล้ว`);render();
@@ -1604,6 +1634,11 @@ async function buyItem(iid){
  if(it.stock===0)return toast('สินค้าหมดแล้ว','bad');
  if((c.won||0)<it.price)return toast('เงินวอนไม่พอ','bad');
  if(!await ask(`ซื้อ "${it.name}" ราคา ${wonFmt(it.price)}\nให้ ${c.stageName||c.name}?`))return;
+ if(cloudReady){
+  const {error}=await supaClient.rpc('site_buy_item',{p_character_id:c.id,p_item_id:iid});
+  if(error)return toast('ซื้อสินค้าไม่สำเร็จ: '+error.message,'bad');
+  await cloudRefresh(false);toast('ซื้อสำเร็จ! 🎉 ไปเลือกแสดงบนรูปข้างได้ที่ "แก้ไข/ตกแต่งโปรไฟล์"');render();return;
+ }
  addWon(c.id,-it.price,'ซื้อ: '+it.name);
  update('characters',c.id,o=>{o.inv=[...(o.inv||[]),{id:uid(),iid,at:Date.now()}]});
  if(it.stock>0)update('items',iid,x=>x.stock--);
