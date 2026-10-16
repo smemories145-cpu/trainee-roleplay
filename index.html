@@ -1744,42 +1744,44 @@ function pageMyChars(){
 function pageNewChar(){
  const u=me();if(!u)return go('login');
  if(DB.get('characters').filter(c=>c.ownerId===u.id&&c.status!=='rejected').length>=MAX_CHARS){toast('ครบโควตาตัวละครแล้ว','bad');return go('mychars')}
- app(`<form class="card" onsubmit="doNewChar(event)"><h2>📋 ใบสมัครเด็กฝึก</h2>
-  <div class="row"><div class="f1"><label>ชื่อ-นามสกุลตัวละคร *</label><input name="name" required maxlength="60"></div>
-  <div class="f1"><label>ชื่อในวงการ (Stage Name)</label><input name="stageName" maxlength="30"></div></div>
-  <div class="row"><div class="f1"><label>อายุ *</label><input type="number" name="age" min="12" max="40" required></div>
-  <div class="f1"><label>เพศ *</label><select name="gender"><option>ชาย</option><option>หญิง</option><option>ไม่ระบุ</option></select></div>
-  <div class="f1"><label>สัญชาติ *</label><input name="nationality" required maxlength="30"></div></div>
-  <label>🏢 ค่ายที่ต้องการเข้าร่วม</label><select name="agencyId">${agencyOptions('','ยังไม่สังกัด — รอค่ายทาบทาม',true)}</select>
-  <label>ตำแหน่งที่ถนัด * (เลือกได้หลายข้อ)</label>
-  <div class="chk">${POSITIONS.map(p=>`<label><input type="checkbox" name="pos" value="${p}">${p}</label>`).join('')}</div>
-  <label>📊 ค่าสถานะเริ่มต้น — ทุกด้านเริ่มที่ ${STAT_BASE} แจกแต้มโบนัสได้ ${STAT_POOL} แต้ม (ด้านละไม่เกิน ${STAT_PER})</label>
-  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 12px;margin-top:6px">${STATS.map(s=>`<div><label>${s.e} ${s.n}</label><input type="number" name="b_${s.k}" min="0" max="${STAT_PER}" value="0" oninput="ptsLeft(this.form)"></div>`).join('')}</div>
-  <p class="pts" style="margin-top:0">เหลือ ${STAT_POOL} แต้ม</p>
-  <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (https://...)</label><input name="avatar" type="url" placeholder="https://"></div>
-  <div class="f1"><label>ภาพปก Banner (https://...)</label><input name="banner" type="url" placeholder="https://..."></div></div>
-  <label>รูปข้างแนวตั้ง (https://...) แนะนำสัดส่วน 3:5</label><input name="portrait" type="url" placeholder="https://">
-  <label>นิสัย / บุคลิก *</label>${characterBioEditor('personality','',{ph:'โค้ด HTML สำหรับนิสัยและบุคลิก...'})}
-  <label>ประวัติ / เหตุผลที่อยากเป็นศิลปิน *</label>${characterBioEditor('background','',{ph:'โค้ด HTML สำหรับประวัติตัวละคร...'})}
-  <label class="row" style="color:var(--txt)"><input type="checkbox" name="agree" required style="width:auto;margin:0"> ข้าพเจ้าอ่านและยอมรับกฎของบอร์ดแล้ว</label><br>
-  <button class="btn">ส่งใบสมัคร</button></form>`);
+ app(`<div class="character-register-page">
+  <header class="character-register-head"><div class="char-edit-kicker">STARLIGHT ACADEMY · CHARACTER APPLICATION</div><h1>📋 ลงทะเบียนตัวละคร</h1><p>กรอกข้อมูลตัวละคร และแนบกระทู้ประวัติฉบับเต็มที่สร้างไว้ในคลังประวัติตัวละคร</p></header>
+  <div class="card bio-application-guide"><div class="bio-step-number">01</div><div class="bio-application-copy"><h3>สร้างกระทู้ประวัติก่อนสมัคร</h3><p>ประวัติยาว ๆ จะอยู่ในกระทู้แยก ไม่ทำให้หน้าโปรไฟล์แน่นเกินไป ให้สร้างกระทู้ในคลังประวัติตัวละคร แล้วคัดลอก URL มาใส่ด้านล่าง</p><div class="row"><button type="button" class="btn sm" onclick="window.open(location.origin+location.pathname+'#forum/${CHARACTER_BIO_FORUM_ID}','_blank','noopener')">📚 เปิดคลังประวัติในแท็บใหม่ ↗</button><button type="button" class="btn sm ghost" onclick="window.open(location.origin+location.pathname+'#newbio','_blank','noopener')">＋ สร้างกระทู้ใหม่ทันที ↗</button></div></div></div>
+  <form class="card character-register-form" onsubmit="doNewChar(event)">
+   <div class="topic-composer-heading"><h2>02 · ข้อมูลพื้นฐาน</h2><p>ข้อมูลส่วนนี้จะแสดงบนการ์ดและหน้าโปรไฟล์หลัก</p></div>
+   <div class="row"><div class="f1"><label>ชื่อ-นามสกุลตัวละคร *</label><input name="name" required maxlength="60"></div><div class="f1"><label>ชื่อในวงการ (Stage Name)</label><input name="stageName" maxlength="30"></div></div>
+   <div class="row"><div class="f1"><label>อายุ *</label><input type="number" name="age" min="12" max="40" required></div><div class="f1"><label>เพศ *</label><select name="gender"><option>ชาย</option><option>หญิง</option><option>ไม่ระบุ</option></select></div><div class="f1"><label>สัญชาติ *</label><input name="nationality" required maxlength="30"></div></div>
+   <label>🏢 ค่ายที่ต้องการเข้าร่วม</label><select name="agencyId">${agencyOptions('','ยังไม่สังกัด — รอค่ายทาบทาม',true)}</select>
+   <label>ตำแหน่งที่ถนัด * (เลือกได้หลายข้อ)</label><div class="chk">${POSITIONS.map(p=>`<label><input type="checkbox" name="pos" value="${esc(p)}">${esc(p)}</label>`).join('')}</div>
+   <label>📊 ค่าสถานะเริ่มต้น — ทุกด้านเริ่มที่ ${STAT_BASE} แจกแต้มโบนัสได้ ${STAT_POOL} แต้ม (ด้านละไม่เกิน ${STAT_PER})</label>
+   <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 12px;margin-top:6px">${STATS.map(st=>`<div><label>${st.e} ${st.n}</label><input type="number" name="b_${st.k}" min="0" max="${STAT_PER}" value="0" oninput="ptsLeft(this.form)"></div>`).join('')}</div>
+   <p class="pts" style="margin-top:0">เหลือ ${STAT_POOL} แต้ม</p>
+   <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (URL)</label><input name="avatar" type="url" placeholder="https://..."></div><div class="f1"><label>ภาพปก Banner (URL)</label><input name="banner" type="url" placeholder="https://..."></div></div>
+   <label>รูปข้างแนวตั้ง (URL) · แนะนำสัดส่วน 3:5</label><input name="portrait" type="url" placeholder="https://...">
+   <label>คำแนะนำตัวแบบสั้น (แสดงบนหน้าโปรไฟล์ · ไม่เกิน 360 ตัวอักษร)</label><textarea name="summary" rows="3" maxlength="360" placeholder="เขียนให้คนอ่านรู้จักตัวละครคร่าว ๆ เช่น บุคลิกเด่น ความฝัน หรือคำโปรยสั้น ๆ"></textarea>
+   <section class="bio-link-field"><div class="bio-step-number">03</div><div class="bio-link-copy"><label for="bioThreadUrl">📖 ลิงก์กระทู้ประวัติตัวละคร *</label><p>วาง URL ของกระทู้ที่คุณสร้างเองใน “คลังประวัติตัวละคร” ระบบจะตรวจว่าเป็นกระทู้ของบัญชีนี้จริง</p></div><input id="bioThreadUrl" name="bioThreadUrl" type="url" required placeholder="https://smemories145-cpu.github.io/trainee-roleplay/#thread/..." ><small>เปิดกระทู้ที่เผยแพร่แล้ว คัดลอก URL จากแถบที่อยู่ แล้ววางตรงนี้</small></section>
+   <label class="row" style="color:var(--txt)"><input type="checkbox" name="agree" required style="width:auto;margin:0"> ข้าพเจ้าอ่านและยอมรับกฎของบอร์ดแล้ว</label>
+   <button class="btn character-register-submit">ส่งใบสมัครตัวละคร</button>
+  </form>
+ </div>`);
 }
 function ptsLeft(f){const used=STATS.reduce((a,s)=>a+(+f.elements['b_'+s.k].value||0),0),el=f.querySelector('.pts');if(el){el.textContent=`เหลือ ${STAT_POOL-used} แต้ม`;el.style.color=used>STAT_POOL?'var(--bad)':''}}
 function doNewChar(e){
- e.preventDefault();const f=e.target,E=f.elements,u=me();
+ e.preventDefault();const f=e.target,E=f.elements,u=me();if(!u)return go('login');
  const positions=[...f.querySelectorAll('[name=pos]:checked')].map(x=>x.value);
  if(!positions.length)return toast('กรุณาเลือกตำแหน่งอย่างน้อย 1 ตำแหน่ง','bad');
- const bonus=STATS.map(s=>Math.max(0,+E['b_'+s.k].value||0));
+ const bonus=STATS.map(st=>Math.max(0,+E['b_'+st.k].value||0));
  if(bonus.some(b=>b>STAT_PER))return toast(`แต่ละด้านแจกได้ไม่เกิน ${STAT_PER} แต้ม`,'bad');
  if(bonus.reduce((a,b)=>a+b,0)>STAT_POOL)return toast(`แจกแต้มเกิน ${STAT_POOL} แต้ม`,'bad');
- const pe=edGet(edOf(f,'personality')).content,bg=edGet(edOf(f,'background')).content;
- if(!pe||!bg)return toast('กรุณากรอกนิสัยและประวัติ','bad');
+ const biography=getCharacterBioThreadFromUrl(E.bioThreadUrl.value,u.id);
+ if(!biography)return toast('ลิงก์ประวัติไม่ถูกต้อง ต้องเป็นกระทู้ในคลังประวัติตัวละครที่บัญชีนี้สร้างเอง','bad');
  const cs=DB.get('characters');
  cs.push({id:uid(),ownerId:u.id,name:E.name.value.trim(),stageName:E.stageName.value.trim(),age:+E.age.value,gender:E.gender.value,nationality:E.nationality.value.trim(),positions,
-  avatar:E.avatar.value.trim(),banner:E.banner.value.trim(),portrait:E.portrait.value.trim(),personality:pe,background:bg,bioMode:'rich',agencyId:E.agencyId.value,
-  stats:Object.fromEntries(STATS.map((s,i)=>[s.k,STAT_BASE+bonus[i]])),won:START_WON,inv:[],ledger:[],showcase:[],
+  avatar:E.avatar.value.trim(),banner:E.banner.value.trim(),portrait:E.portrait.value.trim(),summary:E.summary.value.trim().slice(0,360),
+  bioThreadId:biography.id,personality:'',background:'',bioMode:'rich',agencyId:E.agencyId.value,
+  stats:Object.fromEntries(STATS.map((st,i)=>[st.k,STAT_BASE+bonus[i]])),won:START_WON,inv:[],ledger:[],showcase:[],
   profileHtml:'',status:'pending',reason:'',stage:0,exp:0,createdAt:Date.now()});
- DB.set('characters',cs);toast('ส่งใบสมัครแล้ว! รอแอดมินอนุมัติ');go('mychars');
+ DB.set('characters',cs);toast('ส่งใบสมัครแล้ว! แอดมินจะตรวจข้อมูลและกระทู้ประวัติ');go('mychars');
 }
 function pageChar(id){
  const c=DB.get('characters').find(x=>x.id===id);if(!c)return app('<div class="card">ไม่พบตัวละคร</div>');
