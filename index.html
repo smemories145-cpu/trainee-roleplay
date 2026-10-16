@@ -1806,15 +1806,17 @@ async function doSaveProfile(e){
  const users=DB.get('users');if(users.some(x=>x.id!==u.id&&String(x.username).toLowerCase()===username.toLowerCase()))return toast('ชื่อนี้ถูกใช้แล้ว','bad');
  const prefs={...(u.prefs||{}),compactMode:E.compactMode.checked,reduceMotion:E.reduceMotion.checked};
  if(supaClient&&cloudReady){
-  // Update the profile first, so a missing migration never changes only the Auth password.
-  const {data,error}=await supaClient.rpc('site_profile_update',{p_username:username,p_avatar:avatarUrl});
-  if(error)return toast('อัปเดตข้อมูลบัญชี Cloud ไม่สำเร็จ: '+error.message+' · ผู้ดูแลอาจต้องติดตั้ง user_mail_system.sql','bad');
-  if(data&&data.username)cloudProfile={...cloudProfile,username:data.username};
+  // The standard user record path already saves avatar/preferences/password. Only username changes need the additional profile RPC because login uses username@starlight.invalid.
+  if(username!==u.username){
+   const {data,error}=await supaClient.rpc('site_profile_update',{p_username:username,p_avatar:avatarUrl});
+   if(error)return toast('เปลี่ยนชื่อผู้ใช้บน Cloud ไม่สำเร็จ: '+error.message+' · ตรวจว่ารัน user_mail_system.sql แล้ว','bad');
+   if(data&&data.username)cloudProfile={...cloudProfile,username:data.username};
+  }
   const idx=users.findIndex(x=>x.id===u.id);if(idx>=0)users[idx]={...users[idx],username,avatar:avatarUrl,prefs};
   DB.set('users',users);await cloudQueue;await cloudRefresh(false);
   if(pw){
-   const {error:passwordError}=await supaClient.auth.updateUser({password:pw});
-   if(passwordError){loadSettings();render();return toast('บันทึกชื่อผู้ใช้และรูปโปรไฟล์แล้ว แต่เปลี่ยนรหัสผ่านไม่สำเร็จ: '+passwordError.message,'bad')}
+   const {error}=await supaClient.auth.updateUser({password:pw});
+   if(error){loadSettings();render();return toast('บันทึกชื่อ รูป และตัวเลือกแล้ว แต่เปลี่ยนรหัสผ่านไม่สำเร็จ: '+error.message,'bad')}
   }
   try{await supaClient.auth.refreshSession()}catch(err){console.warn('Session refresh after profile update failed',err)}
  }else{
