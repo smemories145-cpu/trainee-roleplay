@@ -661,6 +661,23 @@ function edUI(ed){
  if(hint)hint.textContent={rich:'💡 เลือกข้อความแล้วกดปุ่ม · วางรูป/ข้อความจากที่อื่นได้เลย',src:'แก้โค้ด HTML ได้โดยตรง (ไม่รองรับ <script>)',code:'โค้ดอิสระ: ใส่ <style> และ <script> ได้ · CSS ของกระทู้ใส่ให้อัตโนมัติ'}[t];
  edCount(ed);
 }
+function edParseInlineHTML(area){
+ if(!area)return false;
+ let changed=false;
+ const walker=document.createTreeWalker(area,NodeFilter.SHOW_TEXT);
+ const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+ for(const node of nodes){
+  const raw=node.nodeValue||'';
+  if(!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw))continue;
+  if(node.parentElement?.closest('pre,code,script,style'))continue;
+  const frag=document.createElement('template');
+  frag.innerHTML=sanitize(raw);
+  if(!frag.content.childNodes.length)continue;
+  node.replaceWith(frag.content.cloneNode(true));changed=true;
+ }
+ if(changed)area.dispatchEvent(new Event('input',{bubbles:true}));
+ return changed;
+}
 function edCount(ed){
  if(!ed)return;const t=ed.dataset.mode;
  const area=ed.querySelector(t==='rich'?'.ed-area':t==='src'?'.ed-src':'.ed-code');
@@ -682,7 +699,8 @@ function initEditors(){
   if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.innerHTML)});
   ed.querySelectorAll('textarea').forEach(x=>x.addEventListener('input',()=>edCount(ed)));
   if(a)a.addEventListener('paste',e=>{const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();document.execCommand('insertHTML',false,h?sanitize(h):esc(tx).replace(/\n/g,'<br>'))});
-  ['keyup','mouseup','blur'].forEach(ev=>a?.addEventListener(ev,saveSel));
+  ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
+  a?.addEventListener('blur',()=>{edParseInlineHTML(a);saveSel();});
   ed.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();ed.closest('form')?.requestSubmit()}});
   edUI(ed);
  });
