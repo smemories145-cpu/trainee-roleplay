@@ -290,11 +290,11 @@ language sql
 stable
 security definer
 set search_path = public, pg_temp
-as $
+as $$
   select
     not exists (select 1 from public.site_profiles where role = 'admin')
     and not exists (select 1 from public.site_records);
-$;
+$$;
 
 revoke all on function public.site_first_admin_needed() from public, anon;
 grant execute on function public.site_first_admin_needed() to authenticated;
