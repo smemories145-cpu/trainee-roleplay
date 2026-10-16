@@ -379,7 +379,7 @@ const BOXES={
 };
 
 /* ================= HELPERS ================= */
-const DB={get:(k,d=[])=>{try{return JSON.parse(store.getItem('sa_'+k))??d}catch(e){return d}},set:(k,v)=>store.setItem('sa_'+k,JSON.stringify(v))};
+const DB={get:(k,d=[])=>{try{const raw=store.getItem('sa_'+k);if(raw===null)return d;const value=JSON.parse(raw);if(value===null)return d;if(Array.isArray(d)&&!Array.isArray(value))return d;if(d&&typeof d==='object'&&!Array.isArray(d)&&(typeof value!=='object'||Array.isArray(value)))return d;return value}catch(e){console.warn('Invalid saved data:',k,e);return d}},set:(k,v)=>store.setItem('sa_'+k,JSON.stringify(v))};
 let S,STAGES;
 function loadSettings(){
  S={...DEFAULT_SETTINGS,...DB.get('settings',{})};
@@ -782,7 +782,12 @@ function render(){
  try{
   loadSettings();const [p,param,sub]=ROUTE.split('/');
   renderNav();(routes[p]||pageHome)(param,sub);window.scrollTo(0,0);
- }catch(e){console.error(e)}
+ }catch(e){
+  console.error('Page render failed:',e);
+  const el=document.getElementById('app');
+  if(el)el.innerHTML='<section class="card" style="margin:24px auto;max-width:760px;border-color:var(--bad)"><h2>หน้าเว็บโหลดไม่สำเร็จ</h2><p>ข้อมูลเดิมยังไม่ได้ถูกลบ กรุณาคัดลอกรายละเอียดนี้ส่งให้ผู้ดูแลเพื่อตรวจสอบ</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere;color:var(--warn)"></pre><button class="btn" onclick="render()">ลองโหลดหน้าเว็บอีกครั้ง</button></section>';
+  const pre=el?.querySelector('pre');if(pre)pre.textContent=(e&&e.stack)||String(e);
+ }
 }
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;const h=a.getAttribute('href').slice(1);e.preventDefault();if(h)go(h)});
 addEventListener('popstate',()=>{try{ROUTE=location.hash.slice(1)||'home'}catch(e){}render()});
