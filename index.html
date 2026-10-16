@@ -1246,7 +1246,7 @@ async function doLogin(e){
   authData=signed.data;authError=signed.error;
   if(authError){
    if(!legacy||!legacy.pass||legacy.pass!==h)return toast('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง','bad');
-   const created=await supaClient.auth.signUp({email:cloudAuthEmail(username),password:pw,options:{data:{app_user_id:legacy.id,username:legacy.username}});
+   const created=await supaClient.auth.signUp({email:cloudAuthEmail(username),password:pw,options:{data:{app_user_id:legacy.id,username:legacy.username}}});
    if(created.error)return toast('ยืนยันรหัสผ่านเดิมแล้ว แต่สร้างบัญชี Cloud ไม่สำเร็จ: '+created.error.message,'bad');
    if(!created.data.session)return toast('บัญชี Cloud ถูกสร้างแล้วแต่ยังไม่ได้ Session: ปิด Confirm email ใน Supabase → Authentication → Providers → Email แล้วลองเข้าสู่ระบบอีกครั้ง','bad');
    authData=created.data;authError=null;
