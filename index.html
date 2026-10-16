@@ -401,12 +401,12 @@ function codeFrame(html,css=''){
   head=hm?hm[1]:'';
   body=bm?bm[1]:source.replace(/<!doctype[^>]*>/ig,'').replace(/<\/?html[^>]*>/ig,'').replace(/<head[^>]*>[\s\S]*?<\/head>/ig,'');
  }
- const doc=\`<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank">
+ const doc=`<!DOCTYPE html><html><head><meta charset="utf-8"><base target="_blank">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root{--pri:\${S.pri};--sec:\${S.sec};--profile-accent:#998BA5}
+:root{--pri:${S.pri};--sec:${S.sec};--profile-accent:#998BA5}
 html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow-wrap:anywhere}
-img,video,iframe{max-width:100%}a{color:\${S.pri}}*,*::before,*::after{box-sizing:border-box}
+img,video,iframe{max-width:100%}a{color:${S.pri}}*,*::before,*::after{box-sizing:border-box}
 .profile-container{width:100%;max-width:920px;margin:0 auto;background:#17151d;color:#eeeaf2;border:1px solid #3b3542;border-radius:14px;overflow:hidden;font-family:'Prompt',sans-serif}
 .profile-container .banner{height:230px;overflow:hidden;background:#292330}
 .profile-container .banner img{display:block;width:100%;height:100%;object-fit:cover}
@@ -440,10 +440,10 @@ img,video,iframe{max-width:100%}a{color:\${S.pri}}*,*::before,*::after{box-sizin
 .profile-container .divider{height:1px;background:#39313f;margin:24px 0}
 @media(max-width:560px){.profile-container .banner{height:160px}.profile-header-section{padding:0 15px 17px}.profile-header-section .avatar-row{margin-top:-42px}.profile-header-section .avatar{width:86px;height:86px;flex-basis:86px}.profile-header-section .action-buttons{font-size:10px;gap:5px}.profile-container .content-body{padding:18px 14px}.profile-container .info-grid{grid-template-columns:1fr}.profile-container .gallery-grid{gap:6px}.profile-container .gallery-item{height:100px}.profile-container .nav-tabs{padding:0 8px}.profile-container .nav-tab{padding:11px 10px}}
 </style>
-\${head}
-<style>\${css||''}</style></head><body>\${body||''}
-<script>(function(){function report(){try{var b=document.body,d=document.documentElement;var h=Math.max(b?b.scrollHeight:0,b?b.offsetHeight:0,d?d.scrollHeight:0,d?d.offsetHeight:0);parent.postMessage({cf:'${id}',h:h+8},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>\`;
- return \`<iframe class="cf" id="${id}" title="พรีวิวโค้ดโปรไฟล์" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" style="display:block;width:100%;min-height:120px;border:0;background:transparent" srcdoc="\${esc(doc)}"></iframe>\`;
+${head}
+<style>${css||''}</style></head><body>${body||''}
+<script>(function(){function report(){try{var b=document.body,d=document.documentElement;var h=Math.max(b?b.scrollHeight:0,b?b.offsetHeight:0,d?d.scrollHeight:0,d?d.offsetHeight:0);parent.postMessage({cf:'${id}',h:h+8},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>`;
+ return `<iframe class="cf" id="${id}" title="พรีวิวโค้ดโปรไฟล์" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" style="display:block;width:100%;min-height:120px;border:0;background:transparent" srcdoc="${esc(doc)}"></iframe>`;
 }
 addEventListener('message',e=>{const d=e.data;if(!d||!d.cf)return;const f=document.getElementById(d.cf);if(f&&e.source===f.contentWindow&&d.h>0)f.style.height=Math.min(d.h,20000)+'px'});
 document.addEventListener('keydown',e=>{if(e.key==='Tab'&&e.target.classList?.contains('code')){e.preventDefault();const t=e.target;t.setRangeText('  ',t.selectionStart,t.selectionEnd,'end')}});
