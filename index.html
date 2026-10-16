@@ -550,6 +550,21 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 .character-edit-bio .field-help{margin:5px 0 14px}
 @media(max-width:600px){.bio-application-guide{padding:14px;gap:10px}.character-register-head,.bio-thread-hero{padding:20px}.character-register-form>.topic-composer-heading{margin:0 0 16px}.bio-thread-composer>.topic-composer-heading{padding:16px}.bio-thread-composer>.topic-field-row{padding:13px}.bio-thread-composer>.topic-actions{padding:13px;flex-wrap:wrap}.character-archive-link{align-items:flex-start;flex-direction:column}.character-archive-link .btn{width:100%;text-align:center}.bio-application-copy .row{align-items:stretch;flex-direction:column}.character-register-submit{width:100%}}
 </style>
+<style id="quickUtilityModals">
+.nav-forum-switch{appearance:none;border:0;background:transparent;color:var(--txt);font:inherit;font-size:.92rem;padding:7px 9px;border-radius:8px;cursor:pointer;white-space:nowrap}.nav-forum-switch:hover{background:var(--card2);color:var(--pri)}
+.qu-modal-backdrop{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(9,7,15,.66);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.qu-modal{width:min(100%,560px);max-height:min(84vh,760px);overflow:hidden;display:flex;flex-direction:column;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px #0005;padding:20px}
+.qu-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}.qu-modal-head h2{font-size:1.25rem;margin:4px 0 5px;line-height:1.25}.qu-modal-head p{font-size:.86rem;color:var(--txt);opacity:.76;margin:0;max-width:430px}.qu-modal-kicker{font-size:.66rem;letter-spacing:.16em;font-weight:800;color:var(--pri);opacity:.9}
+.qu-modal-close{width:34px;height:34px;flex:0 0 34px;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--txt);font-size:1.4rem;line-height:1;cursor:pointer}.qu-modal-close:hover{border-color:var(--pri);color:var(--pri)}
+.qu-field-label{display:block;font-size:.83rem;font-weight:700;margin:5px 0 7px}.qu-input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--txt);padding:11px 12px;font:inherit;outline:none}.qu-input:focus{border-color:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 15%,transparent)}
+.qu-divider{display:flex;align-items:center;gap:10px;margin:15px 0;color:var(--txt);opacity:.7;font-size:.78rem}.qu-divider:before,.qu-divider:after{content:"";height:1px;background:var(--line);flex:1}
+.qu-upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:96px;margin-bottom:14px;padding:14px;border:1px dashed var(--line);border-radius:12px;background:var(--card2);cursor:pointer;text-align:center}.qu-upload-zone:hover{border-color:var(--pri)}.qu-upload-zone small{font-size:.76rem;opacity:.7}.qu-upload-icon{font-size:1.45rem;line-height:1;color:var(--pri)}.qu-upload-zone input{max-width:100%;font-size:.77rem;margin-top:5px}
+.qu-image-preview{min-height:78px;max-height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--txt);font-size:.8rem;opacity:.85;margin:12px 0 8px;padding:8px}.qu-image-preview img{display:block;max-width:100%;max-height:150px;object-fit:contain;border-radius:7px}
+.qu-modal-note{font-size:.74rem;line-height:1.5;opacity:.7;margin:5px 0 13px}.qu-modal-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding-top:12px;margin-top:4px;border-top:1px solid var(--line)}.qu-modal-actions .btn{cursor:pointer}.qu-modal-actions a{text-decoration:none}.qu-modal button:disabled{opacity:.55;cursor:wait}
+.qu-forum-modal{max-width:510px}.qu-forum-search{margin-bottom:12px}.qu-forum-scroll{overflow:auto;min-height:0;padding:0 3px 4px 0}.qu-forum-group{margin:0 0 16px}.qu-forum-group h3{font-size:.78rem;letter-spacing:.045em;color:var(--pri);margin:0 0 7px;padding:0 3px}.qu-forum-list{display:grid;gap:6px}
+.qu-forum-choice{width:100%;display:grid;grid-template-columns:30px minmax(0,1fr) 18px;align-items:center;gap:9px;text-align:left;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--card2);color:var(--txt);font:inherit;cursor:pointer}.qu-forum-choice:hover{border-color:var(--pri);transform:translateY(-1px)}.qu-forum-choice[hidden],.qu-forum-group[hidden]{display:none}.qu-forum-choice span:nth-child(2){min-width:0;display:flex;flex-direction:column;gap:2px}.qu-forum-choice b{font-size:.88rem;font-weight:700}.qu-forum-choice small{font-size:.75rem;opacity:.68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qu-forum-glyph{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:color-mix(in srgb,var(--pri) 12%,transparent);color:var(--pri)}.qu-forum-arrow{font-size:1.25rem;opacity:.55}
+@media(max-width:600px){.qu-modal-backdrop{padding:9px}.qu-modal{padding:16px;border-radius:16px;max-height:88dvh}.qu-modal-head h2{font-size:1.13rem}.qu-modal-head p{font-size:.8rem}.nav-forum-switch{padding:7px 5px;font-size:.84rem}}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
@@ -1149,7 +1164,75 @@ async function edInsertHTML(id){
  edCount(ed);
 }
 async function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
-async function edImg(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์รูปภาพ (https://...)\n\n💡 อัปรูปฟรีที่ postimages.org หรือ imgur.com\nแล้วคัดลอก "Direct link" มาวาง','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;ins(id,`<img src="${esc(u)}" style="max-width:100%;border-radius:8px"><p><br></p>`)}
+let EDITOR_IMAGE_FILE=null;
+function openImageModal(id){
+ saveSel();EDITOR_IMAGE_FILE=null;document.getElementById('quickUtilityModal')?.remove();
+ const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';wrap.innerHTML=`<section class="qu-modal qu-image-modal" role="dialog" aria-modal="true" aria-labelledby="quImageTitle">
+  <div class="qu-modal-head"><div><span class="qu-modal-kicker">EDITOR TOOLS</span><h2 id="quImageTitle">🖼 เพิ่มรูปภาพ</h2><p>ใส่ลิงก์รูป หรือเลือกรูปจากคอมได้ในหน้าต่างเดียว</p></div><button type="button" class="qu-modal-close" data-qu-close aria-label="ปิด">×</button></div>
+  <form id="quImageForm">
+   <label class="qu-field-label" for="quImageUrl">ลิงก์รูปภาพ (ถ้ามี)</label><input id="quImageUrl" type="url" class="qu-input" placeholder="https://.../image.jpg" autocomplete="url">
+   <div class="qu-divider"><span>หรือ</span></div>
+   <label class="qu-upload-zone" for="quImageFile"><span class="qu-upload-icon">＋</span><b>เลือกรูปจากอุปกรณ์</b><small>JPG, PNG หรือ WebP · ระบบย่อรูปให้ก่อนแทรก</small><input id="quImageFile" type="file" accept="image/*"></label>
+   <label class="qu-field-label" for="quImageAlt">คำอธิบายรูป (ไม่บังคับ)</label><input id="quImageAlt" class="qu-input" maxlength="180" placeholder="อธิบายรูปสั้น ๆ">
+   <div class="qu-image-preview" id="quImagePreview"><span>ตัวอย่างรูปจะแสดงตรงนี้</span></div>
+   <p class="qu-modal-note">รูปจากอุปกรณ์จะถูกฝังในโพสต์โดยตรง กรุณาใช้รูปที่บีบอัดแล้วและไม่เกิน 1 MB หลังย่อ</p>
+   <div class="qu-modal-actions"><button type="button" class="btn ghost" data-qu-close>ยกเลิก</button><button type="submit" class="btn" id="quImageInsert">แทรกรูปลงโพสต์</button></div>
+  </form></section>`;
+ document.body.appendChild(wrap);
+ const url=wrap.querySelector('#quImageUrl'),file=wrap.querySelector('#quImageFile'),preview=wrap.querySelector('#quImagePreview'),submit=wrap.querySelector('#quImageInsert');
+ const showPreview=src=>{preview.innerHTML=src?`<img src="${esc(src)}" alt="ตัวอย่างรูปภาพ">`:'<span>ตัวอย่างรูปจะแสดงตรงนี้</span>';};
+ url.addEventListener('input',()=>{if(url.value.trim()){EDITOR_IMAGE_FILE=null;file.value='';showPreview(url.value.trim())}else if(!EDITOR_IMAGE_FILE)showPreview('')});
+ file.addEventListener('change',()=>{const f=file.files&&file.files[0];if(!f)return;if(!f.type.startsWith('image/')){toast('กรุณาเลือกไฟล์รูปภาพ','bad');file.value='';return}EDITOR_IMAGE_FILE=f;url.value='';const reader=new FileReader();reader.onload=()=>showPreview(reader.result);reader.onerror=()=>toast('อ่านไฟล์รูปไม่สำเร็จ','bad');reader.readAsDataURL(f)});
+ const close=()=>{wrap.remove();EDITOR_IMAGE_FILE=null};
+ wrap.addEventListener('click',ev=>{if(ev.target===wrap||ev.target.closest('[data-qu-close]'))close()});
+ wrap.addEventListener('keydown',ev=>{if(ev.key==='Escape')close()});
+ wrap.querySelector('#quImageForm').addEventListener('submit',async ev=>{
+  ev.preventDefault();let src=url.value.trim();const f=EDITOR_IMAGE_FILE;
+  if(f){submit.disabled=true;submit.textContent='กำลังเตรียมรูป…';try{src=await editorImageToDataUrl(f)}catch(err){submit.disabled=false;submit.textContent='แทรกรูปลงโพสต์';return toast(err.message||'เตรียมรูปไม่สำเร็จ','bad')}}
+  if(!src||(!/^https?:\/\//i.test(src)&&!/^data:image\/(png|jpeg|webp);base64,/i.test(src))){submit.disabled=false;submit.textContent='แทรกรูปลงโพสต์';return toast('ใส่ลิงก์รูปภาพ https:// หรือเลือกไฟล์รูปก่อน','bad')}
+  const alt=esc(wrap.querySelector('#quImageAlt').value.trim()||'รูปภาพประกอบ');close();
+  ins(id,`<img src="${esc(src)}" alt="${alt}" style="max-width:100%;height:auto;border-radius:10px"><p><br></p>`);
+ });
+ url.focus();
+}
+function editorImageToDataUrl(file){
+ return new Promise((resolve,reject)=>{
+  if(!file||!file.type.startsWith('image/'))return reject(new Error('กรุณาเลือกไฟล์รูปภาพ'));
+  const reader=new FileReader();reader.onerror=()=>reject(new Error('อ่านไฟล์รูปไม่สำเร็จ'));
+  reader.onload=()=>{const image=new Image();image.onerror=()=>reject(new Error('เปิดรูปนี้ไม่ได้ ลองใช้ JPG, PNG หรือ WebP'));
+   image.onload=()=>{const max=1400,scale=Math.min(1,max/Math.max(image.naturalWidth,image.naturalHeight));
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+    const ctx=canvas.getContext('2d');if(!ctx)return reject(new Error('เตรียมรูปไม่สำเร็จ'));
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    let data=canvas.toDataURL('image/jpeg',.78);if(data.length>1250000)data=canvas.toDataURL('image/jpeg',.58);
+    if(data.length>1400000)return reject(new Error('รูปยังมีขนาดใหญ่เกินไป ลองย่อรูปหรือบีบอัดก่อนอัปโหลด'));resolve(data);
+   };image.src=reader.result;};reader.readAsDataURL(file);
+ });
+}
+function edImg(id){openImageModal(id)}
+function openForumSwitcher(){
+ document.getElementById('quickUtilityModal')?.remove();
+ const cats=DB.get('categories'),forums=DB.get('forums'),allForums=[...forums].sort((a,b)=>(a.order||0)-(b.order||0));
+ const sections=cats.map(cat=>{const items=allForums.filter(f=>f.catId===cat.id);if(!items.length)return '';
+  return `<section class="qu-forum-group"><h3>${esc(cat.name)}</h3><div class="qu-forum-list">${items.map(f=>`<button type="button" class="qu-forum-choice" data-forum-id="${esc(f.id)}" data-forum-name="${esc(f.name)}"><span class="qu-forum-glyph">↗</span><span><b>${esc(f.name)}</b><small>${esc(f.desc||'เข้าไปยังซับฟอรั่มนี้')}</small></span><span class="qu-forum-arrow">›</span></button>`).join('')}</div></section>`;
+ }).join('');
+ const assigned=new Set(cats.flatMap(cat=>allForums.filter(f=>f.catId===cat.id).map(f=>f.id)));
+ const extras=allForums.filter(f=>!assigned.has(f.id));
+ const extraHtml=extras.length?`<section class="qu-forum-group"><h3>ฟอรั่มอื่น ๆ</h3><div class="qu-forum-list">${extras.map(f=>`<button type="button" class="qu-forum-choice" data-forum-id="${esc(f.id)}" data-forum-name="${esc(f.name)}"><span class="qu-forum-glyph">↗</span><span><b>${esc(f.name)}</b><small>${esc(f.desc||'เข้าไปยังซับฟอรั่มนี้')}</small></span><span class="qu-forum-arrow">›</span></button>`).join('')}</div></section>`:'';
+ const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';wrap.innerHTML=`<section class="qu-modal qu-forum-modal" role="dialog" aria-modal="true" aria-labelledby="quForumTitle">
+  <div class="qu-modal-head"><div><span class="qu-modal-kicker">FORUM NAVIGATION</span><h2 id="quForumTitle">↔ สลับฟอรั่ม</h2><p>เลือกฟอรั่มที่ต้องการได้ทันที ไม่ต้องกดย้อนกลับหลายหน้า</p></div><button type="button" class="qu-modal-close" data-qu-close aria-label="ปิด">×</button></div>
+  <input class="qu-input qu-forum-search" type="search" placeholder="⌕ ค้นหาฟอรั่ม…" aria-label="ค้นหาฟอรั่ม"><div class="qu-forum-scroll">${sections}${extraHtml}</div>
+  <div class="qu-modal-actions"><a class="btn ghost" href="#threads">ดูฟอรั่มทั้งหมด</a><button type="button" class="btn ghost" data-qu-close>ปิดหน้าต่าง</button></div>
+ </section>`;
+ document.body.appendChild(wrap);const close=()=>wrap.remove();
+ wrap.addEventListener('click',ev=>{if(ev.target===wrap||ev.target.closest('[data-qu-close]'))return close();const choice=ev.target.closest('[data-forum-id]');if(choice){const id=choice.dataset.forumId;close();go('forum/'+id)}});
+ const search=wrap.querySelector('.qu-forum-search');
+ search.addEventListener('input',()=>{const q=search.value.trim().toLocaleLowerCase();
+  wrap.querySelectorAll('.qu-forum-choice').forEach(item=>{item.hidden=!!q&&!((item.dataset.forumName||'').toLocaleLowerCase().includes(q)||(item.textContent||'').toLocaleLowerCase().includes(q))});
+  wrap.querySelectorAll('.qu-forum-group').forEach(group=>{group.hidden=!group.querySelector('.qu-forum-choice:not([hidden])')});
+ });
+ wrap.addEventListener('keydown',ev=>{if(ev.key==='Escape')close()});search.focus();
+}
 async function edYT(id){saveSel();const r=SEL;const u=await askText('วางลิงก์ YouTube','');SEL=r;if(!u)return;const m=u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);if(!m)return toast('ลิงก์ YouTube ไม่ถูกต้อง','bad');ins(id,`<iframe src="https://www.youtube-nocookie.com/embed/${m[1]}" width="100%" height="315" allowfullscreen frameborder="0"></iframe><p><br></p>`)}
 async function edSpoiler(id){saveSel();const r=SEL;const t=await askText('หัวข้อของกล่องซ่อน','คลิกเพื่อเปิด');SEL=r;if(t===null)return;ins(id,`<details><summary>${esc(t)}</summary><p>เนื้อหาที่ซ่อนไว้...</p></details><p><br></p>`)}
 function fmtHtml(h){return String(h||'').replace(/(<\/(p|div|h2|h3|blockquote|li|ul|ol|details)>|<br>)/g,'$1\n')}
@@ -1388,7 +1471,7 @@ function renderNav(){
  const navEl=document.getElementById('nav');
  if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
  <div class="links">
-  <a href="#threads">ฟอรั่ม</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a>
+  <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
   ${admin?`<a href="#admin">👑 แอดมิน ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
   ${u?`${pill}<a href="#profile/${u.id}" class="row" style="color:var(--txt);gap:6px">${avatar(u,30)}<span>${esc(u.username)}</span></a><a href="#settings" class="btn sm ghost" style="padding:4px 8px">⚙️</a><button class="btn sm ghost" onclick="logout()">ออก</button>`
