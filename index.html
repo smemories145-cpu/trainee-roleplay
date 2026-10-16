@@ -1463,7 +1463,7 @@ async function loadMailFolder(folder,ownerId){
   cache.error[folder]=err?.message||String(err);cache.loaded[folder]=false;
  }finally{
   cache.loading[folder]=false;
-  if(me()?.id===ownerId&&ROUTE.split('/')[0]==='mail')render();
+  if(me()?.id===ownerId){if(ROUTE.split('/')[0]==='mail')render();else renderNav();}
  }
 }
 function retryMailFolder(folder){
@@ -1525,7 +1525,7 @@ async function openMailRead(id,folder){
   <div class="mail-read-body">${esc(mail.body||'')}</div><div class="qu-modal-actions">${folder==='inbox'?'<button type="button" class="btn ghost" data-mail-reply>↩ ตอบกลับ</button>':''}<button type="button" class="btn bad" data-mail-delete>ลบจดหมาย</button><button type="button" class="btn ghost" data-mail-close>ปิด</button></div></section>`;
  document.body.appendChild(wrap);
  wrap.addEventListener('click',async e=>{
-  if(e.target===wrap||e.target.closest('[data-mail-close]')){wrap.remove();return}
+  if(e.target===wrap||e.target.closest('[data-mail-close]')){wrap.remove();if(folder==='inbox'&&ROUTE.split('/')[0]==='mail')render();return}
   if(e.target.closest('[data-mail-reply]')){wrap.remove();openMailCompose(mail.senderUsername,'RE: '+mail.subject);return}
   if(e.target.closest('[data-mail-delete]')){wrap.remove();await deleteMailMessage(id,folder);return}
  });
@@ -1604,7 +1604,7 @@ function renderNav(){
  const navEl=document.getElementById('nav');
  if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
  <div class="links">
-  <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a>
+  <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
   ${admin?`<a href="#admin">👑 แอดมิน ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
   ${u?`${pill}<a href="#profile/${u.id}" class="row" style="color:var(--txt);gap:6px">${avatar(u,30)}<span>${esc(u.username)}</span></a><a href="#settings" class="btn sm ghost" style="padding:4px 8px">⚙️</a><button class="btn sm ghost" onclick="logout()">ออก</button>`
@@ -2725,6 +2725,7 @@ document.addEventListener('click',function(e){
 async function startApp(){
  try{
   await cloudBootstrap();migrate();render();
+  if(cloudReady&&me())loadMailFolder('inbox',me().id);
   if(cloudFirstAdminUsername)cloudShowFirstAdminSetup(cloudFirstAdminUsername);
  }catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
  if(store.temp)toast('โหมดพรีวิว: ข้อมูลจะหายเมื่อรีเฟรช — เปิดไฟล์ในเบราว์เซอร์โดยตรงเพื่อบันทึกถาวร','bad');
