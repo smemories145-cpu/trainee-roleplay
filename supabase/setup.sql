@@ -334,14 +334,14 @@ begin
     raise exception 'Players can only post as themselves';
   end if;
 
-  select payload into v_thread from public.site_records where collection='threads' and record_id=v_tid;
+  select payload into v_thread from public.site_records where collection='threads' and record_id=v_tid for update;
   if v_thread is null then raise exception 'Thread not found'; end if;
   if coalesce(v_thread ->> 'status','open') = 'closed' then raise exception 'Thread is closed'; end if;
   if nullif(v_thread ->> 'deadline','') is not null
     and (v_thread ->> 'deadline')::timestamptz < now() then raise exception 'Thread deadline has passed'; end if;
   if coalesce(v_thread ->> 'type','main') = 'notice' then raise exception 'Players cannot post in announcement threads'; end if;
 
-  select payload into v_char from public.site_records where collection='characters' and record_id=v_cid;
+  select payload into v_char from public.site_records where collection='characters' and record_id=v_cid for update;
   if v_char is null then raise exception 'Character not found'; end if;
   if v_char ->> 'ownerId' is distinct from v_profile.app_user_id
     or coalesce(v_char ->> 'status','') <> 'approved' then raise exception 'Character is not approved for this account'; end if;
@@ -412,7 +412,7 @@ begin
   if p_stat not in ('vocal','dance','rap','visual','acting','produce') then raise exception 'Unknown stat'; end if;
   select payload into v_char from public.site_records where collection='characters' and record_id=p_character_id;
   if v_char is null or v_char ->> 'ownerId' is distinct from v_profile.app_user_id
-    or v_char ->> 'status' <> 'approved' then raise exception 'Character is not available'; end if;
+    or v_char ->> 'status' is distinct from 'approved' then raise exception 'Character is not available'; end if;
   v_now_ms := floor(extract(epoch from clock_timestamp())*1000)::bigint;
   v_last := coalesce((v_char ->> 'lastPractice')::numeric,0);
   if v_now_ms-v_last < 72000000 then raise exception 'Practice cooldown has not elapsed'; end if;
@@ -448,9 +448,9 @@ begin
   if auth.uid() is null then raise exception 'Sign in is required'; end if;
   select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
   if not found then raise exception 'Account profile has not been initialized'; end if;
-  select payload into v_char from public.site_records where collection='characters' and record_id=p_character_id;
+  select payload into v_char from public.site_records where collection='characters' and record_id=p_character_id for update;
   if v_char is null or v_char ->> 'ownerId' is distinct from v_profile.app_user_id
-    or v_char ->> 'status' <> 'approved' then raise exception 'Character is not available'; end if;
+    or v_char ->> 'status' is distinct from 'approved' then raise exception 'Character is not available'; end if;
   v_now_ms := floor(extract(epoch from clock_timestamp())*1000)::bigint;
   v_last := coalesce((v_char ->> 'lastSalary')::numeric,0);
   if v_now_ms-v_last < 72000000 then raise exception 'Salary cooldown has not elapsed'; end if;
@@ -490,8 +490,8 @@ begin
  select payload into v_sender from public.site_records where collection='characters' and record_id=p_sender_id for update;
  select payload into v_recipient from public.site_records where collection='characters' and record_id=p_recipient_id for update;
  if v_sender is null or v_sender ->> 'ownerId' is distinct from v_profile.app_user_id
-   or v_sender ->> 'status' <> 'approved' then raise exception 'Sender character is not available'; end if;
- if v_recipient is null or v_recipient ->> 'status' <> 'approved' then raise exception 'Recipient character is not available'; end if;
+   or v_sender ->> 'status' is distinct from 'approved' then raise exception 'Sender character is not available'; end if;
+ if v_recipient is null or v_recipient ->> 'status' is distinct from 'approved' then raise exception 'Recipient character is not available'; end if;
  if p_sender_id=p_recipient_id then raise exception 'Cannot transfer to the same character'; end if;
  if coalesce((v_sender ->> 'won')::numeric,0)<p_amount then raise exception 'Insufficient funds'; end if;
  v_now_ms := floor(extract(epoch from clock_timestamp())*1000)::bigint;
@@ -532,7 +532,7 @@ begin
  select payload into v_char from public.site_records where collection='characters' and record_id=p_character_id for update;
  select payload into v_item from public.site_records where collection='items' and record_id=p_item_id for update;
  if v_char is null or v_char ->> 'ownerId' is distinct from v_profile.app_user_id
-   or v_char ->> 'status' <> 'approved' then raise exception 'Character is not available'; end if;
+   or v_char ->> 'status' is distinct from 'approved' then raise exception 'Character is not available'; end if;
  if v_item is null then raise exception 'Item not found'; end if;
  v_price := greatest(0,coalesce((v_item ->> 'price')::integer,0));
  v_stock := coalesce((v_item ->> 'stock')::integer,-1);
