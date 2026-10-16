@@ -678,9 +678,23 @@ function initEditors(){
   edUI(ed);
  });
 }
-function preview(f){
- const ed=f.querySelector('.ed'),{content,mode}=edGet(ed),t=DB.get('threads').find(x=>x.id===f.dataset.tid),box=f.querySelector('.preview');
- if(!box)return;box.hidden=false;box.innerHTML='<div class="mut">👁 พรีวิว (ยังไม่ได้โพสต์)</div><br>'+(content?renderBody(content,mode,t?.css):'<span class="mut">ยังไม่มีเนื้อหา</span>');
+function preview(target){
+ const f=target?.matches?.('form')?target:target?.closest?.('form');
+ if(!f){toast('ไม่พบแบบฟอร์มสำหรับพรีวิว');return}
+ const ed=edOf(f,'content')||f.querySelector('.ed');
+ const box=f.querySelector('.preview');
+ if(!box){toast('ไม่พบพื้นที่แสดงพรีวิว');return}
+ box.hidden=false;
+ box.style.display='block';
+ try{
+  const {content,mode}=edGet(ed);
+  const t=DB.get('threads').find(x=>x.id===f.dataset.tid);
+  box.innerHTML='<div class="mut">👁 พรีวิว (ยังไม่ได้โพสต์)</div><br>'+(content?renderBody(content,mode,t?.css):'<span class="mut">ยังไม่มีเนื้อหา</span>');
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+ }catch(err){
+  console.error('Preview render failed:',err);
+  box.innerHTML='<div class="mut">ไม่สามารถแสดงพรีวิวได้ กรุณาตรวจสอบเนื้อหาหรือโค้ดที่กรอก</div>';
+ }
 }
 function pvField(f,field){const box=f.querySelector('.preview');if(box){box.hidden=false;box.innerHTML='<div class="mut">👁 พรีวิว</div>'+codeFrame(f.elements[field].value)}}
 
