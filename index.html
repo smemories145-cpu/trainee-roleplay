@@ -696,6 +696,21 @@ function preview(target){
   box.innerHTML='<div class="mut">ไม่สามารถแสดงพรีวิวได้ กรุณาตรวจสอบเนื้อหาหรือโค้ดที่กรอก</div>';
  }
 }
+function previewEditor(button,name){
+ const f=button?.closest?.('form');
+ if(!f)return;
+ const ed=edOf(f,name),box=f.querySelector(`.preview[data-preview-for="${name}"]`);
+ if(!ed||!box)return;
+ box.hidden=false;box.style.display='block';
+ try{
+  const {content,mode}=edGet(ed);
+  box.innerHTML='<div class="mut">👁 พรีวิว (ยังไม่ได้บันทึก)</div><br>'+(content?renderBody(content,mode):'<span class="mut">ยังไม่มีเนื้อหา</span>');
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+ }catch(err){
+  console.error('Editor preview failed:',err);
+  box.innerHTML='<div class="mut">ไม่สามารถแสดงพรีวิวได้ กรุณาตรวจสอบเนื้อหาหรือโค้ดที่กรอก</div>';
+ }
+}
 function pvField(f,field){const box=f.querySelector('.preview');if(box){box.hidden=false;box.innerHTML='<div class="mut">👁 พรีวิว</div>'+codeFrame(f.elements[field].value)}}
 
 /* ================= STATS UI ================= */
@@ -1410,7 +1425,9 @@ function threadForm(t,preForumId){
   <div class="chk">${STATS.map(s=>`<label><input type="checkbox" name="train" value="${s.k}" ${v.train.includes(s.k)?'checked':''}>${s.e} ${s.n}</label>`).join('')}</div>
   <div style="max-width:260px"><label>ค่าสถานะที่ได้ต่อโพสต์</label><input type="number" name="statGain" min="0" max="10" value="${v.statGain}"></div>
   <label>📖 เนื้อเรื่อง / สถานการณ์ *</label>${richEditor('plot',toRich(v.plot,v.plotMode),{code:true,mode:v.plotMode})}
+  <div class="row"><button type="button" class="btn ghost" onclick="previewEditor(this,'plot')">👁 พรีวิวเนื้อเรื่อง</button></div><div class="preview" data-preview-for="plot" hidden></div>
   <label>⚠️ ขอบเขตและกติกา</label>${richEditor('rules',toRich(v.rules,v.rulesMode),{ph:'เช่น ฉากเกิดในห้องซ้อม B2 เท่านั้น...'})}
+  <div class="row"><button type="button" class="btn ghost" onclick="previewEditor(this,'rules')">👁 พรีวิวกติกา</button></div><div class="preview" data-preview-for="rules" hidden></div>
   <details ${v.css||v.tpl?'open':''}><summary>🎨 CSS ประจำกระทู้ + เทมเพลตโพสต์แบบโค้ด (ไม่บังคับ)</summary><br>
    <div class="row between"><label>CSS ของกระทู้</label><button type="button" class="btn sm ghost" onclick="fillSample(this.form)">ใส่ตัวอย่าง</button></div>
    <textarea name="css" rows="6" class="code">${esc(v.css)}</textarea>
