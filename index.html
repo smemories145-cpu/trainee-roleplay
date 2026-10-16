@@ -1192,7 +1192,7 @@ function pageEditChar(id){
  \${canCode()?\`<div class="card"><div class="row between"><label>💻 หน้าโปรไฟล์แบบโค้ดอิสระ (ไม่บังคับ)</label><button type="button" class="btn sm ghost" onclick="this.form.elements.profileHtml.value=SAMPLE_PROFILE">ใส่ตัวอย่างโปรไฟล์</button></div>
  <label>📄 เลือกโครงสร้างโค้ดประกาศ</label><div class="row"><div class="f1"><select name="announcementTemplate"><option value="official">ประกาศทางการ — กระดาษขาว / ตราประทับ</option><option value="bulletin">ประกาศติดบอร์ด — กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล — ขาวสะอาด</option><option value="executive">ประกาศผู้บริหาร — ครีม / กรม / ทอง</option></select></div><button type="button" class="btn sm" onclick="insertAnnouncementCode(this.form)">＋ ใส่โค้ดประกาศ</button></div>
  <p class="mut" style="font-size:.8rem;margin:4px 0 10px">เลือกแบบแล้วกดใส่โค้ดประกาศ จากนั้นแก้ข้อความในวงเล็บเหลี่ยมได้เลย ฟอนต์หลัก TH Sarabun New / Sarabun</p>
- <textarea name="profileHtml" rows="12" class="code" placeholder="เลือกโครงสร้างประกาศด้านบน หรือวาง HTML/CSS ของตัวเอง">\${esc(c.profileHtml||'')}</textarea>
+ <textarea name="profileHtml" rows="12" class="code" placeholder="เลือกโครงสร้างประกาศด้านบน หรือวาง HTML/CSS ของตัวเอง">${esc(c.profileHtml||'')}</textarea>
  <div class="row"><button type="button" class="btn sm ghost" onclick="pvField(this.form,'profileHtml')">👁 พรีวิว</button><button type="button" class="btn sm ghost" onclick="this.form.elements.profileHtml.value=''">ล้างโค้ด</button></div><div class="preview" hidden></div></div>\`:''}
  <button class="btn">💾 บันทึก</button></div>
  <div><div class="mut" style="text-align:center;margin-bottom:6px">👁 ตัวอย่างรูปข้าง</div><div class="side-pv">${sideCard(c,u,0)}</div></div></form>`);
