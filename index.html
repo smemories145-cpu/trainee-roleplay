@@ -83,7 +83,7 @@ summary{cursor:pointer;font-weight:600}
 .ed-tabs button{background:transparent;border:0;color:var(--mut);font:inherit;font-size:.85rem;padding:7px 14px;border-radius:9px 9px 0 0;cursor:pointer}
 .ed-tabs button.on{background:var(--card2);color:var(--txt);font-weight:600}
 .ed-count{margin-left:auto;font-size:.78rem;color:var(--mut);padding:0 6px 6px}
-.ed-bar{display:flex;flex-wrap:wrap;gap:4px;padding:6px;border-bottom:1px solid var(--line);position:sticky;top:58px;background:var(--card2);z-index:3}
+.ed-bar{display:flex;flex-wrap:wrap;align-items:center;gap:3px;padding:5px 6px;border-bottom:1px solid var(--line);position:sticky;top:58px;background:var(--card2);z-index:3}.ed-bar .ed-g{display:flex;align-items:center;gap:2px;padding-right:5px;margin-right:2px;border-right:1px solid var(--line)}.ed-bar .ed-g:last-child{border-right:0}.ed-bar button,.ed-c{height:30px;min-width:30px;padding:0 6px}.ed-bar select{height:30px;max-width:150px}.ed-area{min-height:360px;max-height:75vh;overflow:auto;padding:18px;outline:0}
 .ed-g{display:flex;gap:2px;align-items:center;padding-right:6px;border-right:1px solid var(--line)}
 .ed-g:last-child{border:0}
 .ed-bar button,.ed-c{height:32px;min-width:32px;background:transparent;border:1px solid transparent;border-radius:7px;color:var(--txt);font:inherit;font-size:.88rem;cursor:pointer;display:inline-grid;place-items:center;padding:0 7px;margin:0}
@@ -599,9 +599,7 @@ function edBar(id){
  <div class="ed-g">${b('ชิดซ้าย','justifyLeft','⇤')}${b('กึ่งกลาง','justifyCenter','≡')}${b('ชิดขวา','justifyRight','⇥')}${b('เต็มแนว','justifyFull','☰')}${b('รายการจุด','insertUnorderedList','•')}${b('รายการตัวเลข','insertOrderedList','1.')}</div>
  <div class="ed-g">${fn('แทรกลิงก์','edLink','🔗')}${fn('แทรกรูปภาพ','edImg','🖼')}${fn('แทรก YouTube','edYT','▶')}${b('เส้นคั่น','insertHorizontalRule','―')}${fn('กล่องซ่อนข้อความ','edSpoiler','🙈')}</div>
  <div class="ed-g"><button type="button" title="แทรกโค้ด HTML ในช่องเขียนง่าย" onclick="edInsertHTML('${id}')">&lt;/&gt; แทรกโค้ด</button></div>
- <div class="ed-g"><select title="กล่องสำเร็จรูป" onchange="if(this.value){ins('${id}',BOXES[this.value]);this.value=''}"><option value="">✨ กล่องสำเร็จรูป</option><option value="act">🎭 กล่องบรรยาย</option><option value="talk">💬 กล่องบทพูด</option><option value="letter">💌 จดหมาย</option><option value="chat">📱 แชทโทรศัพท์</option><option value="card">🧾 การ์ดข้อมูล</option><option value="news">📰 ข่าว/ประกาศ</option></select>
- <select title="สัญลักษณ์" onchange="if(this.value){ins('${id}',this.value);this.value=''}"><option value="">✦ สัญลักษณ์</option>${'✦ ✧ ★ ☆ ♡ ♥ ❀ ✿ ♪ ♫ ☾ ☀ ⋆ ˚ ₊ → ⟡ ❝ ❞ 「 」'.split(' ').map(x=>`<option>${x}</option>`).join('')}</select>
- ${b('ล้างรูปแบบ','removeFormat','🧹')}</div>`;
+;
 }
 function saveSel(){const s=getSelection();if(!s.rangeCount)return;const r=s.getRangeAt(0),n=r.startContainer,el=n.nodeType===1?n:n.parentElement;if(el?.closest('.ed-area'))SEL=r.cloneRange()}
 function edFocus(id){
