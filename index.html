@@ -571,11 +571,6 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 .character-archive-link h3{margin:5px 0}
 .character-archive-link p{margin:0;font-size:.82rem;color:var(--mut);line-height:1.7}
 .character-archive-link .btn{flex:0 0 auto;white-space:nowrap}
-.character-legacy-bio{margin-top:18px}
-.character-legacy-bio summary{color:#d7c0ec}
-.character-legacy-bio>div{margin-top:12px}
-.character-legacy-bio h4{margin:12px 0 5px}
-.character-legacy-bio .rich{line-height:1.85}
 .character-edit-bio .field-help{margin:5px 0 14px}
 @media(max-width:600px){.bio-application-guide{padding:14px;gap:10px}.character-register-head,.bio-thread-hero{padding:20px}.character-register-form>.topic-composer-heading{margin:0 0 16px}.bio-thread-composer>.topic-composer-heading{padding:16px}.bio-thread-composer>.topic-field-row{padding:13px}.bio-thread-composer>.topic-actions{padding:13px;flex-wrap:wrap}.character-archive-link{align-items:flex-start;flex-direction:column}.character-archive-link .btn{width:100%;text-align:center}.bio-application-copy .row{align-items:stretch;flex-direction:column}.character-register-submit{width:100%}}
 </style>
@@ -2983,7 +2978,7 @@ function pageChar(id){
     ${c.profileHtml?`<div class="card" style="margin-bottom:16px">${codeFrame(c.profileHtml)}</div>`:''}
     <div class="card character-profile-about"><h3 style="margin-top:0">🎯 ตำแหน่งที่ถนัด</h3><div class="row">${(c.positions||[]).map(p=>`<span class="badge" style="--c:var(--sec)">${esc(p)}</span>`).join('')}</div>
      ${c.summary?`<div class="character-short-bio"><h3>✦ เกี่ยวกับตัวละคร</h3><p>${esc(c.summary).replace(/\r?\n/g,'<br>')}</p></div>`:''}
-     ${bioThread?`<div class="character-archive-link"><div><div class="bio-thread-eyebrow">CHARACTER ARCHIVE</div><h3>📖 ประวัติฉบับเต็ม</h3><p>อ่านเรื่องราวของ ${esc(c.stageName||c.name)} ในกระทู้ประวัติ แยกจากหน้าโปรไฟล์หลัก</p></div><a class="btn" href="#thread/${bioThread.id}">อ่านประวัติ ↗</a></div>`:((c.personality||c.background)?`<details class="character-legacy-bio"><summary>📖 ข้อมูลนิสัยและประวัติเดิม</summary><div><h4>💭 นิสัย</h4>${renderBody(c.personality,c.bioMode)}<h4>📜 ประวัติ</h4>${renderBody(c.background,c.bioMode)}</div></details>`:'')}
+     ${bioThread?`<div class="character-archive-link"><div><div class="bio-thread-eyebrow">CHARACTER ARCHIVE</div><h3>📖 ประวัติฉบับเต็ม</h3><p>อ่านเรื่องราวของ ${esc(c.stageName||c.name)} ในกระทู้ประวัติ แยกจากหน้าโปรไฟล์หลัก</p></div><a class="btn" href="#thread/${bioThread.id}">อ่านประวัติ ↗</a></div>`:''}
     </div>
     <div class="card"><div class="row between"><h3 style="margin:0">💰 กระเป๋าเงิน</h3><span class="won" style="font-size:1.4rem">${wonFmt(c.won)}</span></div>
      ${isOwner&&c.status==='approved'?`<br><div class="row"><button class="btn sm ${sl>0?'ghost':''}" ${sl>0?'disabled':''} onclick="claimSalary('${c.id}')">💵 รับเงินเดือน ${wonFmt(salaryOf(c.stage))}</button><span class="mut">${sl>0?'รับได้อีกใน '+fmtLeft(sl):'พร้อมรับแล้ว!'}</span><a class="btn sm ghost" href="#shop">🛍 ไปร้านค้า</a></div>
