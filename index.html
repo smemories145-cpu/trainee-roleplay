@@ -3588,12 +3588,14 @@ function adminCharForm(c){
  <div class="f1"><label>ขั้น</label><select name="stage">${STAGES.map((s,i)=>`<option value="${i}" ${i===c.stage?'selected':''}>${i} — ${esc(s.n)}</option>`).join('')}</select></div>
  <div class="f1"><label>EXP</label><input type="number" name="exp" min="0" value="${c.exp}"></div>
  <div class="f1"><label>💰 เงินวอน</label><input type="number" name="won" min="0" value="${c.won||0}"></div></div>
+ <!-- Keep custom profile HTML intact when only changing admin-managed fields. -->
+ <textarea name="profileHtml" hidden>${esc(c.profileHtml||'')}</textarea>
  <button class="btn sm">บันทึก</button></form>`;
 }
 function saveCharAdmin(e,id){
  e.preventDefault();if(!isAdmin())return;const E=e.target.elements,c=DB.get('characters').find(x=>x.id===id);
  const nw=Math.max(0,+E.won.value||0),diff=nw-(c.won||0);
- update('characters',id,c=>{STATS.forEach(s=>c.stats[s.k]=Math.max(0,Math.min(100,+E['st_'+s.k].value||0)));c.agencyId=E.agencyId.value;c.stage=+E.stage.value;c.exp=Math.max(0,+E.exp.value||0)});
+ update('characters',id,c=>{STATS.forEach(s=>c.stats[s.k]=Math.max(0,Math.min(100,+E['st_'+s.k].value||0)));c.agencyId=E.agencyId.value;c.stage=+E.stage.value;c.exp=Math.max(0,+E.exp.value||0);if(E.profileHtml)c.profileHtml=E.profileHtml.value});
  if(diff)addWon(id,diff,'แอดมินปรับยอดเงิน');
  toast('บันทึกแล้ว');render();
 }
