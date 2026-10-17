@@ -1250,15 +1250,48 @@ textarea[name="homeHtml"],textarea[name="customCss"]{
 </style>
 
 <style id="characterBioModeOptions">
-.char-bio-mode-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:13px 14px;border-bottom:1px solid var(--line);background:#100d17}
+.char-bio-mode-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:13px 14px;border-bottom:1px solid var(--line);background:#100d17}
 .char-bio-mode-option{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--txt);text-align:left;cursor:pointer}
 .char-bio-mode-option b{font-size:.82rem;color:#eee5f7}.char-bio-mode-option small{font-size:.7rem;line-height:1.6;color:var(--mut)}
 .char-bio-mode-option.active{border-color:#b998e2;background:linear-gradient(140deg,#c8a9f019,#8f75c718);box-shadow:inset 0 0 0 1px #c8a9f01f}.char-bio-mode-option.active b{color:#ddc4f6}
-.char-bio-mode-option[hidden],.char-bio-template-panel[hidden],.char-bio-custom-hint[hidden]{display:none!important}
+.char-bio-mode-option[hidden],.char-bio-template-panel[hidden],.char-bio-custom-hint[hidden],.char-bio-studio-panel[hidden],.char-bio-code-wrap[hidden]{display:none!important}
 .char-bio-template-hint,.char-bio-custom-hint{padding:10px 14px;color:var(--mut);font-size:.74rem;line-height:1.7;background:#ffffff03;border-bottom:1px solid var(--line)}
 .char-bio-photo-control input{width:100%;min-width:0;margin:0;min-height:38px;font-size:.78rem}.char-bio-photo-control label span{font-size:.66rem;color:var(--mut)}
 .char-bio-foot{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 14px}.char-bio-foot span:first-child{flex:1;min-width:0}.char-bio-foot button{flex-shrink:0}
-@media(max-width:600px){.char-bio-mode-choices{grid-template-columns:minmax(0,1fr);padding:10px}.char-bio-mode-option{padding:10px}.char-bio-photo-control{flex-basis:100%}.char-bio-foot span:first-child{max-width:100%}}
+.char-bio-code-wrap{padding:10px 12px 0}.char-bio-code-label{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--mut);font:600 9px 'DM Sans',sans-serif;letter-spacing:1.4px;margin-bottom:8px}.char-bio-code-label small{font:10px Prompt,sans-serif;letter-spacing:0}
+.char-bio-studio-panel{background:#100d17;border-bottom:1px solid var(--line)}
+.char-bio-studio-intro{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:15px 16px;background:linear-gradient(120deg,#21192b,#171321);border-bottom:1px solid #453452}
+.char-bio-studio-intro>div>span{display:block;font:600 9px 'DM Sans',sans-serif;letter-spacing:2px;color:#d0b0f1;margin-bottom:5px}
+.char-bio-studio-intro b{display:block;font:600 13px Prompt,sans-serif;color:#f3eafa}
+.char-bio-studio-intro small{display:block;font:10px/1.65 Prompt,sans-serif;color:#b4a5c2;margin-top:4px}
+.char-bio-studio-mark{width:40px;height:40px;flex:0 0 40px;border:1px solid #c8a9f077;color:#d4b5f1;display:grid;place-items:center;border-radius:12px;font:20px Cinzel,serif}
+.char-bio-studio-form{padding:13px;display:grid;gap:12px}
+.char-bio-studio-group{min-width:0;padding:12px;border:1px solid #ffffff10;border-radius:11px;background:#ffffff02}
+.char-bio-studio-group h4{margin:0 0 11px;color:#d3c1e4;font:600 10px Prompt,sans-serif;letter-spacing:1px}
+.char-bio-studio-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.char-bio-studio-fields label{display:block;min-width:0;font:10px Prompt,sans-serif;color:#cfc1dc}
+.char-bio-studio-fields label.wide{grid-column:1/-1}
+.char-bio-studio-fields input,.char-bio-studio-fields select,.char-bio-studio-fields textarea{display:block;width:100%;min-width:0;max-width:100%;margin-top:5px;border:1px solid #3f334e;border-radius:7px;background:#0d0b13;color:#f4edf8;padding:9px 10px;font:11px Prompt,sans-serif;box-sizing:border-box}
+.char-bio-studio-fields textarea{min-height:73px;resize:vertical;line-height:1.7}
+.char-bio-studio-fields input:focus,.char-bio-studio-fields select:focus,.char-bio-studio-fields textarea:focus{outline:1px solid #9f80c7;border-color:#9f80c7}
+.char-bio-studio-checks{display:flex;flex-wrap:wrap;gap:7px}
+.char-bio-studio-check{position:relative;cursor:pointer}.char-bio-studio-check input{position:absolute;opacity:0}
+.char-bio-studio-check span{display:block;border:1px solid #43354f;border-radius:99px;padding:6px 9px;color:#c7b8d4;font:10px Prompt,sans-serif}
+.char-bio-studio-check input:checked+span{background:#c8a9f022;border-color:#ad8ed5;color:#eadbfa}
+.char-bio-studio-images{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.char-bio-studio-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:9px}
+.char-bio-studio-image{min-width:0;overflow:hidden;border:1px solid #44374f;border-radius:8px;background:#0f0c15}
+.char-bio-studio-image-preview{height:95px;position:relative;display:grid;place-items:center;overflow:hidden;background:linear-gradient(140deg,#282033,#12101a)}
+.char-bio-studio-gallery .char-bio-studio-image-preview{height:78px}
+.char-bio-studio-image-shown{width:100%;height:100%;object-fit:cover;display:none}
+.char-bio-studio-image-empty{text-align:center;font:24px Prompt,sans-serif;color:#a990c2}.char-bio-studio-image-empty small{display:block;font:9px Prompt,sans-serif;margin-top:2px}
+.char-bio-studio-image-pick{display:block;text-align:center;padding:7px 4px;color:#cbb0e8;font:10px Prompt,sans-serif;cursor:pointer}
+.char-bio-studio-image-pick input{display:block;width:100%;max-width:100%;font:9px Prompt,sans-serif;color:#9989a8;margin-top:4px}
+.char-bio-studio-actions{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid #ffffff10}
+.char-bio-studio-actions>span{font:10px/1.7 Prompt,sans-serif;color:var(--mut);flex:1;min-width:150px}
+.char-bio-studio-actions>div{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:760px){.char-bio-mode-choices{grid-template-columns:minmax(0,1fr)}.char-bio-studio-fields{grid-template-columns:minmax(0,1fr)}.char-bio-studio-fields label.wide{grid-column:auto}}
+@media(max-width:600px){.char-bio-mode-choices{padding:10px}.char-bio-mode-option{padding:10px}.char-bio-photo-control{flex-basis:100%}.char-bio-foot span:first-child{max-width:100%}.char-bio-studio-form{padding:9px}.char-bio-studio-group{padding:9px}.char-bio-studio-actions>div{width:100%}.char-bio-studio-actions>div button{flex:1}}
 </style>
 </head>
 <body>
@@ -1769,31 +1802,57 @@ document.addEventListener('keydown',e=>{if(e.key==='Tab'&&e.target.classList?.co
 let EDN=0,SEL=null;
 try{document.execCommand('defaultParagraphSeparator',false,'p')}catch(e){}
 function characterBioEditor(name,val='',o={}){
- const id='ed'+(++EDN),isPersonality=name==='personality',outputMode=o.outputMode==='html'?'html':'rich';
+ const id='ed'+(++EDN),isPersonality=name==='personality';
+ const outputMode=o.outputMode==='html'?'html':'rich';
+ const choice=['rich','html','studio'].includes(o.choice)?o.choice:(outputMode==='html'?'html':'rich');
  const title=isPersonality?'นิสัย / บุคลิก':'ประวัติ / เรื่องราวของตัวละคร';
- const guide=isPersonality
-  ? '<li>นิสัยเด่น 3–5 ข้อ และวิธีแสดงออก</li><li>สิ่งที่ชอบ / ไม่ชอบ และงานอดิเรก</li><li>จุดแข็ง จุดอ่อน หรือสิ่งที่ทำให้ตัวละครมีมิติ</li><li>วิธีพูด ท่าทางติดตัว หรือสิ่งที่คนอื่นจดจำได้</li>'
-  : '<li>ภูมิหลัง ครอบครัว หรือสถานที่ที่เติบโตมา</li><li>เหตุการณ์สำคัญที่หล่อหลอมตัวละคร</li><li>เหตุผลที่เข้ามาเป็นเด็กฝึกหรือศิลปิน</li><li>เป้าหมาย ความฝัน และสิ่งที่กำลังพยายามทำให้สำเร็จ</li>';
- return `<div class="ed char-bio-editor" id="${id}" data-name="${name}" data-mode="charcode" data-output-mode="${outputMode}">
-  <div class="ed-head char-bio-head"><div><span class="ed-title">CHARACTER ARCHIVE STUDIO</span><small>${title}</small></div><span class="ed-count">0 ตัวอักษร</span></div>
-  <div class="char-bio-mode-choices" role="group" aria-label="วิธีสร้างประวัติ">
-   <button type="button" class="char-bio-mode-option ${outputMode==='rich'?'active':''}" data-bio-mode="rich" onclick="setCharacterBioMode(this,'rich')"><b>✦ ใช้โค้ดสำเร็จรูป</b><small>เลือกดีไซน์พร้อมใช้ แล้วแก้ข้อความและรูปได้</small></button>
-   <button type="button" class="char-bio-mode-option ${outputMode==='html'?'active':''}" data-bio-mode="html" onclick="setCharacterBioMode(this,'html')"><b>&lt;/&gt; ใช้โค้ดของฉันเอง</b><small>วาง HTML เต็ม พร้อม CSS และเลย์เอาต์ของตัวเอง</small></button>
-  </div>
-  <div class="char-bio-template-panel" ${outputMode==='html'?'hidden':''}>
-   <div class="char-bio-toolbar">
-    <div class="char-bio-template-control"><label>เลือกดีไซน์</label><select class="char-bio-template"><option value="profile">Profile Studio · โปรไฟล์มีรูป</option><option value="lilac">Lavender · มินิมอลละมุน</option><option value="midnight">Midnight · เท่และดาร์ก</option><option value="editorial">Editorial · นิตยสาร</option><option value="rose">Rose · หรูและนุ่มนวล</option><option value="application">Trainee Application · ใบสมัครโทนงาช้าง</option></select></div>
-    <div class="char-bio-template-control char-bio-photo-control"><label>URL รูปประกอบ <span>(Profile Studio / ใบสมัคร)</span></label><input class="char-bio-image-url" type="url" placeholder="https://..."></div>
-    <button type="button" class="btn sm" onclick="applyCharacterBioTemplate(this)">＋ ใช้แบบนี้</button>
-   </div>
-   <div class="char-bio-template-hint">เลือกแบบแล้วกด “ใช้แบบนี้” จากนั้นแก้ข้อความในโค้ดได้ตามต้องการ · URL รูปใช้กับ Profile Studio และใบสมัครโทนงาช้าง</div>
-  </div>
-  <div class="char-bio-custom-hint" ${outputMode==='rich'?'hidden':''}>วาง HTML ฉบับเต็มได้ รวม &lt;head&gt; และ &lt;style&gt; เพื่อให้ระบบแสดงผลในกรอบแยกโดยไม่เอาธีมเว็บมาทับ</div>
-  <textarea class="code char-bio-code" spellcheck="false" autocapitalize="off" autocomplete="off" data-ph="${esc(o.ph||'วางหรือเขียนโค้ด HTML ของตัวละครตรงนี้...')}" placeholder="${outputMode==='html'?'<!doctype html>\\n<html>\\n<head><style>/* CSS ของคุณ */</style></head>\\n<body>...</body>\\n</html>':'<!-- เลือกโค้ดสำเร็จรูปด้านบน หรือแก้ HTML ที่มีอยู่ได้ -->'}">${esc(val||'')}</textarea>
-  <div class="ed-foot char-bio-foot"><span>💡 โหมดสำเร็จรูปใช้ HTML ที่ผ่านการกรอง · โหมดโค้ดของฉันแสดงผลใน iframe แยกเพื่อเก็บ CSS ของคุณ</span><span>${outputMode==='html'?'HTML + CSS':'TEMPLATE HTML'}</span><button type="button" class="btn sm ghost" onclick="previewCharacterBio(this)">👁 พรีวิว</button></div>
-  <div class="preview char-bio-preview" hidden></div>
-  <details class="char-bio-guide"><summary>📖 ไกด์ไลน์ — ควรเขียนอะไรบ้าง?</summary><ul>${guide}</ul><p>ใช้ <code>&lt;h2&gt;</code> เป็นหัวข้อ, <code>&lt;p&gt;</code> เป็นย่อหน้า, <code>&lt;b&gt;</code> เน้นข้อความ และ <code>&lt;hr&gt;</code> คั่นส่วนต่าง ๆ ได้ ในโหมดโค้ดของฉันเองใส่ CSS ใน <code>&lt;style&gt;</code> ได้</p></details>
- </div>`;
+ const d=o.studioData&&typeof o.studioData==='object'?o.studioData:{};
+ const fv=(k,def='')=>esc(d[k]??def);
+ const checked=p=>(Array.isArray(d.positions)?d.positions:[]).includes(p)?'checked':'';
+ const positions=['Vocal','Dance','Rap','Producer','Visual','Leader','Actor'];
+ const positionChoices=positions.map(p=>'<label class="char-bio-studio-check"><input type="checkbox" data-studio-position="'+p+'" '+checked(p)+'><span>'+p+'</span></label>').join('');
+ const mbtis=['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+ const mbtiOptions='<option value="">เลือก MBTI</option>'+mbtis.map(p=>'<option '+(d.mbti===p?'selected':'')+'>'+p+'</option>').join('');
+ const levels=['Trainee Applicant','Trainee','Rookie Artist','Debuted Artist','Superstar'];
+ const levelOptions=levels.map(p=>'<option '+((d.level||'Trainee')===p?'selected':'')+'>'+p+'</option>').join('');
+ const imageControl=(key,label)=>{
+  const src=String((d.images&&d.images[key])||'');
+  return '<div class="char-bio-studio-image" data-studio-image="'+key+'"><div class="char-bio-studio-image-preview"><img class="char-bio-studio-image-shown" alt="'+label+'" src="'+esc(src)+'" style="'+(src?'display:block':'display:none')+'"><span class="char-bio-studio-image-empty" style="'+(src?'display:none':'')+'">＋<small>'+label+'</small></span></div><label class="char-bio-studio-image-pick">เลือกรูป<input type="file" accept="image/*" data-studio-image-file="'+key+'" onchange="onCharacterStudioImageChange(this)"></label><input type="hidden" class="char-bio-studio-image-value" data-studio-image-value="'+key+'" value="'+esc(src)+'"></div>';
+ };
+ const studioPanel='<div class="char-bio-studio-panel" '+(choice==='studio'?'':'hidden')+'>'+
+  '<div class="char-bio-studio-intro"><div><span>TRAINEE PROFILE STUDIO</span><b>กรอกข้อมูล แล้วให้ระบบออกแบบโปรไฟล์ให้</b><small>รูปที่อัปโหลดจะถูกย่อขนาดก่อนฝังใน HTML</small></div><span class="char-bio-studio-mark">S</span></div>'+
+  '<div class="char-bio-studio-form">'+
+   '<div class="char-bio-studio-group"><h4>01 / รูปภาพ</h4><div class="char-bio-studio-images">'+imageControl('avatar','รูปโปรไฟล์')+imageControl('cover','รูปปก')+'</div><div class="char-bio-studio-gallery">'+imageControl('gallery1','แกลเลอรี 01')+imageControl('gallery2','แกลเลอรี 02')+imageControl('gallery3','แกลเลอรี 03')+'</div></div>'+
+   '<div class="char-bio-studio-group"><h4>02 / ข้อมูลผู้สมัคร</h4><div class="char-bio-studio-fields">'+
+    '<label>ชื่อในวงการ *<input data-studio-field="stageName" value="'+fv('stageName')+'" placeholder="เช่น HYUNSUK"></label>'+
+    '<label>ชื่อ-นามสกุล<input data-studio-field="realName" value="'+fv('realName')+'" placeholder="ชื่อจริงของตัวละคร"></label>'+
+    '<label>วันเกิด<input data-studio-field="birth" value="'+fv('birth')+'" placeholder="DD / MM / YYYY"></label>'+
+    '<label>อายุ<input data-studio-field="age" value="'+fv('age')+'" placeholder="อายุ (ปี)"></label>'+
+    '<label>สัญชาติ<input data-studio-field="nationality" value="'+fv('nationality')+'" placeholder="เช่น Thai / Korean"></label>'+
+    '<label>สรรพนาม<input data-studio-field="pronouns" value="'+fv('pronouns')+'" placeholder="เช่น He / Him"></label>'+
+    '<label>สังกัด<input data-studio-field="agency" value="'+fv('agency','STARLIGHT ACADEMY')+'" placeholder="ชื่อค่าย"></label>'+
+    '<label>สถานะในค่าย<select data-studio-field="level">'+levelOptions+'</select></label>'+
+   '</div></div>'+
+   '<div class="char-bio-studio-group"><h4>03 / ตำแหน่งและความสามารถ</h4><div class="char-bio-studio-checks">'+positionChoices+'</div><div class="char-bio-studio-fields" style="margin-top:12px"><label>MBTI<select data-studio-field="mbti">'+mbtiOptions+'</select></label><label>ความสามารถพิเศษ<input data-studio-field="specialty" value="'+fv('specialty')+'" placeholder="เช่น แต่งเพลง เล่นเปียโน"></label></div></div>'+
+   '<div class="char-bio-studio-group"><h4>04 / เรื่องราวของตัวละคร</h4><div class="char-bio-studio-fields">'+
+    '<label class="wide">บุคลิกภาพ<textarea data-studio-field="personality" placeholder="นิสัยและเสน่ห์ของตัวละคร...">'+fv('personality')+'</textarea></label>'+
+    '<label class="wide">ประวัติตัวละคร<textarea data-studio-field="biography" placeholder="ภูมิหลัง เหตุการณ์สำคัญ และความฝัน...">'+fv('biography')+'</textarea></label>'+
+    '<label>สิ่งที่ชอบ<textarea data-studio-field="likes" placeholder="เพลง กาแฟ งานอดิเรก...">'+fv('likes')+'</textarea></label>'+
+    '<label>สิ่งที่ไม่ชอบ<textarea data-studio-field="dislikes" placeholder="สิ่งที่ไม่ชอบ...">'+fv('dislikes')+'</textarea></label>'+
+   '</div></div></div>'+
+  '<div class="char-bio-studio-actions"><span>กรอกชื่อในวงการและประวัติ แล้วกดสร้างโปรไฟล์</span><div><button type="button" class="btn sm" onclick="toggleCharacterBioCode(this)">ดู/แก้ HTML</button> <button type="button" class="btn sm" onclick="buildCharacterBioStudio(this)">สร้างโค้ดและพรีวิว ↗</button></div></div></div>';
+ return '<div class="ed char-bio-editor" id="'+id+'" data-name="'+name+'" data-mode="charcode" data-output-mode="'+outputMode+'" data-editor-choice="'+choice+'">'+
+  '<div class="ed-head char-bio-head"><div><span class="ed-title">CHARACTER ARCHIVE STUDIO</span><small>'+title+'</small></div><span class="ed-count">0 ตัวอักษร</span></div>'+
+  '<div class="char-bio-mode-choices" role="group" aria-label="วิธีสร้างประวัติ">'+
+   '<button type="button" class="char-bio-mode-option '+(choice==='rich'?'active':'')+'" data-bio-mode="rich" onclick="setCharacterBioMode(this,\'rich\')"><b>✦ โค้ดสำเร็จรูป</b><small>เลือกดีไซน์พร้อมใช้ แล้วแก้ HTML ต่อได้</small></button>'+
+   '<button type="button" class="char-bio-mode-option '+(choice==='studio'?'active':'')+'" data-bio-mode="studio" onclick="setCharacterBioMode(this,\'studio\')"><b>▤ กรอกฟอร์ม Trainee Studio</b><small>กรอกประวัติและอัปโหลดรูป ไม่ต้องเขียนโค้ดเอง</small></button>'+
+   '<button type="button" class="char-bio-mode-option '+(choice==='html'?'active':'')+'" data-bio-mode="html" onclick="setCharacterBioMode(this,\'html\')"><b>&lt;/&gt; โค้ดของฉันเอง</b><small>วาง HTML เต็ม พร้อม CSS และเลย์เอาต์ของตัวเอง</small></button></div>'+
+  '<div class="char-bio-template-panel" '+(choice==='rich'?'':'hidden')+'><div class="char-bio-toolbar"><div class="char-bio-template-control"><label>เลือกดีไซน์</label><select class="char-bio-template"><option value="profile">Profile Studio · โปรไฟล์มีรูป</option><option value="lilac">Lavender · มินิมอลละมุน</option><option value="midnight">Midnight · เท่และดาร์ก</option><option value="editorial">Editorial · นิตยสาร</option><option value="rose">Rose · หรูและนุ่มนวล</option><option value="application">Trainee Application · ใบสมัครโทนงาช้าง</option></select></div><div class="char-bio-template-control char-bio-photo-control"><label>URL รูปประกอบ <span>(บางเทมเพลต)</span></label><input class="char-bio-image-url" type="url" placeholder="https://..."></div><button type="button" class="btn sm" onclick="applyCharacterBioTemplate(this)">＋ ใช้แบบนี้</button></div><div class="char-bio-template-hint">เลือกแบบแล้วกด “ใช้แบบนี้” จากนั้นแก้ข้อความในโค้ดด้านล่างได้</div></div>'+
+  studioPanel+
+  '<div class="char-bio-custom-hint" '+(choice==='html'?'':'hidden')+'>วาง HTML ฉบับเต็มได้ รวม &lt;head&gt; และ &lt;style&gt; ระบบจะแสดงใน iframe แยกเพื่อไม่ให้ CSS ไปทับเว็บหลัก</div>'+
+  '<div class="char-bio-code-wrap" '+(choice==='studio'?'hidden':'')+'><div class="char-bio-code-label">HTML SOURCE <small>โค้ดที่จะบันทึก / แก้ไขได้โดยตรง</small></div><textarea class="code char-bio-code" spellcheck="false" autocapitalize="off" autocomplete="off" data-ph="'+esc(o.ph||'วางหรือเขียนโค้ด HTML ของตัวละครตรงนี้...')+'" placeholder="'+(choice==='html'?'<!doctype html>\\\\n<html>\\\\n<head><style>/* CSS ของคุณ */</style></head>\\\\n<body>...</body>\\\\n</html>':'<!-- เลือกโค้ดสำเร็จรูป หรือแก้ HTML ที่มีอยู่ -->')+'">'+esc(val||'')+'</textarea></div>'+
+  '<div class="ed-foot char-bio-foot"><span>💡 ฟอร์ม Studio จะสร้าง HTML ให้ ส่วนโหมดโค้ดเองจะเก็บ CSS ของผู้เขียน</span><span>'+(outputMode==='html'?'HTML + CSS':'TEMPLATE HTML')+'</span><button type="button" class="btn sm ghost" onclick="previewCharacterBio(this)">👁 พรีวิว</button></div>'+
+  '<div class="preview char-bio-preview" hidden></div><details class="char-bio-guide"><summary>📖 ไกด์ไลน์ — ควรเขียนอะไรบ้าง?</summary><ul>'+guide+'</ul><p>ใช้ <code>&lt;h2&gt;</code> เป็นหัวข้อ, <code>&lt;p&gt;</code> เป็นย่อหน้า, <code>&lt;b&gt;</code> เน้นข้อความ และ <code>&lt;hr&gt;</code> คั่นส่วนต่าง ๆ ได้</p></details></div>';
 }
 function characterBioTemplate(style,name,imageUrl=''){
  const personality=name==='personality';
@@ -1814,11 +1873,19 @@ function characterBioTemplate(style,name,imageUrl=''){
 }
 function setCharacterBioMode(button,mode){
  const ed=button?.closest('.char-bio-editor');if(!ed)return;
- const area=ed.querySelector('.char-bio-code');mode=mode==='html'?'html':'rich';ed.dataset.outputMode=mode;
+ mode=['rich','html','studio'].includes(mode)?mode:'rich';
+ ed.dataset.editorChoice=mode;
+ if(mode==='html')ed.dataset.outputMode='html';
+ if(mode==='rich')ed.dataset.outputMode='rich';
  ed.querySelectorAll('[data-bio-mode]').forEach(b=>b.classList.toggle('active',b.dataset.bioMode===mode));
- const panel=ed.querySelector('.char-bio-template-panel'),hint=ed.querySelector('.char-bio-custom-hint'),label=ed.querySelector('.char-bio-foot span:nth-child(2)');
- if(panel)panel.hidden=mode==='html';if(hint)hint.hidden=mode!=='html';if(label)label.textContent=mode==='html'?'HTML + CSS':'TEMPLATE HTML';
- if(area)area.placeholder=mode==='html'?'<!doctype html>\\n<html>\\n<head><style>/* CSS ของคุณ */</style></head>\\n<body>...</body>\\n</html>':'<!-- เลือกโค้ดสำเร็จรูป หรือแก้ HTML ที่มีอยู่ -->';
+ const template=ed.querySelector('.char-bio-template-panel'),studio=ed.querySelector('.char-bio-studio-panel');
+ const customHint=ed.querySelector('.char-bio-custom-hint'),codeWrap=ed.querySelector('.char-bio-code-wrap');
+ const label=ed.querySelector('.char-bio-foot span:nth-child(2)');
+ if(template)template.hidden=mode!=='rich';
+ if(studio)studio.hidden=mode!=='studio';
+ if(customHint)customHint.hidden=mode!=='html';
+ if(codeWrap)codeWrap.hidden=mode==='studio';
+ if(label)label.textContent=ed.dataset.outputMode==='html'?'HTML + CSS':'TEMPLATE HTML';
  const box=ed.querySelector('.char-bio-preview');if(box)box.hidden=true;
 }
 function applyCharacterBioTemplate(button){
