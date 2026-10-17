@@ -1777,11 +1777,11 @@ function characterBioEditor(name,val='',o={}){
   </div>
   <div class="char-bio-template-panel" ${outputMode==='html'?'hidden':''}>
    <div class="char-bio-toolbar">
-    <div class="char-bio-template-control"><label>เลือกดีไซน์</label><select class="char-bio-template"><option value="profile">Profile Studio · Character Profile</option><option value="lilac">Lavender · มินิมอลละมุน</option><option value="midnight">Midnight · เท่และดาร์ก</option><option value="editorial">Editorial · นิตยสาร</option><option value="rose">Rose · หรูและนุ่มนวล</option><option value="application">Trainee Application · ใบสมัครโทนงาช้าง</option></select></div>
-    <div class="char-bio-template-control char-bio-photo-control"><label>URL รูปประกอบ <span>(ไม่บังคับ)</span></label><input class="char-bio-image-url" type="url" placeholder="https://..."></div>
+    <div class="char-bio-template-control"><label>เลือกดีไซน์</label><select class="char-bio-template"><option value="profile">Profile Studio · โปรไฟล์มีรูป</option><option value="lilac">Lavender · มินิมอลละมุน</option><option value="midnight">Midnight · เท่และดาร์ก</option><option value="editorial">Editorial · นิตยสาร</option><option value="rose">Rose · หรูและนุ่มนวล</option><option value="application">Trainee Application · ใบสมัครโทนงาช้าง</option></select></div>
+    <div class="char-bio-template-control char-bio-photo-control"><label>URL รูปประกอบ <span>(Profile Studio / ใบสมัคร)</span></label><input class="char-bio-image-url" type="url" placeholder="https://..."></div>
     <button type="button" class="btn sm" onclick="applyCharacterBioTemplate(this)">＋ ใช้แบบนี้</button>
    </div>
-   <div class="char-bio-template-hint">เลือกแบบแล้วกด “ใช้แบบนี้” จากนั้นแก้ข้อความและรายละเอียดในโค้ดด้านล่างได้ตามต้องการ</div>
+   <div class="char-bio-template-hint">เลือกแบบแล้วกด “ใช้แบบนี้” จากนั้นแก้ข้อความในโค้ดได้ตามต้องการ · URL รูปใช้กับ Profile Studio และใบสมัครโทนงาช้าง</div>
   </div>
   <div class="char-bio-custom-hint" ${outputMode==='rich'?'hidden':''}>วาง HTML ฉบับเต็มได้ รวม &lt;head&gt; และ &lt;style&gt; เพื่อให้ระบบแสดงผลในกรอบแยกโดยไม่เอาธีมเว็บมาทับ</div>
   <textarea class="code char-bio-code" spellcheck="false" autocapitalize="off" autocomplete="off" data-ph="${esc(o.ph||'วางหรือเขียนโค้ด HTML ของตัวละครตรงนี้...')}" placeholder="${outputMode==='html'?'<!doctype html>\\n<html>\\n<head><style>/* CSS ของคุณ */</style></head>\\n<body>...</body>\\n</html>':'<!-- เลือกโค้ดสำเร็จรูปด้านบน หรือแก้ HTML ที่มีอยู่ได้ -->'}">${esc(val||'')}</textarea>
