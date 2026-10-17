@@ -2693,14 +2693,22 @@ function characterBioRpcError(action,error){
  }
  return action+'ไม่สำเร็จ: '+message;
 }
-async function doCreateCharacterBioThread(e){
+async function characterBioReadableLength(content,mode){
+ const value=String(content||'');
+ if(mode!=='html')return textLen(value,'rich');
+ const readable=value.replace(/<(style|script|head)\b[\s\S]*?<\/\1>/gi,' ')
+  .replace(/<!doctype[^>]*>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/gi,' ')
+  .replace(/\s+/g,' ').trim();
+ return readable.length;
+}
+function doCreateCharacterBioThread(e){
  e.preventDefault();const u=me(),f=e.target,E=f.elements;if(!u)return go('login');
  const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
  if(title.length<3)return toast('กรุณาตั้งชื่อกระทู้ให้ชัดเจน','bad');
- if(!bio.content||textLen(bio.content,'rich')<80)return toast('กรุณาเขียนประวัติอย่างน้อย 80 ตัวอักษร','bad');
+ if(!bio.content||characterBioReadableLength(bio.content,bio.mode)<80)return toast('กรุณาเขียนประวัติที่อ่านได้อย่างน้อย 80 ตัวอักษร','bad');
  if(!DB.get('forums').some(x=>x.id===CHARACTER_BIO_FORUM_ID))return toast('ไม่พบคลังประวัติตัวละคร กรุณารีเฟรชหน้าเว็บ','bad');
  const th={id:uid(),authorId:u.id,authorCharId:getActiveChar(u)?.id||null,title,type:'bio',forumId:CHARACTER_BIO_FORUM_ID,
-  exp:0,won:0,minStage:0,maxStage:STAGES.length-1,agencyId:'',train:[],statGain:0,plot:bio.content,plotMode:'rich',rules:'',rulesMode:'rich',
+  exp:0,won:0,minStage:0,maxStage:STAGES.length-1,agencyId:'',train:[],statGain:0,plot:bio.content,plotMode:bio.mode,rules:'',rulesMode:'rich',
   css:'',tpl:'',deadline:'',pinned:false,status:'open',createdAt:Date.now(),characterBio:true};
  if(cloudReady){
   const {error}=await supaClient.rpc('site_create_character_bio_thread',{p_thread:th});
@@ -2732,7 +2740,7 @@ function pageEditCharacterBioThread(id){
   <form class="card topic-composer bio-thread-composer" onsubmit="doUpdateCharacterBioThread(event,'${id}')">
    <div class="topic-composer-heading"><h2>✏️ แก้ไขแฟ้มประวัติ</h2><p>ชื่อกระทู้และเนื้อหาที่บันทึกจะอัปเดตในลิงก์เดิม</p></div>
    <div class="topic-field-row"><label class="topic-field-label" for="bioThreadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="bioThreadTitle" name="title" required maxlength="120" class="topic-subject" value="${esc(t.title)}"></div></div>
-   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',toRich(t.plot,t.plotMode),{ph:'เขียน HTML ประวัติของตัวละคร...'})}</div></div>
+   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',t.plotMode==='html'?t.plot:toRich(t.plot,t.plotMode),{ph:'เขียน HTML ประวัติของตัวละคร...',outputMode:t.plotMode==='html'?'html':'rich'})}</div></div>
    <div class="topic-actions"><a class="btn ghost" href="#thread/${id}">ยกเลิก</a><button class="btn">💾 บันทึกประวัติ</button></div>
   </form></div>`);
 }
@@ -2741,13 +2749,13 @@ async function doUpdateCharacterBioThread(e,id){
  if(!u||!t||!t.characterBio||(!isAdmin()&&t.authorId!==u.id))return;
  const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
  if(title.length<3)return toast('กรุณาตั้งชื่อกระทู้ให้ชัดเจน','bad');
- if(!bio.content||textLen(bio.content,'rich')<80)return toast('กรุณาเขียนประวัติอย่างน้อย 80 ตัวอักษร','bad');
+ if(!bio.content||characterBioReadableLength(bio.content,bio.mode)<80)return toast('กรุณาเขียนประวัติที่อ่านได้อย่างน้อย 80 ตัวอักษร','bad');
  if(cloudReady){
-  const {error}=await supaClient.rpc('site_update_character_bio_thread',{p_thread:{id,title,plot:bio.content,plotMode:'rich'}});
+  const {error}=await supaClient.rpc('site_update_character_bio_thread',{p_thread:{id,title,plot:bio.content,plotMode:bio.mode}});
   if(error)return toast(characterBioRpcError('แก้ไขกระทู้ประวัติ',error),'bad');
   await cloudRefresh(false);
  }else{
-  update('threads',id,x=>{x.title=title;x.plot=bio.content;x.plotMode='rich';x.updatedAt=Date.now()});
+  update('threads',id,x=>{x.title=title;x.plot=bio.content;x.plotMode=bio.mode;x.updatedAt=Date.now()});
  }
  toast('บันทึกประวัติแล้ว');go('thread/'+id);
 }
