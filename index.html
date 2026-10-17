@@ -1682,8 +1682,13 @@ function legacyHtml(s){
  return h.replace(/\*([^*\n]+)\*/g,'<i>$1</i>').replace(/\r?\n/g,'<br>');
 }
 const toRich=(v,m)=>m==='rich'?(v||''):legacyHtml(v||'');
-function renderBody(content,mode,css){
- if(mode==='html')return codeFrame(content,css,true);
+function renderBody(content,mode,css,allowCharacterHtmlFallback=false){
+ const source=String(content||'');
+ /* Older Supabase RPC versions can store a custom archive as mode "rich".
+    If it is clearly a standalone HTML/CSS document, still isolate it instead
+    of sanitizing away the user's <head>/<style> and breaking the layout. */
+ const looksLikeCustomHtml=allowCharacterHtmlFallback&&/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(source);
+ if(mode==='html'||looksLikeCustomHtml)return codeFrame(source,css,true);
  return `<div class="rich">${sanitize(toRich(content,mode))}</div>`;
 }
 function codeFrame(html,css='',isolated=false){
@@ -2742,7 +2747,7 @@ function pageEditCharacterBioThread(id){
   <form class="card topic-composer bio-thread-composer" onsubmit="doUpdateCharacterBioThread(event,'${id}')">
    <div class="topic-composer-heading"><h2>✏️ แก้ไขแฟ้มประวัติ</h2><p>ชื่อกระทู้และเนื้อหาที่บันทึกจะอัปเดตในลิงก์เดิม</p></div>
    <div class="topic-field-row"><label class="topic-field-label" for="bioThreadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="bioThreadTitle" name="title" required maxlength="120" class="topic-subject" value="${esc(t.title)}"></div></div>
-   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',t.plotMode==='html'?t.plot:toRich(t.plot,t.plotMode),{ph:'เขียน HTML ประวัติของตัวละคร...',outputMode:t.plotMode==='html'?'html':'rich'})}</div></div>
+   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',((t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?t.plot:toRich(t.plot,t.plotMode)),{ph:'เขียน HTML ประวัติของตัวละคร...',outputMode:(t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?'html':'rich'})}</div></div>
    <div class="topic-actions"><a class="btn ghost" href="#thread/${id}">ยกเลิก</a><button class="btn">💾 บันทึกประวัติ</button></div>
   </form></div>`);
 }
@@ -2975,7 +2980,7 @@ function pageThread(id){
     <h2 class="thread-opening-title">${esc(t.title)}</h2>
     ${t.type!=='notice'&&!t.characterBio?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
     <h3 class="thread-opening-story-title">📖 เนื้อเรื่อง</h3>
-    ${renderBody(t.plot,t.plotMode,t.css)}
+    ${renderBody(t.plot,t.plotMode,t.css,t.characterBio===true)}
     ${t.characterBio&&u&&(u.id===t.authorId||isAdmin())?`<br><div class="row"><a class="btn sm ghost" href="#editbio/${t.id}">✏️ แก้ไขประวัติ</a></div>`:''}
     ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
    </div>
