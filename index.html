@@ -2869,6 +2869,84 @@ function edCount(ed){
  const n=area?(t==='charcode'?String(source||'').length:textLen(source,t==='rich'?'rich':'html')):0;
  const cnt=ed.querySelector('.ed-count');if(cnt)cnt.textContent=n.toLocaleString()+' ตัวอักษร';
 }
+const EDITOR_VISUAL_DRAFT_PREFIX='__STARLIGHT_VISUAL_HTML_V1__:';
+function decodeEditorHtmlEntities(value){
+ return String(value||'').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/&amp;/gi,'&');
+}
+function getEditorHtmlSource(value){
+ let source=String(value||'').replace(/^\uFEFF/,'').trim();
+ source=source.replace(/^\x60{3,}(?:html|xml|xhtml)?\s*/i,'').replace(/\s*\x60{3,}$/,'').trim();
+ const candidates=[source];
+ if(/&lt;\s*\/?\s*(?:html|head|body|div|section|article|main|header|footer|table|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|details)\b/i.test(source))candidates.push(decodeEditorHtmlEntities(source));
+ const starts=/^\s*(?:(?:<!--[\s\S]*?-->)\s*)*(?:<!doctype\s+html\b|<(?:html|head|body|div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|figcaption|details|summary|svg|iframe)\b)/i;
+ for(const candidate of candidates){const v=candidate.trim();if(starts.test(v)&&/<\/?(?:html|head|body|div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|figcaption|details|summary|svg|iframe)\b/i.test(v))return v;}
+ return '';
+}
+function extractEditorHtmlSource(source){
+ let raw=String(source||'').trim(),css=[];
+ raw=raw.replace(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi,(_,rules)=>{css.push(rules);return ''});
+ const bodyMatch=raw.match(/<body\b[^>]*>([\s\S]*?)<\/body\s*>/i);
+ if(bodyMatch)raw=bodyMatch[1];
+ else raw=raw.replace(/<!doctype[^>]*>/gi,'').replace(/<head\b[^>]*>[\s\S]*?<\/head\s*>/gi,'').replace(/<\/?html\b[^>]*>/gi,'').replace(/<\/?body\b[^>]*>/gi,'');
+ raw=raw.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi,'').replace(/<script\b[^>]*\/?>/gi,'');
+ return {html:sanitize(raw),css:cleanEditorCss(css.join('\n\n'))};
+}
+function cleanEditorCss(css){
+ return String(css||'').replace(/<\/style/gi,'').replace(/\/\*[\s\S]*?\*\//g,'')
+  .replace(/@import\b[^;]*;?/gi,'').replace(/expression\s*\([^)]*\)/gi,'')
+  .replace(/javascript\s*:/gi,'').replace(/-moz-binding\s*:[^;}]+;?/gi,'')
+  .replace(/\bbehavior\s*:[^;}]+;?/gi,'').trim();
+}
+function scopeEditorCss(css,scope){
+ const source=cleanEditorCss(css);let out='',cursor=0,guard=0;
+ while(cursor<source.length&&guard++<500){
+  const open=source.indexOf('{',cursor);if(open<0)break;
+  const selector=source.slice(cursor,open).trim();let depth=1,end=open+1,quote='',escaped=false;
+  for(;end<source.length&&depth;end++){
+   const ch=source[end];
+   if(quote){if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch===quote)quote='';continue}
+   if(ch==='"'||ch==="'"){quote=ch;continue}
+   if(ch==='{')depth++;else if(ch==='}')depth--;
+  }
+  if(depth)break;
+  const body=source.slice(open+1,end-1);
+  if(!selector){cursor=end;continue}
+  if(/^@(media|supports|container|layer|document)\b/i.test(selector)){out+=selector+'{'+scopeEditorCss(body,scope)+'}';}
+  else if(/^@(?:keyframes|-webkit-keyframes|font-face|page|property)\b/i.test(selector)){/* Keep global CSS at-rules out of the live editor for safety. */}
+  else if(selector.startsWith('@')){/* Ignore unsupported CSS at-rules. */}
+  else{
+   const selectors=selector.split(/,(?![^()]*\))/).map(sel=>sel.trim()).filter(Boolean).map(sel=>{
+    if(/^(?:html|:root)\b/i.test(sel))return scope+sel.replace(/^(?:html|:root)\b/i,'');
+    if(/^body\b/i.test(sel))return scope+sel.replace(/^body\b/i,'');
+    if(sel==='*')return scope+' *';
+    return scope+' '+sel;
+   });
+   if(selectors.length)out+=selectors.join(',')+'{'+body+'}';
+  }
+  cursor=end;
+ }
+ return out;
+}
+function setEditorSourceCss(ed,css){
+ if(!ed)return;const area=ed.querySelector('.ed-area'),clean=cleanEditorCss(css||'');
+ if(clean){ed.dataset.sourceCss=clean;if(area)area.dataset.editorCssScope=ed.id;const styleId='editor-scope-'+ed.id;let node=document.getElementById(styleId);if(!node){node=document.createElement('style');node.id=styleId;document.head.appendChild(node)}node.textContent=scopeEditorCss(clean,'[data-editor-css-scope="'+ed.id+'"]');}
+ else{delete ed.dataset.sourceCss;area?.removeAttribute('data-editor-css-scope');document.getElementById('editor-scope-'+ed.id)?.remove();}
+}
+function saveEditorDraft(ed,area,key){
+ if(!key||!area)return;const value=EDITOR_VISUAL_DRAFT_PREFIX+JSON.stringify({html:area.innerHTML,css:ed.dataset.sourceCss||''});
+ store.setItem(key,value);
+}
+function insertEditorPaste(ed,html,css=''){
+ const area=ed?.querySelector('.ed-area');if(!area)return;
+ if(css)setEditorSourceCss(ed,css);
+ const safe=String(html||'').trim();
+ if(!safe){toast('โค้ดนี้ไม่มีเนื้อหา HTML ที่แสดงผลได้','bad');return}
+ area.focus();document.execCommand('insertHTML',false,safe);
+ area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);saveSel();
+}
+function editorCssDocument(html,css){
+ return '<!doctype html><html lang="th"><head><meta charset="utf-8"><style>'+cleanEditorCss(css)+'</style></head><body>'+sanitize(html)+'</body></html>';
+}
 function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
  const code=ed.querySelector('.char-bio-code');
@@ -2876,6 +2954,10 @@ function edGet(ed){
  const area=ed.querySelector('.ed-area');
  if(!area)return{mode:'rich',content:''};
  if(area.dataset.htmlSource==='1')return{mode:'html',content:String(area.textContent||'').trim()};
+ if(!area.children.length){
+  const pasted=getEditorHtmlSource(area.textContent||'');
+  if(pasted){const parts=extractEditorHtmlSource(pasted);if(parts.html){area.innerHTML=parts.html;setEditorSourceCss(ed,parts.css);}}
+ }
  let raw='';
  {
   const copy=area.cloneNode(true);
@@ -2888,6 +2970,8 @@ function edGet(ed){
  }
  const clean=sanitize(raw).trim();
  const meaningful=textLen(clean,'rich')>0||/<(img|iframe|hr|table|div|h[1-6]|ul|ol|li|p)\b/i.test(clean);
+ const css=ed.dataset.sourceCss||'';
+ if(css)return{mode:'html',content:editorCssDocument(clean,css)};
  return{mode:'rich',content:meaningful?clean:''};
 }
 const edOf=(f,name)=>f?.querySelector(`.ed[data-name="${name}"]`);
@@ -2897,19 +2981,37 @@ function initEditors(){
   if(dk&&a&&!a.innerHTML.trim()){
    const d=store.getItem(dk);
    if(d){
-    const prefix='__STARLIGHT_HTML_SOURCE__\\n';
-    if(d.startsWith(prefix))a.innerHTML=sanitize(d.slice(prefix.length));
-    else a.innerHTML=sanitize(d);
+    try{
+     if(d.startsWith(EDITOR_VISUAL_DRAFT_PREFIX)){
+      const saved=JSON.parse(d.slice(EDITOR_VISUAL_DRAFT_PREFIX.length));a.innerHTML=sanitize(saved.html||'');setEditorSourceCss(ed,saved.css||'');
+     }else{
+      const pasted=getEditorHtmlSource(d);
+      if(pasted){const parts=extractEditorHtmlSource(pasted);a.innerHTML=parts.html;setEditorSourceCss(ed,parts.css);}
+      else a.innerHTML=sanitize(d);
+     }
+    }catch(err){a.innerHTML=sanitize(d)}
     delete a.dataset.htmlSource;ed.classList.remove('html-source-mode');
     const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=false;
     setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300);
    }
   }
-  if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.innerHTML)});
+  if(a)a.addEventListener('input',()=>{edCount(ed);saveEditorDraft(ed,a,dk)});
   if(a)a.addEventListener('paste',e=>{
-   const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();
-   const html=h?sanitize(h):(tx.includes('<')&&tx.includes('>')?sanitize(tx):esc(tx).replaceAll(String.fromCharCode(10),'<br>'));
-   document.execCommand('insertHTML',false,html);
+   const clip=e.clipboardData,tx=clip.getData('text/plain'),h=clip.getData('text/html');e.preventDefault();
+   let source=getEditorHtmlSource(tx);
+   if(!source&&h){
+    const tmp=document.createElement('template');tmp.innerHTML=h;
+    const code=tmp.content.querySelector('pre code,pre');
+    if(code)source=getEditorHtmlSource(code.textContent||'');
+   }
+   if(source){
+    const parts=extractEditorHtmlSource(source);
+    insertEditorPaste(ed,parts.html,parts.css);
+    return;
+   }
+   if(h){insertEditorPaste(ed,sanitize(h));return}
+   document.execCommand('insertText',false,tx);
+   a.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);
   });
   ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
   a?.addEventListener('blur',()=>{if(a.dataset.htmlSource!=='1')edParseInlineHTML(a);saveSel();});
