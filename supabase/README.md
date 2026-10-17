@@ -13,13 +13,13 @@ This creates the shared records table, account profile table, access rules, auth
 
 ## Fix: character biography thread RPC not found
 
-If posting a character archive shows `Could not find the function public.site_create_character_bio_thread(p_thread) in the schema cache`, the frontend has been deployed but the Supabase RPC migration has not been applied yet, or PostgREST has a stale schema cache.
+If posting a character archive shows `Could not find the function public.site_create_character_bio_thread(p_thread) in the schema cache`, or after you deploy new custom-HTML archive mode, apply the latest RPC migration below.
 
 1. Open **Supabase Dashboard → SQL Editor** for the same project connected to STARLIGHT ACADEMY.
-2. Open `supabase/character_bio_threads.sql` from this repository, copy the entire file, paste it into SQL Editor, and run it.
-3. Wait for the query to finish successfully, then reload STARLIGHT ACADEMY with **Ctrl + F5** and try posting again.
+2. Open `supabase/character_bio_threads.sql` from this repository, copy the entire file, paste it into SQL Editor, and run it. You can safely run this migration again; it uses `CREATE OR REPLACE`.
+3. Wait for the query to finish successfully, then reload STARLIGHT ACADEMY with **Ctrl + F5** and try creating/editing a biography thread again.
 
-This migration uses `CREATE OR REPLACE`, restores the create/edit RPC permissions for authenticated users, and sends a PostgREST schema-cache refresh notification. You do **not** need to rerun the whole setup file just for this error. The website repository cannot create database functions in your Supabase project by itself, so this one-time SQL step must be run in the connected Supabase project.
+The latest migration keeps both `rich` and `html` biography display modes, updates the create/edit RPCs, restores their authenticated permissions, and sends a PostgREST schema-cache refresh notification. The `html` mode is displayed in a sandboxed iframe so a player's own CSS does not style the main website. The website repository cannot change database functions in your Supabase project by itself, so this SQL step must be run in the connected Supabase project.
 
 ## 2. Configure email/password sign-in
 
