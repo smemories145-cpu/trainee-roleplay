@@ -2553,7 +2553,7 @@ function applyCharacterProfileTemplate(button){
 function richEditor(name,val='',o={}){
  const id='ed'+(++EDN);
  return `<div class="ed" id="${id}" data-name="${name}" data-mode="rich" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
- <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><span class="ed-count"></span></div></div>
+ <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML ดิบ">📄 HTML ดิบ</button><span class="ed-count"></span></div></div>
  <div class="ed-bar">${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sanitize(val)}</div>
  <div class="ed-foot"><span class="ed-hint">💡 พิมพ์หรือวางโค้ด HTML ในช่องนี้ได้เลย แล้วปรับแต่งข้อความ สี และขนาดต่อได้ทันที</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
@@ -2698,21 +2698,35 @@ function setEditorSourceMode(ed,sourceMode){
  if(sourceMode){
   if(area.dataset.htmlSource!=='1'){
    const savedCode=area.querySelector('pre.html-source-block');
-   const html=savedCode?(savedCode.textContent||''):(area.innerHTML||'');
+   let html=savedCode?(savedCode.textContent||''):(area.innerHTML||'');
+   const css=ed.dataset.sourceCss||'';
+   if(css&&!/<style\\b/i.test(html))html='<style>\\n'+css+'\\n</style>\\n'+html;
    area.dataset.htmlSource='1';
    area.textContent=html;
   }
   ed.classList.add('html-source-mode');
   if(bar)bar.hidden=true;
-  if(toggle){toggle.textContent='👁 แก้ไขแบบแสดงผล';toggle.title='แสดงผล HTML แล้วจัดรูปแบบด้วยแถบเครื่องมือ';}
+  if(toggle){toggle.textContent='👁 กลับไปหน้าเขียน';toggle.title='กลับไปแก้ไขข้อความแบบแสดงผล';}
  }else{
-  const savedCode=area.querySelector('pre.html-source-block');
-  const html=area.dataset.htmlSource==='1'?(area.textContent||''):(savedCode?(savedCode.textContent||''):(area.innerHTML||''));
-  area.innerHTML=sanitize(html);
+  const raw=area.dataset.htmlSource==='1'?(area.textContent||''):(area.querySelector('pre.html-source-block')?.textContent||area.innerHTML||'');
+  const parsed=extractEditorHtmlSource(raw);
+  if(parsed.html){
+   area.innerHTML=parsed.html;
+   setEditorSourceCss(ed,parsed.css);
+  }else{
+   area.textContent=raw;
+   delete area.dataset.htmlSource;
+   ed.classList.remove('html-source-mode');
+   if(bar)bar.hidden=false;
+   if(toggle){toggle.textContent='📄 HTML ดิบ';toggle.title='ดูหรือแก้ไขโค้ด HTML ดิบ';}
+   area.dispatchEvent(new Event('input',{bubbles:true}));
+   edCount(ed);
+   return;
+  }
   delete area.dataset.htmlSource;
   ed.classList.remove('html-source-mode');
   if(bar)bar.hidden=false;
-  if(toggle){toggle.innerHTML='&lt;/&gt; โหมด HTML';toggle.title='สลับไปแก้ไขโค้ด HTML';}
+  if(toggle){toggle.textContent='📄 HTML ดิบ';toggle.title='ดูหรือแก้ไขโค้ด HTML ดิบ';}
  }
  area.dispatchEvent(new Event('input',{bubbles:true}));
  edCount(ed);
