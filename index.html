@@ -6,7 +6,7 @@
 <title>Trainee Roleplay</title>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0e0b1a;--card:#18142b;--card2:#221c3d;--line:#2f2752;--pri:#ff5fa2;--sec:#8b7bff;--txt:#ece9f7;--mut:#9d96bd;--ok:#3ddc97;--warn:#ffc857;--bad:#ff6b6b}
+:root{--bg:#050506;--card:#111113;--card2:#19191d;--line:#303036;--pri:#d6d6dc;--sec:#85858f;--txt:#ededf0;--mut:#a0a0aa;--ok:#66d6a4;--warn:#e5c879;--bad:#ff7272}
 *{box-sizing:border-box}
 body{margin:0;font-family:'Prompt',sans-serif;background:radial-gradient(circle at 20% 0,color-mix(in srgb,var(--sec) 22%,var(--bg)) 0,var(--bg) 55%) fixed;background-color:var(--bg);color:var(--txt);line-height:1.6;min-height:100vh}
 a{color:var(--pri);text-decoration:none;cursor:pointer}
@@ -1626,7 +1626,7 @@ const MAX_CHARS=3,MIN_POST=50,STAT_BASE=10,STAT_POOL=30,STAT_PER=20,DEBUT_STAGE=
 const START_WON=10000,SALARY_CD=20*3600e3,MAX_SHOW=8;
 const salaryOf=st=>1000+st*500;
 const statCap=st=>Math.min(100,30+st*10);
-const DEFAULT_SETTINGS={siteName:'STARLIGHT ACADEMY',tagline:'เว็บโรลเพลย์เส้นทางเด็กฝึก — จากผู้สมัครออดิชั่น สู่ซูเปอร์สตาร์',logo:'✦',pri:'#ff5fa2',sec:'#8b7bff',bg:'#0e0b1a',homeHtml:'',customCss:'',allowPlayerCode:true,gmName:'ผู้ดำเนินเรื่อง',gmImg:'',stages:[]};
+const DEFAULT_SETTINGS={siteName:'STARLIGHT ACADEMY',tagline:'เว็บโรลเพลย์เส้นทางเด็กฝึก — จากผู้สมัครออดิชั่น สู่ซูเปอร์สตาร์',logo:'✦',pri:'#d6d6dc',sec:'#85858f',bg:'#050506',homeHtml:'',customCss:'',allowPlayerCode:true,gmName:'ผู้ดำเนินเรื่อง',gmImg:'',stages:[]};
 const DEFAULT_CATEGORIES=[
  {id:'cat_1',name:'📢 ประกาศและกฎระเบียบ',order:1},
  {id:'cat_2',name:'📖 สถานที่สำคัญและภารกิจหลัก',order:2},
@@ -1667,6 +1667,8 @@ const DB={
 let S,STAGES;
 function loadSettings(){
  S={...DEFAULT_SETTINGS,...DB.get('settings',{})};
+ // STARLIGHT default site identity: black and silver, including users with the former saved palette.
+ S.pri='#d6d6dc';S.sec='#85858f';S.bg='#050506';
  STAGES=DEFAULT_STAGES.map((d,i)=>({...d,...(S.stages?.[i]||{})}));
  const r=document.documentElement.style;if(r){r.setProperty('--pri',S.pri);r.setProperty('--sec',S.sec);r.setProperty('--bg',S.bg)}
  const prefs=me()?.prefs||{};document.body.classList.toggle('user-compact',!!prefs.compactMode);document.body.classList.toggle('user-reduce-motion',!!prefs.reduceMotion);
@@ -1861,7 +1863,22 @@ const agencyOf=id=>id?DB.get('agencies').find(a=>a.id===id):null;
 const groupOf=cid=>DB.get('groups').find(g=>g.status!=='disbanded'&&g.members.some(m=>m.charId===cid));
 const textLen=(s,mode)=>mode==='html'||mode==='rich'?String(s).replace(/<(style|script)[\s\S]*?<\/\1>/gi,'').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim().length:String(s).length;
 const fmtLeft=ms=>`${Math.floor(ms/3600e3)} ชม. ${Math.ceil(ms%3600e3/60000)} นาที`;
-function canPost(c,t,u){return c&&u&&(isAdmin()||c.ownerId===u.id)&&c.status==='approved'&&c.stage>=t.minStage&&c.stage<=t.maxStage&&(!t.agencyId||c.agencyId===t.agencyId)}
+function characterHasBio(c){
+ if(!c||!c.bioThreadId)return false;
+ return DB.get('threads').some(t=>t.id===c.bioThreadId&&t.characterBio===true&&t.forumId===CHARACTER_BIO_FORUM_ID&&t.authorId===c.ownerId);
+}
+function characterBioExpired(c){
+ return !!(c&&c.bioDueAt&&!characterHasBio(c)&&Date.now()>Number(c.bioDueAt));
+}
+function characterBioNotice(c){
+ if(!c||!c.bioDueAt)return '';
+ if(characterHasBio(c))return '<div class="bio-deadline-note done">✅ แนบประวัติตัวละครแล้ว · <a href="#thread/'+encodeURIComponent(c.bioThreadId)+'">อ่านประวัติ</a></div>';
+ const remain=Number(c.bioDueAt)-Date.now();
+ const due=new Date(Number(c.bioDueAt)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});
+ if(remain>0)return '<div class="bio-deadline-note"><b>📖 ต้องแนบประวัติภายใน 5 วัน</b><span>เหลือ '+Math.max(1,Math.ceil(remain/(24*60*60*1000)))+' วัน · กำหนด '+esc(due)+'</span><a class="btn sm ghost" href="#editchar/'+c.id+'">เพิ่มลิงก์ประวัติ</a></div>';
+ return '<div class="bio-deadline-note overdue"><b>⚠️ เกินกำหนดแนบประวัติแล้ว</b><span>แนบลิงก์กระทู้ประวัติก่อนจึงจะกลับมาโพสต์โรลเพลย์ได้</span><a class="btn sm" href="#editchar/'+c.id+'">แนบประวัติตอนนี้</a></div>';
+}
+function canPost(c,t,u){return c&&u&&(isAdmin()||c.ownerId===u.id)&&(!characterBioExpired(c)||isAdmin())&&c.status==='approved'&&c.stage>=t.minStage&&c.stage<=t.maxStage&&(!t.agencyId||c.agencyId===t.agencyId)}
 function avatar(o,s=48){
  if(o?.avatar&&/^https?:\/\//.test(o.avatar))return `<img class="av" style="--s:${s}px" src="${esc(o.avatar)}" onerror="this.style.opacity=.15">`;
  return `<div class="av" style="--s:${s}px${o?.color?';background:'+esc(o.color):''}">${esc((o?.stageName||o?.name||o?.username||'?')[0])}</div>`;
@@ -2346,7 +2363,90 @@ function characterProfileTemplate(style,c){
   skin=':root{--accent:#bea0df;--edge:#40324f;--panel:#211a2a}body{background:#0d0a12;color:#f3eef8}.page{background:#15111d;border:1px solid #40324f;box-shadow:0 18px 50px #0006}.cover{min-height:255px}.cover:after{background:linear-gradient(90deg,#0a070fd9,transparent),linear-gradient(0deg,#0a070f80,transparent 70%)}.avatar{border:3px solid #574267}.chip{background:#211a2a}.fact{background:#1c1725}.quote{background:#211a2a}.shot{border:1px solid #40324f;padding:5px;background:#171320}';
   html='<section class="cover">'+cover+'<div class="cover-copy"><p class="eyebrow">✦ STARLIGHT PROFILE</p><h1>'+name+'</h1><p class="role">'+role+'</p></div></section><div class="pad"><div class="identity">'+avatar+'<div><h2>'+name+'</h2><p>'+fullName+'</p></div><div class="chips"><span class="chip">AGE · '+age+'</span><span class="chip">'+nation+'</span></div></div><div class="quote">'+about+'</div><section class="section"><h3 class="section-head">PROFILE DETAILS</h3><div class="facts"><div class="fact"><small>STAGE NAME</small><b>'+name+'</b></div><div class="fact"><small>FULL NAME</small><b>'+fullName+'</b></div><div class="fact"><small>POSITION</small><b>'+role+'</b></div></div></section><section class="section"><h3 class="section-head">GALLERY / MOODBOARD</h3><div class="gallery">'+shots+'</div></section><div class="footer">✦ YOUR STORY, YOUR STYLE</div></div>';
  }
- return '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+name+' · Character Profile</title><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>'+base+'\n'+skin+'</style></head><body><main class="page">'+html+'</main></body></html>';
+ return '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+name+' · Character Profile</title><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>'+base+'\n'+skin+'</style>
+<style id="starlightBlackThemeAndHomeUx">
+:root{--bg:#050506;--card:#111113;--card2:#19191d;--line:#303036;--pri:#d6d6dc;--sec:#85858f;--txt:#ededf0;--mut:#a0a0aa}
+body{background:#050506!important;color:#ededf0}
+nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
+.card,.profile-wrap,.forum-pro-card,.account-card,.forum-main-card{background:#111113;border-color:#303036}
+.btn:not(.ghost):not(.ok):not(.bad){background:linear-gradient(115deg,#bfc0c7,#777982);color:#08080a!important}
+.logo{background:linear-gradient(90deg,#f0f0f2,#888992);-webkit-background-clip:text;background-clip:text}
+.home-section{margin-bottom:42px}
+.home-section-heading h2{font-size:clamp(1.65rem,2.5vw,2.1rem);letter-spacing:-.02em}
+.home-section-heading p{font-size:.95rem}
+.home-kicker{font-size:.78rem;letter-spacing:.16em;color:#b6b6bf}
+.home-recent-list{gap:10px}
+.home-recent{padding:17px 18px;gap:15px;background:#111113;border-color:#303036;border-radius:13px}
+.home-recent:hover{background:#1a1a1e;border-color:#686871;transform:translateY(-1px)}
+.home-recent-title b{font-size:1rem;line-height:1.5}
+.home-recent-meta{font-size:.81rem;color:#a0a0aa}
+.home-replies b{font-size:1.1rem;color:#e0e0e5}
+.home-replies span{font-size:.7rem;color:#a0a0aa}
+.home-cat-mark,.home-section-heading h2 span,.home-forum-star{color:#c6c6ce;text-shadow:none}
+.home-forums{gap:25px}
+.home-forums .cat-header{font-size:1.22rem;font-weight:700;letter-spacing:-.01em;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #303036}
+.home-forums .forum-pro-card{display:grid;grid-template-columns:minmax(190px,.65fr) minmax(260px,1.4fr) minmax(110px,.4fr) minmax(190px,.7fr);align-items:stretch;gap:0;min-height:158px;margin-bottom:12px;background:#101012;border:1px solid #303036;border-radius:15px;overflow:hidden}
+.home-forums .forum-pro-card:hover{border-color:#73737d;box-shadow:0 7px 24px #0005;transform:translateY(-1px)}
+.home-forums .forum-pro-banner{min-height:100%;background-color:#202024;background-size:cover;background-position:center}
+.home-forums .forum-pro-banner .overlay{background:linear-gradient(90deg,#08080918,#08080955)}
+.home-forums .forum-pro-main{min-width:0;padding:20px 22px;justify-content:center}
+.home-forums .forum-pro-main h3{font-size:1.32rem;line-height:1.4;margin-bottom:7px}
+.home-forums .forum-pro-main h3 a{color:#f0f0f2}
+.home-forums .forum-pro-main>.mut{font-size:.92rem!important;line-height:1.75}
+.home-forums .forum-sub-links{gap:7px;margin-top:11px}
+.home-forums .forum-sub-badge{font-size:.81rem;padding:4px 11px;background:#19191d;border-color:#34343b;color:#c5c5cd}
+.home-forums .forum-pro-stats{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:15px 10px;background:#151517;border-left:1px solid #303036;font-size:.8rem}
+.home-forums .forum-pro-stats div{text-align:center;white-space:nowrap}
+.home-forums .forum-pro-stats b{display:block;font-size:1.28rem;color:#ededf0;margin:0 0 2px}
+.home-forums .forum-pro-last{display:flex;align-items:center;padding:15px 16px;border-top:0;border-left:1px solid #303036;background:#0d0d0f;min-width:0}
+.home-forums .forum-pro-last-thread{display:flex;align-items:center;gap:10px;min-width:0;width:100%}
+.home-forums .forum-pro-last-thread>div{min-width:0}
+.home-forums .forum-pro-last-thread b a{color:#e7e7eb;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
+.home-forums .forum-pro-last .mut{line-height:1.6;color:#9b9ba4}
+.home-quicklinks>a{background:#111113;border-color:#303036}
+.home-quicklinks>a:hover{background:#19191d;border-color:#606068}
+.bio-account-reminder{padding:15px 17px;border:1px solid #777982;border-radius:12px;background:#171719}
+.bio-account-reminder>b{display:block;color:#f1f1f4;font-size:1rem}
+.bio-account-reminder p{margin:7px 0;color:#b9b9c2;font-size:.85rem;line-height:1.7}
+.bio-account-confirm{display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding-top:12px;border-top:1px solid #303036;color:#f0f0f3;font-size:.85rem}
+.bio-account-confirm input{width:auto;flex:0 0 auto;margin:4px 0 0}
+.bio-deadline-note{display:flex;flex-direction:column;gap:5px;padding:12px 14px;margin-top:8px;border:1px solid #55555d;border-radius:10px;background:#161618;color:#e7e7eb;font-size:.85rem}
+.bio-deadline-note span{color:#b6b6bf;line-height:1.65}
+.bio-deadline-note .btn{align-self:flex-start;margin-top:4px}
+.bio-deadline-note.done{border-color:#416957}
+.bio-deadline-note.overdue{border-color:#8b5c5c;background:#211416}
+.bio-blocked-post{border-color:#8b5c5c;background:#1a1415}
+@media(max-width:1100px){
+ .home-forums .forum-pro-card{grid-template-columns:minmax(150px,.6fr) minmax(0,1.4fr) minmax(100px,.45fr)}
+ .home-forums .forum-pro-last{grid-column:2/4;border-top:1px solid #303036;border-left:0;padding:10px 18px}
+}
+@media(max-width:760px){
+ .home-forums .forum-pro-card{grid-template-columns:130px minmax(0,1fr)}
+ .home-forums .forum-pro-banner{grid-row:1/3;min-height:150px}
+ .home-forums .forum-pro-main{padding:15px}
+ .home-forums .forum-pro-main h3{font-size:1.12rem}
+ .home-forums .forum-pro-stats{grid-column:2;flex-direction:row;justify-content:flex-start;gap:22px;border-left:0;border-top:1px solid #303036;padding:10px 15px}
+ .home-forums .forum-pro-stats b{display:inline;font-size:1rem;margin-right:4px}
+ .home-forums .forum-pro-last{grid-column:1/3;grid-row:auto;border-left:0;border-top:1px solid #303036}
+ .home-recent{padding:13px 12px;gap:10px}
+ .home-recent-title b{font-size:.9rem}
+ .home-section-heading h2{font-size:1.5rem}
+}
+@media(max-width:480px){
+ .home-forums .forum-pro-card{grid-template-columns:1fr}
+ .home-forums .forum-pro-banner{grid-row:auto;min-height:86px}
+ .home-forums .forum-pro-main{padding:15px 16px}
+ .home-forums .forum-pro-stats{grid-column:auto;padding:12px 16px}
+ .home-forums .forum-pro-last{grid-column:auto;padding:12px 16px}
+ .home-recent{align-items:flex-start}
+ .home-recent .av{width:34px;height:34px}
+ .home-replies{min-width:35px}
+ .home-section-heading{gap:8px}
+ .home-text-link{font-size:.72rem}
+}
+</style>
+
+</head><body><main class="page">'+html+'</main></body></html>';
 }
 function applyCharacterProfileTemplate(button){
  const form=button?.form,field=form?.elements?.profileHtml,pick=form?.querySelector('.profile-template-choice');
@@ -3055,7 +3155,7 @@ function threadItem(t){
 /* ================= HOME & FORUMS ================= */
 function pageHome(){
  const u=me(),threads=DB.get('threads'),posts=DB.get('posts'),users=DB.get('users'),cats=DB.get('categories'),forums=DB.get('forums');
- const recent=threads.map(t=>{const pl=posts.filter(p=>p.threadId===t.id);const last=pl.sort((a,b)=>b.createdAt-a.createdAt)[0];return{...t,cnt:pl.length,lastTime:last?last.createdAt:t.createdAt,lastUser:last?last.userId:t.authorId}}).sort((a,b)=>b.lastTime-a.lastTime).slice(0,6);
+ const recent=threads.map(t=>{const pl=posts.filter(p=>p.threadId===t.id);const last=pl.sort((a,b)=>b.createdAt-a.createdAt)[0];return{...t,cnt:pl.length,lastTime:last?last.createdAt:t.createdAt,lastUser:last?last.userId:t.authorId}}).sort((a,b)=>b.lastTime-a.lastTime).slice(0,5);
  const recentHtml=recent.length?recent.map(t=>{const ty=TYPES[t.type]||TYPES.main;return `<a class="home-recent item" href="#thread/${t.id}">
    ${threadAuthorAvatar(t,40)}<div class="home-recent-main"><div class="home-recent-title"><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b></div><div class="mut home-recent-meta">อัปเดต ${fmt(t.lastTime)} · โดย ${esc(t.cnt===0?threadAuthorName(t):(users.find(x=>x.id===t.lastUser)?.username||'-'))}</div></div>
    <div class="home-replies"><b>${t.cnt}</b><span>ตอบกลับ</span></div></a>`}).join(''):'<div class="home-empty"><span>✧</span><b>ยังไม่มีกระทู้</b><p class="mut">เริ่มต้นบทสนทนาแรกของชุมชนได้เลย</p><a class="btn sm" href="#threads">ไปที่ฟอรั่ม</a></div>';
@@ -3123,7 +3223,8 @@ function pageNewBioThread(){
   <a class="mut" href="#forum/${CHARACTER_BIO_FORUM_ID}">← กลับคลังประวัติตัวละคร</a>
   <header class="bio-thread-hero"><div class="bio-thread-eyebrow">CHARACTER ARCHIVE · YOUR STORY</div><h1>สร้างกระทู้ประวัติตัวละคร</h1><p>ใช้พื้นที่นี้เล่าที่มา บุคลิก ความฝัน และเรื่องราวฉบับเต็มของตัวละคร กระทู้นี้จะแยกจากหน้าโปรไฟล์เพื่อให้อ่านง่ายและเขียนได้ยาวตามต้องการ</p></header>
   <form class="card topic-composer bio-thread-composer" onsubmit="doCreateCharacterBioThread(event)">
-   <div class="topic-composer-heading"><h2>📖 แฟ้มประวัติใหม่</h2><p>หลังเผยแพร่แล้ว จะนำ URL ไปแนบกับตัวละครผ่านหน้าแก้ไขโปรไฟล์เมื่อใดก็ได้</p></div>
+   <div class="topic-composer-heading"><h2>📖 แฟ้มประวัติใหม่</h2><p>หลังเผยแพร่แล้ว ให้คัดลอก URL ไปแนบในหน้าแก้ไขของตัวละครที่เกี่ยวข้องภายใน 5 วัน</p></div>
+   <div class="topic-field-row"><div class="topic-field-label">⚠️ ตรวจสอบบัญชี</div><div class="topic-field-value"><div class="bio-account-reminder"><b>ก่อนลงประวัติทุกครั้ง ให้ตรวจว่าคุณสลับมาใช้บัญชีรองที่ถูกต้องแล้ว</b><p>หากชื่อบัญชีมุมขวาบนยังเป็นบัญชีหลัก ให้ยกเลิกหน้านี้ ออกจากระบบ แล้วเข้าสู่ระบบด้วยบัญชีรอง/บัญชีเจ้าของตัวละครก่อนสร้างกระทู้ เพื่อไม่ให้ประวัติผูกกับบัญชีผิดคน</p><label class="bio-account-confirm"><input type="checkbox" name="confirmSecondary" required> ฉันตรวจสอบบัญชีแล้ว และกำลังใช้บัญชีที่ถูกต้องสำหรับประวัตินี้</label></div></div></div>
    <div class="topic-field-row"><label class="topic-field-label" for="bioThreadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="bioThreadTitle" name="title" required maxlength="120" class="topic-subject" placeholder="เช่น Kim Hyunsuk — Character Archive"></div></div>
    <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนะนำให้ใส่</b><span>ภูมิหลัง · บุคลิก · จุดแข็ง/จุดอ่อน · เหตุการณ์สำคัญ · ความสัมพันธ์ · เป้าหมายของตัวละคร</span></div>${characterBioEditor('background','',{ph:'เลือกโครงสำเร็จรูปหรือเริ่มเขียน HTML ประวัติของตัวละครได้เลย...',choice:characterStudioLoadDraft()?'studio':'rich',studioData:characterStudioLoadDraft()||undefined})}</div></div>
    <div class="topic-actions"><a class="btn ghost" href="#forum/${CHARACTER_BIO_FORUM_ID}">ยกเลิก</a><button class="btn">📚 เผยแพร่กระทู้ประวัติ</button></div>
@@ -3147,6 +3248,7 @@ function characterBioReadableLength(content,mode){
 }
 async function doCreateCharacterBioThread(e){
  e.preventDefault();const u=me(),f=e.target,E=f.elements;if(!u)return go('login');
+ if(!E.confirmSecondary?.checked)return toast('กรุณาตรวจสอบและยืนยันว่ากำลังใช้บัญชีรองที่ถูกต้องก่อนลงประวัติ','bad');
  const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
  if(title.length<3)return toast('กรุณาตั้งชื่อกระทู้ให้ชัดเจน','bad');
  if(!bio.content||characterBioReadableLength(bio.content,bio.mode)<80)return toast('กรุณาเขียนประวัติที่อ่านได้อย่างน้อย 80 ตัวอักษร','bad');
@@ -3392,8 +3494,9 @@ function pageThread(id){
  else if(t.characterBio)form='<div class="card mut">📖 นี่คือกระทู้ประวัติตัวละคร อ่านได้อย่างเดียวเพื่อให้เรื่องราวต่อเนื่องและไม่ถูกกลบด้วยโพสต์ตอบกลับ</div>';
  else if(t.type==='notice'&&!isAdmin())form='';
  else{
-  const ac=getActiveChar(u),canChar=!!(ac&&canPost(ac,t,u));
-  if(!canChar&&!isAdmin()){
+  const ac=getActiveChar(u),canChar=!!(ac&&canPost(ac,t,u)),bioExpired=!!(ac&&characterBioExpired(ac)&&!isAdmin());
+  if(bioExpired){form='<div class="card bio-blocked-post"><h3>📖 ถึงกำหนดแนบประวัติตัวละครแล้ว</h3><p>ตัวละคร <b>'+esc(ac.stageName||ac.name)+'</b> ยังไม่มีลิงก์ประวัติที่ถูกต้อง กรุณาสร้างกระทู้ประวัติในคลัง แล้วนำลิงก์มาใส่ในหน้าแก้ไขตัวละครก่อนกลับมาโพสต์</p><a class="btn" href="#editchar/'+ac.id+'">แนบลิงก์ประวัติ</a></div>'}
+  else if(!canChar&&!isAdmin()){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
    form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
@@ -3440,7 +3543,7 @@ async function doReply(e,tid){
   if(cloudReady)await cloudQueue;
   toast('โพสต์ในฐานะ GM แล้ว');
  }else{
-  const ac=getActiveChar(u);if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
+  const ac=getActiveChar(u);if(ac&&characterBioExpired(ac)&&!isAdmin())return toast('ตัวละครเลยกำหนด 5 วันแล้ว กรุณาแนบลิงก์ประวัติในหน้าแก้ไขตัวละครก่อนโพสต์','bad');if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
   const len=textLen(content,mode);if(len<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร (ตอนนี้ ${len})`,'bad');
   const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;
   if(cloudReady){
@@ -3505,14 +3608,14 @@ function pageMyChars(){
  const u=me();if(!u)return go('login');
  const mine=DB.get('characters').filter(c=>c.ownerId===u.id),active=mine.filter(c=>c.status!=='rejected').length,cur=getActiveChar(u);
  app(`<div class="row between"><h2>🎭 ตัวละครของฉัน</h2>${active<MAX_CHARS?'<a class="btn" href="#newchar">+ ลงทะเบียนตัวละคร</a>':`<span class="mut">ครบโควตา ${MAX_CHARS} ตัวแล้ว</span>`}</div>
- ${mine.length?`<div class="grid">${mine.map(c=>`<div>${charCard(c)}${c.status==='approved'?`<button class="btn sm ${c.id===cur?.id?'ok':'ghost'}" style="width:100%;margin-top:6px" onclick="setActiveChar('${c.id}')" ${c.id===cur?.id?'disabled':''}>${c.id===cur?.id?'✅ กำลังใช้ตัวนี้':'🎭 ใช้ตัวนี้'}</button>`:''}</div>`).join('')}</div>`:'<div class="card mut">ยังไม่มีตัวละคร — ลงทะเบียนตัวละครแรกเพื่อเข้าร่วมออดิชั่น!</div>'}`);
+ ${mine.length?`<div class="grid">${mine.map(c=>`<div>${charCard(c)}${characterBioNotice(c)}${c.status==='approved'?`<button class="btn sm ${c.id===cur?.id?'ok':'ghost'}" style="width:100%;margin-top:6px" onclick="setActiveChar('${c.id}')" ${c.id===cur?.id?'disabled':''}>${c.id===cur?.id?'✅ กำลังใช้ตัวนี้':'🎭 ใช้ตัวนี้'}</button>`:''}</div>`).join('')}</div>`:'<div class="card mut">ยังไม่มีตัวละคร — ลงทะเบียนตัวละครแรกเพื่อเข้าร่วมออดิชั่น!</div>'}`);
 }
 function pageNewChar(){
  const u=me();if(!u)return go('login');
  if(DB.get('characters').filter(c=>c.ownerId===u.id&&c.status!=='rejected').length>=MAX_CHARS){toast('ครบโควตาตัวละครแล้ว','bad');return go('mychars')}
  app(`<div class="character-register-page">
-  <header class="character-register-head"><div class="char-edit-kicker">STARLIGHT ACADEMY · CHARACTER APPLICATION</div><h1>📋 ลงทะเบียนตัวละคร</h1><p>กรอกข้อมูลเพื่อสร้างตัวละครได้เลย ลิงก์ประวัติฉบับเต็มเพิ่มภายหลังได้ ไม่บังคับให้สร้างประวัติก่อนสมัคร</p></header>
-  <div class="card bio-application-guide"><div class="bio-step-number">01</div><div class="bio-application-copy"><h3>ประวัติตัวละคร (ข้ามก่อนได้)</h3><p>จะสร้างกระทู้ประวัติตอนนี้หรือข้ามไปก่อนก็ได้ ตัวละครสามารถส่งใบสมัครได้ แล้วค่อยกลับมาเพิ่มลิงก์ในหน้าแก้ไขตัวละครภายหลัง</p><div class="row"><button type="button" class="btn sm" onclick="window.open(location.origin+location.pathname+'#forum/${CHARACTER_BIO_FORUM_ID}','_blank','noopener')">📚 เปิดคลังประวัติในแท็บใหม่ ↗</button><button type="button" class="btn sm ghost" onclick="window.open(location.origin+location.pathname+'#newbio','_blank','noopener')">＋ สร้างกระทู้ใหม่ทันที ↗</button></div></div></div>
+  <header class="character-register-head"><div class="char-edit-kicker">STARLIGHT ACADEMY · CHARACTER APPLICATION</div><h1>📋 ลงทะเบียนตัวละคร</h1><p>เริ่มจากสร้างตัวละครพื้นฐานก่อน ไม่ต้องมีประวัติในวันสมัคร หลังสร้างตัวละครแล้วต้องลงกระทู้ประวัติและแนบลิงก์ภายใน 5 วัน</p></header>
+  <div class="card bio-application-guide"><div class="bio-step-number">01</div><div class="bio-application-copy"><h3>สร้างตัวละครพื้นฐานก่อน</h3><p>กรอกข้อมูลพื้นฐานแล้วส่งใบสมัครได้เลย ยังไม่ต้องสร้างกระทู้ประวัติในขั้นตอนนี้ หลังสร้างตัวละครแล้วมีเวลา 5 วันในการลงประวัติในคลังประวัติตัวละครและนำลิงก์มาแนบในหน้าแก้ไขตัวละคร</p><p class="mut" style="margin-bottom:0">✦ ระบบจะแจ้งเตือนในหน้าตัวละครของคุณ หากเกินกำหนดจะต้องแนบประวัติก่อนกลับมาโพสต์โรลเพลย์</p></div></div>
   <form class="card character-register-form" onsubmit="doNewChar(event)">
    <div class="topic-composer-heading"><h2>02 · ข้อมูลพื้นฐาน</h2><p>ข้อมูลส่วนนี้จะแสดงบนการ์ดและหน้าโปรไฟล์หลัก</p></div>
    <div class="row"><div class="f1"><label>ชื่อ-นามสกุลตัวละคร *</label><input name="name" required maxlength="60"></div><div class="f1"><label>ชื่อในวงการ (Stage Name)</label><input name="stageName" maxlength="30"></div></div>
@@ -3525,7 +3628,6 @@ function pageNewChar(){
    <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (URL)</label><input name="avatar" type="url" placeholder="https://..."></div><div class="f1"><label>ภาพปก Banner (URL)</label><input name="banner" type="url" placeholder="https://..."></div></div>
    <label>รูปข้างแนวตั้ง (URL) · แนะนำสัดส่วน 3:5</label><input name="portrait" type="url" placeholder="https://...">
    <label>คำแนะนำตัวแบบสั้น (แสดงบนหน้าโปรไฟล์ · ไม่เกิน 360 ตัวอักษร)</label><textarea name="summary" rows="3" maxlength="360" placeholder="เขียนให้คนอ่านรู้จักตัวละครคร่าว ๆ เช่น บุคลิกเด่น ความฝัน หรือคำโปรยสั้น ๆ"></textarea>
-   <section class="bio-link-field"><div class="bio-step-number">03</div><div class="bio-link-copy"><label for="bioThreadUrl">📖 ลิงก์กระทู้ประวัติตัวละคร (ไม่บังคับ)</label><p>ถ้ามีกระทู้ประวัติใน “คลังประวัติตัวละคร” อยู่แล้ว สามารถวางลิงก์ได้เลย หรือเว้นว่างไว้แล้วกลับมาเพิ่มภายหลัง ระบบจะตรวจว่ากระทู้นั้นเป็นของบัญชีนี้จริง</p></div><input id="bioThreadUrl" name="bioThreadUrl" type="url" placeholder="https://smemories145-cpu.github.io/trainee-roleplay/#thread/..." ><small>ยังไม่มีประวัติก็ส่งใบสมัครได้ — เพิ่มลิงก์ได้จากหน้า “แก้ไข/ตกแต่งโปรไฟล์” ภายหลัง</small></section>
    <label class="row" style="color:var(--txt)"><input type="checkbox" name="agree" required style="width:auto;margin:0"> ข้าพเจ้าอ่านและยอมรับกฎของบอร์ดแล้ว</label>
    <button class="btn character-register-submit">ส่งใบสมัครตัวละคร</button>
   </form>
@@ -3539,14 +3641,12 @@ function doNewChar(e){
  const bonus=STATS.map(st=>Math.max(0,+E['b_'+st.k].value||0));
  if(bonus.some(b=>b>STAT_PER))return toast(`แต่ละด้านแจกได้ไม่เกิน ${STAT_PER} แต้ม`,'bad');
  if(bonus.reduce((a,b)=>a+b,0)>STAT_POOL)return toast(`แจกแต้มเกิน ${STAT_POOL} แต้ม`,'bad');
- const bioUrl=E.bioThreadUrl.value.trim();const biography=bioUrl?getCharacterBioThreadFromUrl(bioUrl,u.id):null;
- if(bioUrl&&!biography)return toast('ลิงก์ประวัติไม่ถูกต้อง ต้องเป็นกระทู้ในคลังประวัติตัวละครที่บัญชีนี้สร้างเอง','bad');
  const cs=DB.get('characters');
  cs.push({id:uid(),ownerId:u.id,name:E.name.value.trim(),stageName:E.stageName.value.trim(),age:+E.age.value,gender:E.gender.value,nationality:E.nationality.value.trim(),positions,
   avatar:E.avatar.value.trim(),banner:E.banner.value.trim(),portrait:E.portrait.value.trim(),summary:E.summary.value.trim().slice(0,360),
-  bioThreadId:biography?.id||'',personality:'',background:'',bioMode:'rich',agencyId:E.agencyId.value,
+  bioThreadId:'',personality:'',background:'',bioMode:'rich',agencyId:E.agencyId.value,
   stats:Object.fromEntries(STATS.map((st,i)=>[st.k,STAT_BASE+bonus[i]])),won:START_WON,inv:[],ledger:[],showcase:[],
-  profileHtml:'',status:'pending',reason:'',stage:0,exp:0,createdAt:Date.now()});
+  profileHtml:'',status:'pending',reason:'',stage:0,exp:0,createdAt:Date.now(),bioDueAt:Date.now()+5*24*60*60*1000});
  DB.set('characters',cs);toast('ส่งใบสมัครแล้ว! แอดมินจะตรวจข้อมูลและกระทู้ประวัติ');go('mychars');
 }
 function pageChar(id){
