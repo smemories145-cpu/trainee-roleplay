@@ -429,6 +429,9 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 .side-inventory-item img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px}
 .side-inventory-item .side-inventory-placeholder{display:grid;place-items:center;width:100%;aspect-ratio:1;font-size:1.4rem;background:#ffffff06;border-radius:5px}
 .side-inventory-item small{display:block;width:100%;font-size:.66rem;line-height:1.35;overflow-wrap:anywhere;color:var(--txt)}
+/* Existing announcement HTML in already-published roleplay posts must also fill the column. */
+.post .rich>div[style*="max-width:760px"],
+.post .rich>div[style*="max-width: 760px"]{width:100%!important;max-width:min(1280px,100%)!important;margin-left:auto!important;margin-right:auto!important}
 .thread-page-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 12px}
 .thread-page-toolbar>div{min-width:0}
 .thread-reply-jump{white-space:nowrap;border-radius:999px;padding:9px 20px}
