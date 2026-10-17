@@ -4017,9 +4017,9 @@ function pageChar(id){
    ${c.status==='rejected'&&c.reason?`<div class="rules">เหตุผลที่ไม่ผ่าน: ${esc(c.reason)}</div>`:''}
    ${c.status==='approved'?`<div style="max-width:400px;margin:8px auto"><div class="row between mut" style="font-size:.8rem"><span>EXP ${c.exp}${next?` / ${next.exp}`:''}</span><span>${next?'ขั้นถัดไป: '+esc(next.n):'สูงสุด ✨'}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`:''}
    <div class="row" style="justify-content:center;margin-top:10px">
-    ${isAdmin()&&c.status==='pending'?`<button class="btn sm ok" onclick="approveChar('${c.id}')">อนุมัติ</button><button class="btn sm bad" onclick="rejectChar('${c.id}')">ไม่อนุมัติ</button>`:''}
-    ${isOwner||isAdmin()?`<a class="btn sm" href="#editchar/${c.id}">🎨 แก้ไข/ตกแต่งโปรไฟล์</a>`:''}
-    ${(isOwner&&c.status!=='approved')||isAdmin()?`<button class="btn sm bad" onclick="deleteChar('${c.id}')">ลบตัวละคร</button>`:''}
+    ${hasAdminPermission('manage_character_review')&&c.status==='pending'?`<button class="btn sm ok" onclick="approveChar('${c.id}')">อนุมัติ</button><button class="btn sm bad" onclick="rejectChar('${c.id}')">ไม่อนุมัติ</button>`:''}
+    ${isOwner||isAdmin()||hasAdminPermission('manage_characters')?`<a class="btn sm" href="#editchar/${c.id}">🎨 แก้ไข/ตกแต่งโปรไฟล์</a>`:''}
+    ${(isOwner&&c.status!=='approved')||isAdmin()||hasAdminPermission('manage_characters')?`<button class="btn sm bad" onclick="deleteChar('${c.id}')">ลบตัวละคร</button>`:''}
    </div>
   </div>
   <div class="profile-main-layout">
@@ -4039,7 +4039,7 @@ function pageChar(id){
      <div class="row" style="gap:24px"><div>${radar(c.stats)}</div><div class="f1">${statBars(c.stats,cap)}</div></div>
      ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ซ้อมทุก ${PRACTICE_CD/3600e3} ชม. ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${cd>0?`· ⏳ ซ้อมได้อีกใน ${fmtLeft(cd)}`:'· ✅ พร้อมซ้อม!'}</p>
      <div class="row">${STATS.map(st=>{const dis=cd>0||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n}</button>`}).join('')}</div>`:''}</div>
-    ${isAdmin()&&c.status==='approved'?adminCharForm(c):''}
+    ${hasAdminPermission('manage_characters')&&c.status==='approved'?adminCharForm(c):''}
    </div>
   </div>
  </div>`);
@@ -4114,8 +4114,8 @@ function collectSide(f){ const E=f.elements;
 function previewSide(f,id){const c=DB.get('characters').find(x=>x.id===id);if(!c)return;const box=f.querySelector('.side-pv');if(box)box.innerHTML=sideCard({...c,...collectSide(f)},me(),0)}
 function pageEditChar(id){
  const u=me(),c=DB.get('characters').find(x=>x.id===id);
- if(!c||!u||(c.ownerId!==u.id&&!isAdmin()))return go('home');
- const full=c.status!=='approved'||isAdmin(),items=DB.get('items');
+ if(!c||!u||(c.ownerId!==u.id&&!isAdmin()&&!hasAdminPermission('manage_characters')))return go('home');
+ const full=c.status!=='approved'||isAdmin()||hasAdminPermission('manage_characters'),items=DB.get('items');
  const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
  const shownInv=new Set((c.showcase||[]).filter(s=>s.inv).map(s=>s.inv));
  const custom=(c.showcase||[]).filter(s=>!s.inv);
