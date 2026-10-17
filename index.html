@@ -1523,6 +1523,38 @@ nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
 @media(max-width:600px){.thread-pagination{padding:11px}.thread-pagination-controls{gap:5px}.thread-page-number,.thread-page-step{min-width:32px;min-height:32px;padding:5px 8px;font-size:.78rem}.thread-replies-heading{align-items:flex-start}.thread-replies-heading>span{padding-top:4px}}
 </style>
 
+<style id="forumNestingLayoutFix">
+.forum-page-shell{min-width:0}
+.forum-page-breadcrumb{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 14px;color:var(--mut);font-size:.84rem}
+.forum-page-breadcrumb a{color:var(--mut)}
+.forum-page-breadcrumb a:hover{color:var(--txt)}
+.forum-card-banner{position:relative;isolation:isolate;display:flex;align-items:flex-end;min-height:205px;margin-bottom:22px;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.forum-card-bg{position:absolute;z-index:-2;inset:0;background-color:var(--card2);background-size:cover;background-position:center;opacity:.72}
+.forum-card-overlay{position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,rgba(5,5,6,.96) 0%,rgba(5,5,6,.75) 48%,rgba(5,5,6,.3) 100%),linear-gradient(0deg,rgba(5,5,6,.85),transparent 65%)}
+.forum-card-content{position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;width:100%;padding:clamp(18px,3vw,30px)}
+.forum-card-content>div{min-width:0;max-width:760px}
+.forum-page-eyebrow{display:block;margin-bottom:8px;color:#c6c6ce;font-size:.7rem;letter-spacing:.15em;font-weight:700}
+.forum-page-description{max-width:68ch;line-height:1.75}
+.forum-page-stats{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;color:#d1d1d8;font-size:.8rem}
+.forum-page-stats b{color:#f3f3f5;font-size:1rem;margin-right:3px}
+.forum-children-section,.forum-topic-list{margin:26px 0}
+.forum-children-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:13px}
+.forum-children-heading h3{font-size:1.35rem;margin:4px 0}
+.forum-children-heading h3 span{font-size:.8rem;font-weight:500;color:var(--mut)}
+.forum-children-heading p{margin:0;font-size:.86rem}
+.forum-children-list.home-forums{display:grid;gap:12px}
+.forum-children-list .forum-pro-card{margin-bottom:0}
+.forum-pro-description{font-size:.85rem;line-height:1.75;overflow-wrap:anywhere}
+.forum-pro-last-thread{display:flex;align-items:center;gap:10px;min-width:0;width:100%}
+.forum-pro-last-copy{min-width:0;width:100%}
+.forum-pro-last-title{min-width:0;overflow-wrap:anywhere;line-height:1.5}
+.forum-pro-last-meta{font-size:.76rem;line-height:1.6}
+.forum-pro-stats div{display:flex;flex-direction:column;align-items:center;gap:2px}
+.forum-pro-stats span{color:var(--mut);font-size:.72rem}
+.forum-topic-heading{margin-top:30px}
+@media(max-width:760px){.forum-card-banner{min-height:210px}.forum-card-content{align-items:flex-start}.forum-page-stats{gap:8px 13px}.forum-children-heading h3{font-size:1.15rem}}
+@media(max-width:480px){.forum-card-banner{min-height:245px}.forum-card-content{padding:16px}.forum-page-stats{font-size:.73rem}.forum-pro-last-title{font-size:.86rem}}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
@@ -3259,6 +3291,22 @@ function threadItem(t){
  </a>`;
 }
 /* ================= HOME & FORUMS ================= */
+function forumListingCard(f,opts={}){
+ const forums=opts.forums||DB.get('forums'),threads=opts.threads||DB.get('threads'),posts=opts.posts||DB.get('posts'),users=opts.users||DB.get('users');
+ const ft=threads.filter(t=>t.forumId===f.id).slice().sort((a,b)=>b.createdAt-a.createdAt);
+ const subList=forums.filter(sf=>sf.parentId===f.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const bgStyle=f.banner&&/^https?:\/\//i.test(f.banner)?`style="background-image:url('${esc(f.banner)}');background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}"`:'';
+ const lastTh=ft[0],lastUser=lastTh?users.find(x=>x.id===lastTh.authorId):null,threadIds=new Set(ft.map(t=>t.id));
+ const replyCount=posts.filter(p=>threadIds.has(p.threadId)).length;
+ const subLinks=subList.length?`<div class="forum-sub-links">${subList.map(sf=>`<a class="forum-sub-badge" href="#forum/${esc(sf.id)}">· ${esc(sf.name)}</a>`).join('')}</div>`:'';
+ const latest=lastTh?`<div class="forum-pro-last-thread">${avatar(lastUser,34)}<div class="forum-pro-last-copy"><div class="forum-pro-last-title"><b><a href="#thread/${esc(lastTh.id)}">${esc(lastTh.title)}</a></b></div><div class="mut forum-pro-last-meta">${fmt(lastTh.createdAt)} · เปิดโดย ${esc(lastUser?.username||'-')}</div></div></div>`:'<span class="mut">ยังไม่มีกระทู้</span>';
+ return `<div class="forum-pro-card">
+  <div class="forum-pro-banner" ${bgStyle} role="img" aria-label="ภาพปก ${esc(f.name)}"><div class="overlay"></div><span class="home-forum-star">✦</span></div>
+  <div class="forum-pro-main"><h3 style="margin:0"><a href="#forum/${esc(f.id)}">${esc(f.name)}</a></h3><div class="mut forum-pro-description">${esc(f.desc||'')}</div>${subLinks}</div>
+  <div class="forum-pro-stats"><div><b>${ft.length}</b><span>หัวข้อ</span></div><div><b>${replyCount}</b><span>ตอบกลับ</span></div></div>
+  <div class="forum-pro-last">${latest}</div>
+ </div>`;
+}
 function pageHome(){
  const u=me(),threads=DB.get('threads'),posts=DB.get('posts'),users=DB.get('users'),cats=DB.get('categories'),forums=DB.get('forums');
  const recent=threads.map(t=>{const pl=posts.filter(p=>p.threadId===t.id);const last=pl.sort((a,b)=>b.createdAt-a.createdAt)[0];return{...t,cnt:pl.length,lastTime:last?last.createdAt:t.createdAt,lastUser:last?last.userId:t.authorId}}).sort((a,b)=>b.lastTime-a.lastTime).slice(0,5);
@@ -3266,21 +3314,10 @@ function pageHome(){
    ${threadAuthorAvatar(t,40)}<div class="home-recent-main"><div class="home-recent-title"><span class="badge" style="--c:${ty.c}">${ty.n}</span> <b>${esc(t.title)}</b></div><div class="mut home-recent-meta">อัปเดต ${fmt(t.lastTime)} · โดย ${esc(t.cnt===0?threadAuthorName(t):(users.find(x=>x.id===t.lastUser)?.username||'-'))}</div></div>
    <div class="home-replies"><b>${t.cnt}</b><span>ตอบกลับ</span></div></a>`}).join(''):'<div class="home-empty"><span>✧</span><b>ยังไม่มีกระทู้</b><p class="mut">เริ่มต้นบทสนทนาแรกของชุมชนได้เลย</p><a class="btn sm" href="#threads">ไปที่ฟอรั่ม</a></div>';
  const forumHtml=cats.map(cat=>{
-  const sub=forums.filter(f=>f.catId===cat.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));if(!sub.length)return '';
-  return `<section class="cat-block"><div class="cat-header"><span class="home-cat-mark">✦</span>${esc(cat.name)}</div>`+sub.map(f=>{
-   const ft=threads.filter(t=>t.forumId===f.id);
-   const subList=forums.filter(sf=>sf.parentId===f.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
-   const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}');background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}"`:'';
-   const lastTh=ft.sort((a,b)=>b.createdAt-a.createdAt)[0];
-   const lastUser=lastTh?users.find(x=>x.id===lastTh.authorId):null;
-   return `<div class="forum-pro-card">
-    <div class="forum-pro-banner" ${bgStyle}><div class="overlay"></div><span class="home-forum-star">✦</span></div>
-    <div class="forum-pro-main"><h3 style="margin:0"><a href="#forum/${f.id}">${esc(f.name)}</a></h3><div class="mut" style="font-size:.85rem">${esc(f.desc||'')}</div>
-    ${subList.length?`<div class="forum-sub-links">${subList.map(sf=>`<a class="forum-sub-badge" href="#forum/${sf.id}">· ${esc(sf.name)}</a>`).join('')}`:''}</div>
-    <div class="forum-pro-stats"><div><b>${ft.length}</b>หัวข้อ</div><div><b>${posts.filter(p=>ft.some(t=>t.id===p.threadId)).length}</b>ตอบกลับ</div></div>
-    <div class="forum-pro-last">${lastTh?`<div class="forum-pro-last-thread">${avatar(lastUser,34)}<div style="min-width:0"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b><a href="#thread/${lastTh.id}">${esc(lastTh.title)}</a></b></div><div class="mut" style="font-size:.76rem">${fmt(lastTh.createdAt)} · เปิดโดย ${esc(lastUser?.username||'-')}</div></div></div>`:'<span class="mut">ยังไม่มีกระทู้</span>'}</div>
-   </div>`;
-  }).join('')+`</section>`;
+  const roots=forums.filter(f=>f.catId===cat.id&&(!f.parentId||!forums.some(parent=>parent.id===f.parentId))).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+  if(!roots.length)return '';
+  return `<section class="cat-block"><div class="cat-header"><span class="home-cat-mark">✦</span>${esc(cat.name)}</div>`+
+   roots.map(f=>forumListingCard(f,{forums,threads,posts,users})).join('')+`</section>`;
  }).join('');
  const memberCount=users.length,forumCount=forums.length,threadCount=threads.length;
  app(`<section class="home-hero">
@@ -3300,23 +3337,39 @@ function pageThreads(){
  app(`<div class="row between"><h2>💬 กระทู้ทั้งหมด</h2>${isAdmin()?'<a class="btn" href="#admin/newthread">+ สร้างกระทู้</a>':''}</div>${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้</div>'}`);
 }
 function pageForum(fid){
- const f=DB.get('forums').find(x=>x.id===fid);if(!f)return app('<div class="card">ไม่พบซับฟอรั่มนี้</div>');
- const u=me(),th=DB.get('threads').filter(t=>t.forumId===fid).sort(sortThreads);
- const bgStyle=f.banner&&/^https?:\/\//.test(f.banner)?`style="background-image:url('${esc(f.banner)}');background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}"`:'';
+ const forums=DB.get('forums'),f=forums.find(x=>x.id===fid);if(!f)return app('<div class="card">ไม่พบฟอรั่มนี้</div>');
+ const users=DB.get('users'),threads=DB.get('threads'),posts=DB.get('posts'),u=me();
+ const th=threads.filter(t=>t.forumId===fid).sort(sortThreads);
+ const children=forums.filter(x=>x.parentId===fid).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const parent=forums.find(x=>x.id===f.parentId);
+ const bgStyle=f.banner&&/^https?:\/\//i.test(f.banner)?`style="background-image:url('${esc(f.banner)}');background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}"`:'';
  const createAction=f.id===CHARACTER_BIO_FORUM_ID
   ?(u?`<a class="btn" href="#newbio">＋ เขียนกระทู้ประวัติตัวละคร</a>`:`<a class="btn" href="#login">เข้าสู่ระบบเพื่อเขียนประวัติ</a>`)
-  :(isAdmin()?`<a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในซับฟอรั่มนี้</a>`:'');
- app(`<a href="#home">← หน้าแรก</a><br><br>
- <div class="forum-card-banner" style="margin-bottom:20px">
-  <div class="forum-card-bg" ${bgStyle}></div>
-  <div class="forum-card-overlay"></div>
-  <div class="forum-card-content">
-   <div><h2 style="margin:0 0 6px;color:var(--txt)">📂 ${esc(f.name)}</h2><div class="mut">${esc(f.desc||'')}</div></div>
-   ${createAction}
+  :(isAdmin()?`<a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในฟอรั่มนี้</a>`:'');
+ const breadcrumb=parent
+  ?`<a href="#home">หน้าแรก</a><span aria-hidden="true">/</span><a href="#forum/${parent.id}">${esc(parent.name)}</a><span aria-hidden="true">/</span><span>${esc(f.name)}</span>`
+  :`<a href="#home">← หน้าแรก</a><span aria-hidden="true">/</span><span>${esc(f.name)}</span>`;
+ const childHtml=children.length?`<section class="forum-children-section">
+   <div class="forum-children-heading"><div><span class="home-kicker">EXPLORE THIS FORUM</span><h3>ซับฟอรั่ม <span>${children.length}</span></h3><p class="mut">เลือกพื้นที่ย่อยเพื่อดูรายละเอียด ภาพปก และกระทู้ของแต่ละฟอรั่ม</p></div>${isAdmin()?'<a class="btn sm ghost" href="#admin/forums">จัดการฟอรั่ม</a>':''}</div>
+   <div class="forum-children-list home-forums">${children.map(child=>forumListingCard(child,{forums,threads,posts,users})).join('')}</div>
+  </section>`:'';
+ app(`<div class="forum-page-shell">
+  <div class="forum-page-breadcrumb">${breadcrumb}</div>
+  <div class="forum-card-banner">
+   <div class="forum-card-bg" ${bgStyle}></div>
+   <div class="forum-card-overlay"></div>
+   <div class="forum-card-content">
+    <div><span class="forum-page-eyebrow">${parent?'NESTED FORUM':'COMMUNITY FORUM'}</span><h2 style="margin:0 0 7px;color:var(--txt)">📂 ${esc(f.name)}</h2><div class="mut forum-page-description">${esc(f.desc||'')}</div>
+    <div class="forum-page-stats"><span><b>${th.length}</b> หัวข้อ</span><span><b>${posts.filter(p=>th.some(t=>t.id===p.threadId)).length}</b> ตอบกลับ</span><span><b>${children.length}</b> ซับฟอรั่ม</span></div></div>
+    ${createAction}
+   </div>
   </div>
- </div>
- ${f.id===CHARACTER_BIO_FORUM_ID?`<div class="card bio-forum-guide"><h3 style="margin-top:0">📖 วิธีลงทะเบียนประวัติตัวละคร</h3><ol><li>กด “เขียนกระทู้ประวัติตัวละคร” แล้วตั้งชื่อกระทู้ให้จำง่าย (ข้ามขั้นตอนนี้ก่อนได้)</li><li>เขียนประวัติยาวได้เต็มที่ จะตกแต่งด้วย HTML หรือเลือกโครงสำเร็จรูปก็ได้</li><li>หลังเผยแพร่แล้ว คัดลอก URL ไปใส่ในหน้าแก้ไขตัวละครเมื่อพร้อม ไม่จำเป็นต้องมีตั้งแต่วันสมัคร</li></ol><p class="mut" style="margin-bottom:0">ระบบตรวจว่ากระทู้อยู่ในคลังนี้และเป็นของบัญชีเดียวกับผู้สมัคร</p></div>`:''}
- ${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้ในซับฟอรั่มนี้ — เริ่มสร้างกระทู้แรกกันเลย!</div>'}`);
+  ${f.id===CHARACTER_BIO_FORUM_ID?`<div class="card bio-forum-guide"><h3 style="margin-top:0">📖 วิธีลงทะเบียนประวัติตัวละคร</h3><ol><li>กด “เขียนกระทู้ประวัติตัวละคร” แล้วตั้งชื่อกระทู้ให้จำง่าย (ข้ามขั้นตอนนี้ก่อนได้)</li><li>เขียนประวัติยาวได้เต็มที่ จะตกแต่งด้วย HTML หรือเลือกโครงสำเร็จรูปก็ได้</li><li>หลังเผยแพร่แล้ว คัดลอก URL ไปใส่ในหน้าแก้ไขตัวละครเมื่อพร้อม ไม่จำเป็นต้องมีตั้งแต่วันสมัคร</li></ol><p class="mut" style="margin-bottom:0">ระบบตรวจว่ากระทู้อยู่ในคลังนี้และเป็นของบัญชีเดียวกับผู้สมัคร</p></div>`:''}
+  ${childHtml}
+  <section class="forum-topic-list"><div class="forum-children-heading forum-topic-heading"><div><span class="home-kicker">LATEST TOPICS</span><h3>กระทู้ในฟอรั่ม</h3><p class="mut">กระทู้ที่อยู่ในพื้นที่นี้โดยตรง</p></div>${isAdmin()&&f.id!==CHARACTER_BIO_FORUM_ID?`<a class="btn sm" href="#admin/newthread/${f.id}">＋ สร้างกระทู้</a>`:''}</div>
+   ${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้ในฟอรั่มนี้ — เริ่มสร้างกระทู้แรกกันเลย!</div>'}
+  </section>
+ </div>`);
 }
 function pageNewThreadToForum(fid){
  const f=DB.get('forums').find(x=>x.id===fid);if(!f)return go('home');
