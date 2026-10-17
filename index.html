@@ -2703,7 +2703,7 @@ function characterBioReadableLength(content,mode){
   .replace(/\s+/g,' ').trim();
  return readable.length;
 }
-function doCreateCharacterBioThread(e){
+async function doCreateCharacterBioThread(e){
  e.preventDefault();const u=me(),f=e.target,E=f.elements;if(!u)return go('login');
  const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
  if(title.length<3)return toast('กรุณาตั้งชื่อกระทู้ให้ชัดเจน','bad');
