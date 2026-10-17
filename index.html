@@ -1502,6 +1502,27 @@ nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
 }
 </style>
 
+<style id="starlight-thread-pagination">
+.thread-pagination{display:flex;flex-direction:column;gap:10px;margin:14px 0 18px;padding:13px 15px;background:linear-gradient(135deg,#141417,#101012);border:1px solid #33333a;border-radius:12px;scroll-margin-top:85px}
+.thread-pagination-info{font-size:.8rem;color:#a8a8b2}
+.thread-pagination-info i{font-style:normal;color:#c5a46d;padding:0 3px}
+.thread-pagination-controls{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.thread-page-number,.thread-page-step{display:inline-flex;align-items:center;justify-content:center;min-width:35px;min-height:34px;padding:6px 10px;border:1px solid #38383f;border-radius:8px;background:#19191e;color:#dedee4;text-decoration:none;font-size:.83rem;transition:background .15s,border-color .15s,transform .15s}
+.thread-page-number:hover,.thread-page-step:hover{background:#2a2928;border-color:#9a815b;transform:translateY(-1px)}
+.thread-page-number.active{background:#c5a46d;color:#111;border-color:#c5a46d;font-weight:700}
+.thread-page-step.disabled{opacity:.4;pointer-events:none}
+.thread-page-ellipsis{padding:0 2px;color:#8c8c95}
+.thread-replies-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;scroll-margin-top:86px}
+.thread-replies-heading h3{margin:0}
+.thread-replies-heading>span{font-size:.78rem;color:#a8a8b2;white-space:nowrap}
+.post-number-link{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:3px 7px;border:1px solid #514632;border-radius:7px;background:#1a1915;color:#d7bd8e;font:600 .76rem/1.3 'IBM Plex Sans Thai',sans-serif;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,box-shadow .15s}
+.post-number-link:hover{background:#2a251b;border-color:#c5a46d;box-shadow:0 0 0 2px #c5a46d18}
+.post-number-link span{font-size:.7rem;opacity:.8}
+.post-permalink-target{outline:2px solid #c5a46d!important;outline-offset:2px;animation:post-link-flash 1.5s ease-out 1;scroll-margin-top:86px}
+@keyframes post-link-flash{0%,35%{box-shadow:0 0 0 5px #c5a46d35,0 0 30px #c5a46d25}100%{box-shadow:0 0 0 0 transparent}}
+@media(max-width:600px){.thread-pagination{padding:11px}.thread-pagination-controls{gap:5px}.thread-page-number,.thread-page-step{min-width:32px;min-height:32px;padding:5px 8px;font-size:.78rem}.thread-replies-heading{align-items:flex-start}.thread-replies-heading>span{padding-top:4px}}
+</style>
+
 </head>
 <body>
 <nav id="nav"></nav>
@@ -3549,22 +3570,59 @@ function seedData(adminId){
 }
 
 /* ================= THREAD VIEW ================= */
-function pageThread(id){
+async function copyPostLink(threadId,postId){
+ const url=location.origin+location.pathname+location.search+'#thread/'+threadId+'/post-'+encodeURIComponent(postId);
+ try{
+  if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(url);toast('คัดลอกลิงก์โพสต์แล้ว');return}
+ }catch(e){}
+ try{
+  const input=document.createElement('textarea');input.value=url;input.setAttribute('readonly','');input.style.position='fixed';input.style.opacity='0';document.body.appendChild(input);input.select();
+  const ok=document.execCommand('copy');input.remove();
+  if(ok){toast('คัดลอกลิงก์โพสต์แล้ว');return}
+ }catch(e){}
+ prompt('คัดลอกลิงก์โพสต์นี้',url);
+}
+function pageThread(id,view=''){
  const t=DB.get('threads').find(x=>x.id===id);if(!t)return app('<div class="card">ไม่พบกระทู้</div>');
  const u=me(),chars=DB.get('characters'),users=DB.get('users'),ty=TYPES[t.type]||TYPES.main,closed=isClosed(t),train=t.train||[],ag=agencyOf(t.agencyId),fo=DB.get('forums').find(f=>f.id===t.forumId);
  const all=DB.get('posts'),posts=all.filter(p=>p.threadId===id).sort((a,b)=>a.createdAt-b.createdAt);
+ const postsPerPage=15,totalPages=Math.max(1,Math.ceil(posts.length/postsPerPage));
+ let requestedPage=1,targetPostId='';
+ if(/^page-\d+$/.test(String(view||'')))requestedPage=Number(String(view).slice(5))||1;
+ if(String(view||'').startsWith('post-')){
+  try{targetPostId=decodeURIComponent(String(view).slice(5))}catch(e){targetPostId=String(view).slice(5)}
+  if(targetPostId!=='opening'){
+   const targetIndex=posts.findIndex(p=>p.id===targetPostId);
+   requestedPage=targetIndex>=0?Math.floor(targetIndex/postsPerPage)+1:1;
+  }
+ }
+ const page=Math.max(1,Math.min(totalPages,requestedPage));
+ const startIndex=(page-1)*postsPerPage,pagePosts=posts.slice(startIndex,startIndex+postsPerPage);
  const cnt=cid=>all.filter(p=>p.charId===cid).length;
   const opener=threadStarterUser(t);
   const openingChar=(t.authorCharId&&chars.find(c=>c.id===t.authorCharId&&c.ownerId===t.authorId&&c.status==='approved'))||chars.find(c=>c.ownerId===t.authorId&&c.status==='approved')||null;
   const openingSide=threadStarterSide(t,opener,openingChar,cnt);
- const postHtml=p=>{
+ const postHtml=(p,globalIndex)=>{
   const c=chars.find(x=>x.id===p.charId),o=users.find(x=>x.id===p.userId),st=statOf(p.train),canEdit=u&&(u.id===p.userId||isAdmin());
+  const postNumber=globalIndex+2,isTarget=targetPostId===p.id;
   const info=p.gm?'📢 ประกาศจากผู้ดำเนินเรื่อง':`ผู้เล่น: <a href="#profile/${o?.id}"><b>${esc(o?.username||'-')}</b></a>${st?` · 🏋️ ฝึก${st.n} +${p.gain||0}`:''}${p.wonGain?` · 💰 +${wonFmt(p.wonGain)}`:''}`;
-  const tools=`${fmt(p.createdAt)}${p.editedAt?' (แก้ไขแล้ว)':''}${canEdit?` · <a href="#editpost/${p.id}">แก้ไข</a>`:''}${isAdmin()?` · <a onclick="deletePost('${p.id}')">ลบ</a>`:''}`;
-  return `<div class="card post ${p.gm?'gm':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
+  const tools=`<button type="button" class="post-number-link" title="คัดลอกลิงก์โพสต์ #${postNumber}" aria-label="คัดลอกลิงก์โพสต์ #${postNumber}" onclick="copyPostLink('${t.id}','${p.id}')">#${postNumber} <span aria-hidden="true">↗</span></button> · ${fmt(p.createdAt)}${p.editedAt?' (แก้ไขแล้ว)':''}${canEdit?` · <a href="#editpost/${p.id}">แก้ไข</a>`:''}${isAdmin()?` · <a onclick="deletePost('${p.id}')">ลบ</a>`:''}`;
+  return `<div id="post-${esc(p.id)}" class="card post ${p.gm?'gm':''}${isTarget?' post-permalink-target':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
    <div class="post-content-column" style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
    ${p.subject?`<h3 class="post-subject">${esc(p.subject)}</h3>`:''}
    ${renderBody(p.content,p.mode,t.css)}</div></div></div>`;
+ };
+ const paginationHtml=()=>{
+  if(totalPages<=1)return '';
+  const first=startIndex+1,last=Math.min(posts.length,startIndex+pagePosts.length);
+  const wanted=new Set([1,totalPages,page-2,page-1,page,page+1,page+2].filter(n=>n>=1&&n<=totalPages));
+  const nums=[...wanted].sort((a,b)=>a-b);let lastNum=0,links='';
+  nums.forEach(n=>{
+   if(lastNum&&n-lastNum>1)links+='<span class="thread-page-ellipsis">…</span>';
+   links+=`<a class="thread-page-number${n===page?' active':''}" href="#thread/${esc(id)}${n===1?'':'/page-'+n}" ${n===page?'aria-current="page"':''}>${n}</a>`;
+   lastNum=n;
+  });
+  return `<nav class="thread-pagination" aria-label="แบ่งหน้าโพสต์"><span class="thread-pagination-info">หน้า ${page} / ${totalPages} <i>·</i> โพสต์ตอบกลับ ${first}–${last} จาก ${posts.length}</span><div class="thread-pagination-controls">${page>1?`<a class="thread-page-step" href="#thread/${esc(id)}${page===2?'':'/page-'+(page-1)}">← ก่อนหน้า</a>`:'<span class="thread-page-step disabled">← ก่อนหน้า</span>'}${links}${page<totalPages?`<a class="thread-page-step" href="#thread/${esc(id)}/page-${page+1}">ถัดไป →</a>`:'<span class="thread-page-step disabled">ถัดไป →</span>'}</div></nav>`;
  };
  let form='';
  if(!u)form='<div class="card mut">กรุณา <a href="#login">เข้าสู่ระบบ</a> เพื่อร่วมโรลเพลย์</div>';
@@ -3592,10 +3650,10 @@ function pageThread(id){
   }
  }
    app(`<div class="thread-page-toolbar"><div>${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}</div>${!closed&&!t.characterBio&&u&&(t.type!=='notice'||isAdmin())?'<button type="button" class="btn thread-reply-jump" onclick="document.getElementById(\'reply-composer\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">✍️ ตอบกระทู้</button>':''}</div>
-  <div class="card post thread-opening-post"><div class="post-layout">
+  <div id="post-opening" class="card post thread-opening-post${targetPostId==='opening'?' post-permalink-target':''}"><div class="post-layout">
    ${openingSide}
    <div class="post-content-column">
-    <div class="thread-opening-meta"><span class="mut">${esc(threadAuthorName(t))} · ${fmt(t.createdAt)}</span><span class="mut">#1 · กระทู้ต้นเรื่อง</span></div>
+    <div class="thread-opening-meta"><span class="mut">${esc(threadAuthorName(t))} · ${fmt(t.createdAt)}</span><span class="mut"><button type="button" class="post-number-link" title="คัดลอกลิงก์โพสต์ #1" aria-label="คัดลอกลิงก์โพสต์ #1" onclick="copyPostLink('${t.id}','opening')">#1 <span aria-hidden="true">↗</span></button> · กระทู้ต้นเรื่อง</span></div>
     <div class="row" style="gap:7px;margin-bottom:8px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${closed?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}${ag?agencyBadge(ag.id):''}</div>
     <h2 class="thread-opening-title">${esc(t.title)}</h2>
     ${t.type!=='notice'&&!t.characterBio?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
@@ -3605,9 +3663,17 @@ function pageThread(id){
     ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
    </div>
   </div></div>
-  <h3>💬 โรลเพลย์ (${posts.length})</h3>
-  ${posts.map(postHtml).join('')||'<div class="card mut">ยังไม่มีโพสต์ — เป็นคนแรกที่เริ่มเรื่องสิ!</div>'}
+  <div id="thread-replies-heading" class="thread-replies-heading"><h3>💬 โรลเพลย์ (${posts.length})</h3>${totalPages>1?`<span>หน้า ${page} / ${totalPages}</span>`:''}</div>
+  ${paginationHtml()}
+  ${pagePosts.map((p,i)=>postHtml(p,startIndex+i)).join('')||'<div class="card mut">ยังไม่มีโพสต์ — เป็นคนแรกที่เริ่มเรื่องสิ!</div>'}
+  ${paginationHtml()}
   ${form}`);
+ if(targetPostId||page>1){
+  requestAnimationFrame(()=>{
+   const target=document.getElementById(targetPostId==='opening'?'post-opening':targetPostId?'post-'+targetPostId:'thread-replies-heading');
+   if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+ }
 }
 async function doReply(e,tid){
  e.preventDefault();const f=e.target,E=f.elements,u=me();if(!u)return;
