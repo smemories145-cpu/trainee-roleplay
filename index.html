@@ -3156,7 +3156,7 @@ function threadItem(t){
   <div class="thread-list-main">
    <div class="row" style="gap:7px;margin-bottom:6px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${fo?`<span class="badge">${esc(fo.name)}</span>`:''}</div>
    <h3 class="thread-list-title">${esc(t.title)}</h3>
-   <div class="mut thread-list-summary">${esc(threadListSummary(t))}</div>
+   
    <div class="row thread-list-meta"><span>💬 ${replies.length} ตอบกลับ</span><span>อัปเดต ${fmt(last?.createdAt||t.createdAt)} · ${esc(last?.userId?(lastUser?.username||'-'):threadAuthorName(t))}</span></div>
   </div>
   <div class="thread-list-arrow">↗</div>
