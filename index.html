@@ -1150,8 +1150,14 @@ main:has(.thread-opening-post) {
 <style id="starlightProfileSidebarCenterFix">
 /* STARLIGHT character profile: center the portrait labels on the actual image,
    not only on the post-side cards. */
+.profile-main-layout > div:first-child > .side {
+  position: relative !important;
+  width: 100%;
+}
 .profile-main-layout > div:first-child > .side > .side-por {
-  position: relative;
+  position: relative !important;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
 }
 .profile-main-layout > div:first-child > .side > .side-por > .side-name {
@@ -1160,8 +1166,8 @@ main:has(.thread-opening-post) {
   right: 0 !important;
   bottom: auto !important;
   left: 0 !important;
-  width: 100% !important;
-  max-width: 100% !important;
+  width: auto !important;
+  max-width: none !important;
   margin: 0 !important;
   padding: 14px 8px 30px !important;
   display: flex !important;
