@@ -210,7 +210,8 @@ begin
       if v_new ->> 'id' is distinct from v_profile.app_user_id then
         raise exception 'Cannot modify another account';
       end if;
-      v_new := jsonb_set(v_new, '{role}', to_jsonb(v_profile.role), true);
+      v_new := jsonb_set(v_new, '{role}', to_jsonb(case when v_profile.role = 'admin' or cardinality(coalesce(v_profile.permissions, '{}'::text[])) > 0 then 'admin' else 'player' end), true);
+      v_new := jsonb_set(v_new, '{permissions}', to_jsonb(coalesce(v_profile.permissions, '{}'::text[])), true);
       v_new := jsonb_set(v_new, '{username}', to_jsonb(v_profile.username), true);
     elsif p_collection = 'characters' then
       if v_new ->> 'ownerId' is distinct from v_profile.app_user_id then
@@ -323,6 +324,10 @@ begin
   where app_user_id = p_app_user_id
   for update;
   if not found then raise exception 'Target account does not exist'; end if;
+
+  if v_target.role = 'admin' then
+    raise exception 'A full administrator account cannot be changed from the delegated-permissions screen';
+  end if;
 
   update public.site_profiles
   set permissions = (select coalesce(array_agg(distinct p), '{}'::text[]) from unnest(v_permissions) p)
