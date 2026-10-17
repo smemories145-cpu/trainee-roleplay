@@ -1702,14 +1702,24 @@ async function cloudLoadForCurrentSession({allowImport=true}={}){
  }
  return {profile,rows};
 }
+function cloudHasActiveEditingWork(){
+ const appRoot=document.getElementById('app'),active=document.activeElement;
+ const route=String(ROUTE||'').split('/')[0];
+ // Do not replace an edit form while someone is actively editing it.
+ const editRoutes=new Set(['editpost','editthread','editagency','editgroup','editchar','editbio','newthreadtoforum','newbio','newchar','register','settings']);
+ if(editRoutes.has(route))return true;
+ // Toolbars/buttons can take focus away from the field; protect the entire editor.
+ if(active&&active.closest&&active.closest('#app .ed, #app .topic-composer, #app .reply-composer, #app .char-edit-form, #app .char-bio-editor, #app [data-preserve-on-cloud-refresh]'))return true;
+ if(active&&appRoot&&appRoot.contains(active)&&active.matches('input,textarea,select,[contenteditable="true"]'))return true;
+ return false;
+}
 async function cloudRefresh(renderAfter=true){
  if(!supaClient||!cloudReady||cloudApplying)return;
  try{
   const rows=await cloudFetchRows();
   if(!rows.length)return;
   cloudApplyRows(rows,true);
-  const active=document.activeElement;
-  if(renderAfter&&(!active||!active.matches('input,textarea,select,[contenteditable="true"]')))render();
+  if(renderAfter&&!cloudHasActiveEditingWork())render();
  }catch(e){console.warn('Cloud refresh failed',e)}
 }
 function cloudSubscribe(){
