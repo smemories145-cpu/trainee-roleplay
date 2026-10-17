@@ -1249,6 +1249,17 @@ textarea[name="homeHtml"],textarea[name="customCss"]{
 }
 </style>
 
+<style id="characterBioModeOptions">
+.char-bio-mode-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:13px 14px;border-bottom:1px solid var(--line);background:#100d17}
+.char-bio-mode-option{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--card);color:var(--txt);text-align:left;cursor:pointer}
+.char-bio-mode-option b{font-size:.82rem;color:#eee5f7}.char-bio-mode-option small{font-size:.7rem;line-height:1.6;color:var(--mut)}
+.char-bio-mode-option.active{border-color:#b998e2;background:linear-gradient(140deg,#c8a9f019,#8f75c718);box-shadow:inset 0 0 0 1px #c8a9f01f}.char-bio-mode-option.active b{color:#ddc4f6}
+.char-bio-mode-option[hidden],.char-bio-template-panel[hidden],.char-bio-custom-hint[hidden]{display:none!important}
+.char-bio-template-hint,.char-bio-custom-hint{padding:10px 14px;color:var(--mut);font-size:.74rem;line-height:1.7;background:#ffffff03;border-bottom:1px solid var(--line)}
+.char-bio-photo-control input{width:100%;min-width:0;margin:0;min-height:38px;font-size:.78rem}.char-bio-photo-control label span{font-size:.66rem;color:var(--mut)}
+.char-bio-foot{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:10px 14px}.char-bio-foot span:first-child{flex:1;min-width:0}.char-bio-foot button{flex-shrink:0}
+@media(max-width:600px){.char-bio-mode-choices{grid-template-columns:minmax(0,1fr);padding:10px}.char-bio-mode-option{padding:10px}.char-bio-photo-control{flex-basis:100%}.char-bio-foot span:first-child{max-width:100%}}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
@@ -1672,13 +1683,15 @@ function legacyHtml(s){
 }
 const toRich=(v,m)=>m==='rich'?(v||''):legacyHtml(v||'');
 function renderBody(content,mode,css){
- if(mode==='html')return codeFrame(content,css);
+ if(mode==='html')return codeFrame(content,css,true);
  return `<div class="rich">${sanitize(toRich(content,mode))}</div>`;
 }
-function codeFrame(html,css=''){
+function codeFrame(html,css='',isolated=false){
  const id='cf'+uid();
  let source=String(html||''),head='',body=source,htmlAttrs='',bodyAttrs='';
- const fullDoc=/<html[\s>]/i.test(source)||/<!doctype\s+html/i.test(source);
+ const hasFullDoc=/<html[\s>]/i.test(source)||/<!doctype\s+html/i.test(source);
+ const fullDoc=hasFullDoc||isolated;
+ if(isolated&&!hasFullDoc)source='<!doctype html><html lang="th"><head></head><body>'+source+'</body></html>';
  if(fullDoc){
   const hm=source.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
   const bm=source.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
@@ -1751,40 +1764,65 @@ document.addEventListener('keydown',e=>{if(e.key==='Tab'&&e.target.classList?.co
 let EDN=0,SEL=null;
 try{document.execCommand('defaultParagraphSeparator',false,'p')}catch(e){}
 function characterBioEditor(name,val='',o={}){
- const id='ed'+(++EDN),isPersonality=name==='personality';
+ const id='ed'+(++EDN),isPersonality=name==='personality',outputMode=o.outputMode==='html'?'html':'rich';
  const title=isPersonality?'นิสัย / บุคลิก':'ประวัติ / เรื่องราวของตัวละคร';
  const guide=isPersonality
   ? '<li>นิสัยเด่น 3–5 ข้อ และวิธีแสดงออก</li><li>สิ่งที่ชอบ / ไม่ชอบ และงานอดิเรก</li><li>จุดแข็ง จุดอ่อน หรือสิ่งที่ทำให้ตัวละครมีมิติ</li><li>วิธีพูด ท่าทางติดตัว หรือสิ่งที่คนอื่นจดจำได้</li>'
   : '<li>ภูมิหลัง ครอบครัว หรือสถานที่ที่เติบโตมา</li><li>เหตุการณ์สำคัญที่หล่อหลอมตัวละคร</li><li>เหตุผลที่เข้ามาเป็นเด็กฝึกหรือศิลปิน</li><li>เป้าหมาย ความฝัน และสิ่งที่กำลังพยายามทำให้สำเร็จ</li>';
- return `<div class="ed char-bio-editor" id="${id}" data-name="${name}" data-mode="charcode">
-  <div class="ed-head char-bio-head"><div><span class="ed-title">HTML WRITER</span><small>${title}</small></div><span class="ed-count">0 ตัวอักษร</span></div>
-  <div class="char-bio-toolbar"><div class="char-bio-template-control"><label>โครงสำเร็จรูป</label><select class="char-bio-template"><option value="lilac">Lavender · มินิมอลละมุน</option><option value="midnight">Midnight · เท่และดาร์ก</option><option value="editorial">Editorial · นิตยสาร</option><option value="rose">Rose · หรูและนุ่มนวล</option></select></div><button type="button" class="btn sm" onclick="applyCharacterBioTemplate(this)">＋ ใส่โครงนี้</button><button type="button" class="btn sm ghost" onclick="previewCharacterBio(this)">👁 พรีวิว</button></div>
-  <textarea class="code char-bio-code" spellcheck="false" autocapitalize="off" autocomplete="off" data-ph="${esc(o.ph||'วางหรือเขียนโค้ด HTML ของตัวละครตรงนี้...')}" placeholder="<!-- เลือกโครงสำเร็จรูปด้านบน หรือเริ่มเขียน HTML ได้เลย -->">${esc(val||'')}</textarea>
-  <div class="ed-foot char-bio-foot"><span>💡 ช่องนี้เขียนเป็น HTML โดยตรง · ใช้ Tab เพื่อย่อหน้าโค้ด · โค้ดจะถูกกรองก่อนบันทึก</span><span>HTML</span></div>
+ return `<div class="ed char-bio-editor" id="${id}" data-name="${name}" data-mode="charcode" data-output-mode="${outputMode}">
+  <div class="ed-head char-bio-head"><div><span class="ed-title">CHARACTER ARCHIVE STUDIO</span><small>${title}</small></div><span class="ed-count">0 ตัวอักษร</span></div>
+  <div class="char-bio-mode-choices" role="group" aria-label="วิธีสร้างประวัติ">
+   <button type="button" class="char-bio-mode-option ${outputMode==='rich'?'active':''}" data-bio-mode="rich" onclick="setCharacterBioMode(this,'rich')"><b>✦ ใช้โค้ดสำเร็จรูป</b><small>เลือกดีไซน์พร้อมใช้ แล้วแก้ข้อความและรูปได้</small></button>
+   <button type="button" class="char-bio-mode-option ${outputMode==='html'?'active':''}" data-bio-mode="html" onclick="setCharacterBioMode(this,'html')"><b>&lt;/&gt; ใช้โค้ดของฉันเอง</b><small>วาง HTML เต็ม พร้อม CSS และเลย์เอาต์ของตัวเอง</small></button>
+  </div>
+  <div class="char-bio-template-panel" ${outputMode==='html'?'hidden':''}>
+   <div class="char-bio-toolbar">
+    <div class="char-bio-template-control"><label>เลือกดีไซน์</label><select class="char-bio-template"><option value="lilac">Lavender · มินิมอลละมุน</option><option value="midnight">Midnight · เท่และดาร์ก</option><option value="editorial">Editorial · นิตยสาร</option><option value="rose">Rose · หรูและนุ่มนวล</option><option value="application">Trainee Application · ใบสมัครโทนงาช้าง</option></select></div>
+    <div class="char-bio-template-control char-bio-photo-control"><label>URL รูปประกอบ <span>(ไม่บังคับ)</span></label><input class="char-bio-image-url" type="url" placeholder="https://..."></div>
+    <button type="button" class="btn sm" onclick="applyCharacterBioTemplate(this)">＋ ใช้แบบนี้</button>
+   </div>
+   <div class="char-bio-template-hint">เลือกแบบแล้วกด “ใช้แบบนี้” จากนั้นแก้ข้อความและรายละเอียดในโค้ดด้านล่างได้ตามต้องการ</div>
+  </div>
+  <div class="char-bio-custom-hint" ${outputMode==='rich'?'hidden':''}>วาง HTML ฉบับเต็มได้ รวม &lt;head&gt; และ &lt;style&gt; เพื่อให้ระบบแสดงผลในกรอบแยกโดยไม่เอาธีมเว็บมาทับ</div>
+  <textarea class="code char-bio-code" spellcheck="false" autocapitalize="off" autocomplete="off" data-ph="${esc(o.ph||'วางหรือเขียนโค้ด HTML ของตัวละครตรงนี้...')}" placeholder="${outputMode==='html'?'<!doctype html>\\n<html>\\n<head><style>/* CSS ของคุณ */</style></head>\\n<body>...</body>\\n</html>':'<!-- เลือกโค้ดสำเร็จรูปด้านบน หรือแก้ HTML ที่มีอยู่ได้ -->'}">${esc(val||'')}</textarea>
+  <div class="ed-foot char-bio-foot"><span>💡 โหมดสำเร็จรูปใช้ HTML ที่ผ่านการกรอง · โหมดโค้ดของฉันแสดงผลใน iframe แยกเพื่อเก็บ CSS ของคุณ</span><span>${outputMode==='html'?'HTML + CSS':'TEMPLATE HTML'}</span><button type="button" class="btn sm ghost" onclick="previewCharacterBio(this)">👁 พรีวิว</button></div>
   <div class="preview char-bio-preview" hidden></div>
-  <details class="char-bio-guide"><summary>📖 ไกด์ไลน์ — ควรเขียนอะไรบ้าง?</summary><ul>${guide}</ul><p>ใช้ <code>&lt;h2&gt;</code> เป็นหัวข้อ, <code>&lt;p&gt;</code> เป็นย่อหน้า, <code>&lt;b&gt;</code> เน้นข้อความ และ <code>&lt;hr&gt;</code> คั่นส่วนต่าง ๆ ได้ เลือกโครงสำเร็จรูปเพื่อดูตัวอย่างก่อนแก้ไขก็ได้</p></details>
+  <details class="char-bio-guide"><summary>📖 ไกด์ไลน์ — ควรเขียนอะไรบ้าง?</summary><ul>${guide}</ul><p>ใช้ <code>&lt;h2&gt;</code> เป็นหัวข้อ, <code>&lt;p&gt;</code> เป็นย่อหน้า, <code>&lt;b&gt;</code> เน้นข้อความ และ <code>&lt;hr&gt;</code> คั่นส่วนต่าง ๆ ได้ ในโหมดโค้ดของฉันเองใส่ CSS ใน <code>&lt;style&gt;</code> ได้</p></details>
  </div>`;
 }
-function characterBioTemplate(style,name){
+function characterBioTemplate(style,name,imageUrl=''){
  const personality=name==='personality';
  const heading=personality?'PERSONALITY / CHARACTER TRAITS':'BACKGROUND / CHARACTER STORY';
  const intro=personality?'บอกให้คนอ่านเข้าใจนิสัยและตัวตนของเขา':'เล่าที่มา เหตุการณ์สำคัญ และเป้าหมายในชีวิต';
  const sections=personality
   ? [['นิสัยโดยรวม','เขียนนิสัยและวิธีแสดงออกของตัวละครตรงนี้'],['สิ่งที่ชอบ / ไม่ชอบ','ระบุสิ่งที่ทำให้ตัวละครมีชีวิตประจำวัน'],['จุดแข็งและจุดอ่อน','ใส่ข้อดี ข้อเสีย หรือความขัดแย้งในใจ']]
   : [['จุดเริ่มต้น','เล่าครอบครัว สภาพแวดล้อม หรือวัยเด็ก'],['เหตุการณ์สำคัญ','เหตุการณ์ที่เปลี่ยนความคิดหรือชีวิตของตัวละคร'],['เป้าหมายในปัจจุบัน','เหตุผลที่มาเป็นเด็กฝึกและสิ่งที่อยากไปให้ถึง']];
+  const photoUrl=/^https?:\/\//i.test(String(imageUrl||'').trim())?esc(String(imageUrl).trim()):'';
+  const photo=photoUrl?'<img src="'+photoUrl+'" alt="Character portrait" style="display:block;width:100%;max-width:180px;aspect-ratio:3/4;object-fit:cover;border:1px solid #d4c8b5;border-radius:5px">':'<div style="width:100%;max-width:180px;min-height:155px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#e9e1d4;border:1px dashed #b9aa93;border-radius:5px;color:#82745f;padding:14px;text-align:center"><b style="font-size:26px;font-weight:400">＋</b><span style="font-size:10px;letter-spacing:1px">PORTRAIT / PHOTO</span><small style="font-size:10px">เพิ่ม URL รูปด้านบน</small></div>';
+  if(style==='application')return '<div style="width:100%;max-width:980px;margin:0 auto;padding:clamp(18px,4vw,40px);box-sizing:border-box;background:#f2ede3;color:#38322a;border:1px solid #d6cbb8;box-shadow:0 8px 28px #241b111c;font-family:Georgia,serif"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #cfc2ac;padding-bottom:14px;margin-bottom:20px"><div><div style="font:700 9px Prompt,sans-serif;letter-spacing:2px;color:#87775e">STARLIGHT ACADEMY</div><div style="font:10px Prompt,sans-serif;letter-spacing:1.4px;color:#9d8c72;margin-top:4px">ARTIST DEVELOPMENT DIVISION</div></div><div style="font:9px Prompt,sans-serif;letter-spacing:1.3px;color:#8b7a62;text-align:right">CONFIDENTIAL<br>CHARACTER RECORD</div></div><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(115px,180px);gap:clamp(14px,3vw,26px);align-items:start"><div><div style="font:10px Prompt,sans-serif;letter-spacing:2px;color:#9a815a;margin-bottom:8px">TRAINEE APPLICATION / FILE 001</div><h2 style="font-size:clamp(24px,4vw,38px);font-weight:400;line-height:1.15;margin:0 0 10px;color:#30291f">'+heading+'</h2><p style="font:12px/1.85 Prompt,sans-serif;color:#746956;margin:0">'+intro+'</p></div><div>'+photo+'</div></div><div style="margin:24px 0 18px;padding:11px 0;border-top:1px solid #cfc2ac;border-bottom:1px solid #cfc2ac;font:10px Prompt,sans-serif;letter-spacing:1.4px;color:#8b785d">SECTION A — '+heading+'</div>'+sections.map((x,i)=>'<div style="display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;padding:14px 0;border-bottom:1px solid #ded5c7"><div style="font:11px Prompt,sans-serif;color:#a28a60;letter-spacing:1px">0'+(i+1)+'</div><div><h3 style="font:600 14px Prompt,sans-serif;color:#44392a;margin:0 0 7px">'+x[0]+'</h3><p style="font:12px/1.95 Prompt,sans-serif;color:#5f5649;margin:0">'+x[1]+'</p></div></div>').join('')+'<div style="margin-top:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px"><div><div style="font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#9a896f">APPLICANT / CHARACTER</div><div style="height:27px;border-bottom:1px solid #bdb09a"></div></div><div><div style="font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#9a896f">RECORD DATE</div><div style="height:27px;border-bottom:1px solid #bdb09a"></div></div></div><div style="margin-top:20px;text-align:center;font:9px Prompt,sans-serif;letter-spacing:2px;color:#a39681">STARLIGHT ACADEMY · INTERNAL CHARACTER ARCHIVE</div></div>';
  if(style==='midnight')return `<div style="padding:22px;background:linear-gradient(145deg,#12101c,#292039);border:1px solid #5c4778;border-radius:14px;color:#f4eff9"><p style="letter-spacing:4px;color:#c5a8ed;font-size:11px;margin:0 0 8px">✦ STARLIGHT FILE</p><h2 style="margin:0 0 10px;color:#f4eff9;font-size:24px">${heading}</h2><p style="color:#b9adc9;font-size:13px">${intro}</p><hr style="border:0;border-top:1px solid #594765;margin:18px 0">${sections.map((x,i)=>`<h3 style="font-size:14px;color:#d9baff;margin:16px 0 5px">${String(i+1).padStart(2,'0')} / ${x[0]}</h3><p style="color:#e3dbea;line-height:1.9;margin:0">${x[1]}</p>`).join('')}</div>`;
  if(style==='editorial')return `<div style="padding:24px 22px;border:1px solid #c9becd;border-radius:4px;background:#f8f4f7;color:#31283a"><p style="font-size:10px;letter-spacing:3px;color:#887495;margin:0 0 14px">THE CHARACTER JOURNAL · VOL. 01</p><h2 style="font-family:Georgia,serif;font-weight:400;font-size:28px;line-height:1.2;margin:0;color:#34273e">${heading}</h2><p style="font-size:13px;line-height:1.8;color:#796b80;margin:9px 0 22px">${intro}</p>${sections.map((x,i)=>`<div style="display:flex;gap:13px;padding:14px 0;border-top:1px solid #ded4e2"><b style="font-size:12px;color:#9d82ad">0${i+1}</b><div><h3 style="margin:0 0 5px;font-size:14px;color:#45324f">${x[0]}</h3><p style="margin:0;font-size:13px;line-height:1.8;color:#5d5263">${x[1]}</p></div></div>`).join('')}</div>`;
  if(style==='rose')return `<div style="padding:22px;border-radius:18px;background:#fff7fb;border:1px solid #efd9e8;color:#4d3748"><div style="text-align:center;margin:0 auto 17px"><div style="font-size:18px;color:#b278a0">✧ ───────── ✧</div><p style="font-size:10px;letter-spacing:3px;color:#b278a0;margin:7px 0">${heading}</p><h2 style="font-size:22px;color:#704f69;margin:0">${personality?'A Little About Me':'Once Upon a Time'}</h2><p style="font-size:12px;color:#9c7a91;margin:7px 0">${intro}</p></div>${sections.map(x=>`<div style="padding:13px 15px;margin:10px 0;border-radius:10px;background:#fff;border:1px solid #f0dfeb"><h3 style="font-size:14px;color:#97698a;margin:0 0 6px">♡ ${x[0]}</h3><p style="font-size:13px;line-height:1.9;color:#624d5d;margin:0">${x[1]}</p></div>`).join('')}</div>`;
  return `<div style="padding:22px;border-left:4px solid #998ba5;border-radius:0 12px 12px 0;background:#211c2c;color:#f1eaf8"><p style="margin:0 0 8px;font-size:10px;letter-spacing:3px;color:#bba5d4">ST★RLIGHT / PROFILE NOTE</p><h2 style="font-size:22px;color:#e4d0f6;margin:0 0 8px">${heading}</h2><p style="font-size:13px;color:#c4b7d0;line-height:1.8;margin:0 0 16px">${intro}</p>${sections.map((x,i)=>`<h3 style="font-size:14px;color:#d9c1f0;margin:16px 0 5px">✦ ${x[0]}</h3><p style="font-size:13px;color:#eee5f5;line-height:1.9;margin:0">${x[1]}</p>${i<sections.length-1?'<hr style="border:0;border-top:1px solid #393044;margin:13px 0">':''}`).join('')}</div>`;
 }
+function setCharacterBioMode(button,mode){
+ const ed=button?.closest('.char-bio-editor');if(!ed)return;
+ const area=ed.querySelector('.char-bio-code');mode=mode==='html'?'html':'rich';ed.dataset.outputMode=mode;
+ ed.querySelectorAll('[data-bio-mode]').forEach(b=>b.classList.toggle('active',b.dataset.bioMode===mode));
+ const panel=ed.querySelector('.char-bio-template-panel'),hint=ed.querySelector('.char-bio-custom-hint'),label=ed.querySelector('.char-bio-foot span:nth-child(2)');
+ if(panel)panel.hidden=mode==='html';if(hint)hint.hidden=mode!=='html';if(label)label.textContent=mode==='html'?'HTML + CSS':'TEMPLATE HTML';
+ if(area)area.placeholder=mode==='html'?'<!doctype html>\\n<html>\\n<head><style>/* CSS ของคุณ */</style></head>\\n<body>...</body>\\n</html>':'<!-- เลือกโค้ดสำเร็จรูป หรือแก้ HTML ที่มีอยู่ -->';
+ const box=ed.querySelector('.char-bio-preview');if(box)box.hidden=true;
+}
 function applyCharacterBioTemplate(button){
  const ed=button?.closest('.char-bio-editor'),area=ed?.querySelector('.char-bio-code'),pick=ed?.querySelector('.char-bio-template');
  if(!ed||!area||!pick)return;
  if(area.value.trim()&&!confirm('ใส่โครงสำเร็จรูปแล้วแทนที่โค้ดเดิมในช่องนี้หรือไม่?'))return;
- area.value=characterBioTemplate(pick.value,ed.dataset.name);
- area.dispatchEvent(new Event('input',{bubbles:true}));
- edCount(ed);
- toast('ใส่โครงสำเร็จรูปแล้ว — แก้ข้อความตัวอย่างให้เป็นข้อมูลตัวละครของคุณได้เลย');
+ const imageUrl=ed.querySelector('.char-bio-image-url')?.value||'';
+ setCharacterBioMode(button,'rich');
+ area.value=characterBioTemplate(pick.value,ed.dataset.name,imageUrl);
+ area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);
+ toast('ใส่โครงสำเร็จรูปแล้ว — แก้ข้อความ รูป และรายละเอียดได้ตามต้องการ');
 }
 function cleanCharacterBio(raw){
  const value=String(raw??'').trim();
@@ -1795,8 +1833,10 @@ function cleanCharacterBio(raw){
 function previewCharacterBio(button){
  const ed=button?.closest('.char-bio-editor'),area=ed?.querySelector('.char-bio-code'),box=ed?.querySelector('.char-bio-preview');
  if(!ed||!area||!box)return;
- try{const html=cleanCharacterBio(area.value);box.hidden=false;box.innerHTML='<div class="mut" style="margin-bottom:10px">👁 พรีวิวตัวอย่าง · ยังไม่ได้บันทึก</div>'+(html?'<div class="rich">'+html+'</div>':'<span class="mut">ยังไม่มีโค้ดให้แสดงตัวอย่าง</span>')}
- catch(err){box.hidden=false;box.textContent='พรีวิวไม่สำเร็จ: '+(err?.message||String(err))}
+ try{box.hidden=false;const note='<div class="mut" style="margin-bottom:10px">👁 พรีวิวตัวอย่าง · ยังไม่ได้บันทึก</div>';
+  if(ed.dataset.outputMode==='html'){const code=area.value.trim();box.innerHTML=note+(code?codeFrame(code,'',true):'<span class="mut">ยังไม่มีโค้ดให้แสดงตัวอย่าง</span>')}
+  else{const html=cleanCharacterBio(area.value);box.innerHTML=note+(html?'<div class="rich">'+html+'</div>':'<span class="mut">ยังไม่มีโค้ดให้แสดงตัวอย่าง</span>')}
+ }catch(err){box.hidden=false;box.textContent='พรีวิวไม่สำเร็จ: '+(err?.message||String(err))}
 }
 function characterProfileTemplate(style,c){
  const name=esc(c?.stageName||c?.name||'CHARACTER NAME');
@@ -2164,7 +2204,7 @@ function edCount(ed){
 function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
  const code=ed.querySelector('.char-bio-code');
- if(code){const clean=cleanCharacterBio(code.value),meaningful=textLen(clean,'rich')>0||/<(img|iframe|hr|table|div|h[1-6]|ul|ol|li|p)\b/i.test(clean);return{mode:'rich',content:meaningful?clean:''}}
+ if(code){if(ed.dataset.outputMode==='html')return{mode:'html',content:String(code.value||'').trim()};const clean=cleanCharacterBio(code.value),meaningful=textLen(clean,'rich')>0||/<(img|iframe|hr|table|div|h[1-6]|ul|ol|li|p)\b/i.test(clean);return{mode:'rich',content:meaningful?clean:''}}
  const area=ed.querySelector('.ed-area');
  if(!area)return{mode:'rich',content:''};
  let raw='';
