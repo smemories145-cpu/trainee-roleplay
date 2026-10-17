@@ -1898,6 +1898,107 @@ function applyCharacterBioTemplate(button){
  area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);
  toast('ใส่โครงสำเร็จรูปแล้ว — แก้ข้อความ รูป และรายละเอียดได้ตามต้องการ');
 }
+
+function onCharacterStudioImageChange(input){
+ const ed=input?.closest('.char-bio-editor'),key=input?.dataset.studioImageFile,file=input?.files?.[0];
+ if(!ed||!key||!file)return;
+ if(!file.type.startsWith('image/')){toast('กรุณาเลือกไฟล์รูปภาพ');input.value='';return}
+ if(file.size>12*1024*1024){toast('ไฟล์ใหญ่เกินไป กรุณาเลือกรูปไม่เกิน 12 MB');input.value='';return}
+ const reader=new FileReader();
+ reader.onload=()=>{
+  const img=new Image();
+  img.onload=()=>{
+   const draw=(limit,quality)=>{
+    const ratio=Math.min(1,limit/Math.max(img.naturalWidth,img.naturalHeight));
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#f2ede3';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    return canvas.toDataURL('image/jpeg',quality);
+   };
+   let data=draw(1200,.78);if(data.length>700000)data=draw(900,.66);
+   const hidden=ed.querySelector('[data-studio-image-value="'+key+'"]');
+   const preview=ed.querySelector('[data-studio-image="'+key+'"] .char-bio-studio-image-shown');
+   const empty=ed.querySelector('[data-studio-image="'+key+'"] .char-bio-studio-image-empty');
+   if(hidden)hidden.value=data;
+   if(preview){preview.src=data;preview.style.display='block'}
+   if(empty)empty.style.display='none';
+   toast('รูปพร้อมแล้ว — กด “สร้างโค้ดและพรีวิว” เพื่อใส่ลงโปรไฟล์');
+  };
+  img.onerror=()=>toast('อ่านรูปนี้ไม่ได้ กรุณาลองไฟล์อื่น');
+  img.src=String(reader.result||'');
+ };
+ reader.onerror=()=>toast('อ่านไฟล์รูปไม่สำเร็จ');
+ reader.readAsDataURL(file);
+}
+function characterStudioReadData(html){
+ const source=String(html||''),marker=source.match(/<!--STARLIGHT_PROFILE_STUDIO_DATA:([A-Za-z0-9+/=]+)-->/);
+ if(!marker)return null;
+ try{
+  const data=JSON.parse(decodeURIComponent(atob(marker[1])));
+  const doc=document.createElement('template');doc.innerHTML=source;
+  data.images=data.images||{};
+  [['avatar','starlightStudioAvatar'],['cover','starlightStudioCover'],['gallery1','starlightStudioGallery1'],['gallery2','starlightStudioGallery2'],['gallery3','starlightStudioGallery3']].forEach(pair=>{
+   const img=doc.content.querySelector('#'+pair[1]);if(img&&img.getAttribute('src'))data.images[pair[0]]=img.getAttribute('src');
+  });
+  return data;
+ }catch(e){console.warn('Cannot restore Trainee Studio data',e);return null}
+}
+function characterStudioHTML(data,images){
+ const e=v=>esc(String(v||'')),pos=(data.positions||[]).join(' · ')||'ยังไม่ได้ระบุตำแหน่ง';
+ const saved={...data};delete saved.images;
+ const marker=btoa(encodeURIComponent(JSON.stringify(saved)));
+ const cover=images.cover?'<img id="starlightStudioCover" src="'+esc(images.cover)+'" alt="Cover image">':'<div class="cover-placeholder">STARLIGHT<small>TRAINEE PROFILE</small></div>';
+ const avatar=images.avatar?'<img id="starlightStudioAvatar" src="'+esc(images.avatar)+'" alt="Portrait">':'<div class="avatar-placeholder">S</div>';
+ const detail=(label,value)=>'<div class="fact"><small>'+e(label)+'</small><strong>'+e(value||'—')+'</strong></div>';
+ const gallery=['gallery1','gallery2','gallery3'].map((key,i)=>'<figure class="gallery-item">'+(images[key]?'<img id="starlightStudioGallery'+(i+1)+'" src="'+esc(images[key])+'" alt="Gallery image '+(i+1)+'">':'<div class="photo-placeholder">＋<small>PHOTO 0'+(i+1)+'</small></div>')+'<figcaption>PHOTO / 0'+(i+1)+'</figcaption></figure>').join('');
+ const css=[
+ '*{box-sizing:border-box}',
+ 'html,body{margin:0;width:100%;max-width:100%;min-width:0}',
+ 'body{padding:clamp(8px,2vw,24px);background:#211b24;color:#342d2b;font:13px Prompt,sans-serif;line-height:1.8}',
+ '.application-sheet{max-width:980px;width:100%;margin:0 auto;background:#f2ede3;border:1px solid #d6cbb8;box-shadow:0 18px 50px #09060b55;overflow:hidden}',
+ '.masthead{display:flex;justify-content:space-between;gap:12px;align-items:start;padding:clamp(18px,4vw,34px) clamp(18px,4vw,40px) 15px;border-bottom:1px solid #cfc2ac}',
+ '.brand{font:700 10px Prompt,sans-serif;letter-spacing:2px;color:#806c51}.department{font:10px Prompt,sans-serif;letter-spacing:1.1px;color:#a09179;margin-top:4px}.file-code{text-align:right;font:9px Prompt,sans-serif;letter-spacing:1.1px;color:#8b7a62}',
+ '.cover-area{height:clamp(130px,22vw,205px);background:linear-gradient(120deg,#c8b6a1,#ded5c7 55%,#9584a0);position:relative;overflow:hidden}.cover-area img{width:100%;height:100%;object-fit:cover;display:block}.cover-placeholder{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font:600 14px Cinzel,serif;letter-spacing:4px;color:#fff;text-shadow:0 2px 8px #32273855}.cover-placeholder small{font:9px Prompt,sans-serif;letter-spacing:3px;margin-top:7px}',
+ '.main{padding:clamp(18px,4vw,40px)}.identity{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(110px,170px);gap:clamp(12px,3vw,25px);align-items:center;padding-bottom:22px;border-bottom:1px solid #cfc2ac}',
+ '.avatar{width:clamp(80px,11vw,126px);aspect-ratio:3/4;overflow:hidden;border:1px solid #c7b79e;background:#e7ded0;display:grid;place-items:center}.avatar img{width:100%;height:100%;object-fit:cover;display:block}.avatar-placeholder{font:600 27px Cinzel;color:#998268}',
+ '.kicker{font:600 9px Prompt,sans-serif;letter-spacing:2px;color:#9b8159}.identity h1{font:500 clamp(22px,4vw,39px)/1.18 Cinzel,serif;margin:8px 0 5px;color:#362c26;overflow-wrap:anywhere}.real-name{font:12px Prompt,sans-serif;color:#817260}.positions{font:10px Prompt,sans-serif;letter-spacing:.8px;color:#8d795e;margin-top:12px}',
+ '.status-stamp{align-self:start;justify-self:end;border:1px solid #b7a487;color:#8d785b;padding:9px 11px;text-align:center;font:9px Prompt,sans-serif;letter-spacing:1.3px;transform:rotate(2deg)}.status-stamp b{display:block;font-size:10px;margin-top:4px}',
+ '.section{margin-top:24px}.section-head{display:flex;align-items:center;gap:11px;border-bottom:1px solid #d4c8b5;padding-bottom:9px;margin-bottom:12px;color:#8b7453;font:600 10px Prompt,sans-serif;letter-spacing:1.8px}.section-head:after{content:"";height:1px;flex:1;background:#d4c8b5}',
+ '.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.fact{min-width:0;padding:11px 12px;border:1px solid #ded4c4;background:#f7f3eb}.fact small{display:block;margin-bottom:4px;color:#9a8a74;font:9px Prompt,sans-serif;letter-spacing:1px}.fact strong{display:block;color:#51463a;font:500 12px Prompt,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}',
+ '.story{display:grid;grid-template-columns:50px minmax(0,1fr);gap:12px;padding:13px 0;border-bottom:1px solid #e0d7c8}.story:last-child{border-bottom:0}.story-num{font:11px Prompt,sans-serif;letter-spacing:1px;color:#ad9367}.story h3{font:600 13px Prompt,sans-serif;color:#4b3e32;margin:0 0 5px}.story p{margin:0;color:#62584b;font:12px/1.9 Prompt,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}',
+ '.soft-panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.soft-panel{padding:13px 14px;background:#eae2d5;border:1px solid #dbcfbd}.soft-panel h3{font:600 10px Prompt,sans-serif;letter-spacing:1px;color:#927a57;margin:0 0 7px}.soft-panel p{font:12px/1.9 Prompt,sans-serif;color:#5b5145;white-space:pre-wrap;margin:0;overflow-wrap:anywhere}',
+ '.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.gallery-item{min-width:0;margin:0}.gallery-item img,.photo-placeholder{width:100%;aspect-ratio:4/5;object-fit:cover;background:#e7ded0;display:grid;place-items:center}.photo-placeholder{font-size:22px;color:#a08b6e;text-align:center}.photo-placeholder small{display:block;font:9px Prompt,sans-serif;letter-spacing:1px}.gallery-item figcaption{font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#a1917b;padding:6px 1px}',
+ '.signature-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:30px}.signature{padding-top:20px;border-top:1px solid #bfb09a;font:9px Prompt,sans-serif;letter-spacing:1px;color:#9b8a71}.foot{margin-top:28px;padding-top:12px;border-top:1px solid #cfc2ac;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#a09179}',
+ '@media(max-width:650px){.identity{grid-template-columns:auto minmax(0,1fr);align-items:center}.identity .status-stamp{grid-column:1/-1;justify-self:start;transform:none}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding:17px}.soft-panels{grid-template-columns:1fr}.gallery{gap:6px}.story{grid-template-columns:30px minmax(0,1fr);gap:9px}}'
+ ].join('');
+ return '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+e(data.stageName||'Trainee')+' — STARLIGHT Profile</title><!--STARLIGHT_PROFILE_STUDIO_DATA:'+marker+'--><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Cinzel:wght@500;600&display=swap" rel="stylesheet"><style>'+css+'</style></head><body><article class="application-sheet"><header class="masthead"><div><div class="brand">STARLIGHT ACADEMY</div><div class="department">ARTIST DEVELOPMENT DIVISION</div></div><div class="file-code">CONFIDENTIAL<br>CHARACTER RECORD / 001</div></header><div class="cover-area">'+cover+'</div><main class="main"><section class="identity"><div class="avatar">'+avatar+'</div><div><div class="kicker">TRAINEE APPLICATION / CHARACTER FILE</div><h1>'+e(data.stageName||'UNNAMED TRAINEE')+'</h1><div class="real-name">'+e(data.realName||'ชื่อ-นามสกุล')+'</div><div class="positions">'+e(pos)+'</div></div><div class="status-stamp">APPLICATION STATUS<b>'+e(data.level||'TRAINEE')+'</b></div></section>'+
+ '<section class="section"><div class="section-head">SECTION A — PERSONAL INFORMATION</div><div class="facts">'+detail('DATE OF BIRTH',data.birth)+detail('AGE',data.age?data.age+' ปี':'—')+detail('NATIONALITY',data.nationality)+detail('PRONOUNS',data.pronouns)+detail('AGENCY / COMPANY',data.agency)+detail('MBTI',data.mbti)+detail('SPECIALTY',data.specialty)+detail('POSITIONS',pos)+'</div></section>'+
+ '<section class="section"><div class="section-head">SECTION B — PERSONALITY & STORY</div><div class="story"><div class="story-num">01</div><div><h3>PERSONALITY / บุคลิกภาพ</h3><p>'+e(data.personality||'ยังไม่ได้กรอกข้อมูล')+'</p></div></div><div class="story"><div class="story-num">02</div><div><h3>BIOGRAPHY / ประวัติตัวละคร</h3><p>'+e(data.biography||'ยังไม่ได้กรอกข้อมูล')+'</p></div></div></section>'+
+ '<section class="section"><div class="section-head">SECTION C — PERSONAL NOTES</div><div class="soft-panels"><div class="soft-panel"><h3>LIKES / สิ่งที่ชอบ</h3><p>'+e(data.likes||'—')+'</p></div><div class="soft-panel"><h3>DISLIKES / สิ่งที่ไม่ชอบ</h3><p>'+e(data.dislikes||'—')+'</p></div></div></section>'+
+ '<section class="section"><div class="section-head">SECTION D — PHOTO ARCHIVE</div><div class="gallery">'+gallery+'</div></section><div class="signature-row"><div class="signature">APPLICANT / CHARACTER</div><div class="signature">STARLIGHT RECORD</div></div><footer class="foot"><span>STARLIGHT ACADEMY · INTERNAL FILE</span><span>YOUR STAGE · YOUR STORY</span></footer></main></article></body></html>';
+}
+function buildCharacterBioStudio(button){
+ const ed=button?.closest('.char-bio-editor');if(!ed)return;
+ const area=ed.querySelector('.char-bio-code');
+ const read=k=>ed.querySelector('[data-studio-field="'+k+'"]')?.value?.trim()||'';
+ const data={stageName:read('stageName'),realName:read('realName'),birth:read('birth'),age:read('age'),nationality:read('nationality'),pronouns:read('pronouns'),agency:read('agency'),level:read('level')||'Trainee',positions:[...ed.querySelectorAll('[data-studio-position]:checked')].map(x=>x.dataset.studioPosition),mbti:read('mbti'),specialty:read('specialty'),personality:read('personality'),biography:read('biography'),likes:read('likes'),dislikes:read('dislikes')};
+ const images={};ed.querySelectorAll('[data-studio-image-value]').forEach(x=>{if(x.value)images[x.dataset.studioImageValue]=x.value});
+ if(!data.stageName)return toast('กรุณากรอกชื่อในวงการก่อน');
+ if((data.biography+' '+data.personality).trim().length<20)return toast('กรุณาเขียนบุคลิกหรือประวัติอย่างน้อย 20 ตัวอักษรก่อน');
+ if(area.value.trim()&&ed.dataset.outputMode==='html'&&ed.dataset.editorChoice!=='studio'&&!confirm('สร้างจากฟอร์มแล้วแทนที่โค้ด HTML เดิมหรือไม่?'))return;
+ area.value=characterStudioHTML(data,images);
+ ed.dataset.outputMode='html';ed.dataset.editorChoice='studio';
+ const label=ed.querySelector('.char-bio-foot span:nth-child(2)');if(label)label.textContent='HTML + CSS · TRAINEE STUDIO';
+ const codeWrap=ed.querySelector('.char-bio-code-wrap');if(codeWrap)codeWrap.hidden=true;
+ edCount(ed);previewCharacterBio(button);
+ toast('สร้างโปรไฟล์จากฟอร์มแล้ว — สามารถเผยแพร่หรือเปิด HTML เพื่อแก้ต่อได้');
+}
+function toggleCharacterBioCode(button){
+ const ed=button?.closest('.char-bio-editor');if(!ed)return;
+ const wrap=ed.querySelector('.char-bio-code-wrap');if(!wrap)return;
+ wrap.hidden=!wrap.hidden;button.textContent=wrap.hidden?'ดู/แก้ HTML':'ซ่อน HTML';
+ if(!wrap.hidden)ed.querySelector('.char-bio-code')?.focus();
+}
 function cleanCharacterBio(raw){
  const value=String(raw??'').trim();
  if(!value)return '';
@@ -2771,7 +2872,7 @@ function characterBioReadableLength(content,mode){
  const value=String(content||'');
  if(mode!=='html')return textLen(value,'rich');
  const readable=value.replace(/<(style|script|head)\b[\s\S]*?<\/\1>/gi,' ')
-  .replace(/<!doctype[^>]*>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/gi,' ')
+  .replace(/<!--[\\s\\S]*?-->/g,' ').replace(/<!doctype[^>]*>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;|&#160;/gi,' ')
   .replace(/\s+/g,' ').trim();
  return readable.length;
 }
@@ -2809,12 +2910,13 @@ function getCharacterBioThreadFromUrl(value,expectedOwnerId){
 function pageEditCharacterBioThread(id){
  const u=me(),t=DB.get('threads').find(x=>x.id===id&&x.characterBio===true&&x.forumId===CHARACTER_BIO_FORUM_ID);
  if(!u||!t||(!isAdmin()&&t.authorId!==u.id))return go('home');
+ const studioData=characterStudioReadData(t.plot);
  app(`<div class="bio-thread-page"><a class="mut" href="#thread/${id}">← กลับกระทู้ประวัติ</a>
   <header class="bio-thread-hero"><div class="bio-thread-eyebrow">CHARACTER ARCHIVE · EDIT</div><h1>แก้ไขกระทู้ประวัติ</h1><p>แก้ข้อความในกระทู้เดิมได้เลย ลิงก์ประวัติที่แนบไว้ในตัวละครจะยังใช้ได้เหมือนเดิม</p></header>
   <form class="card topic-composer bio-thread-composer" onsubmit="doUpdateCharacterBioThread(event,'${id}')">
    <div class="topic-composer-heading"><h2>✏️ แก้ไขแฟ้มประวัติ</h2><p>ชื่อกระทู้และเนื้อหาที่บันทึกจะอัปเดตในลิงก์เดิม</p></div>
    <div class="topic-field-row"><label class="topic-field-label" for="bioThreadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="bioThreadTitle" name="title" required maxlength="120" class="topic-subject" value="${esc(t.title)}"></div></div>
-   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',((t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?t.plot:toRich(t.plot,t.plotMode)),{ph:'เขียน HTML ประวัติของตัวละคร...',outputMode:(t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?'html':'rich'})}</div></div>
+   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',((t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?t.plot:toRich(t.plot,t.plotMode)),{ph:'เขียน HTML ประวัติของตัวละคร...',outputMode:(t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?'html':'rich',choice:studioData?'studio':((t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?'html':'rich'),studioData})}</div></div>
    <div class="topic-actions"><a class="btn ghost" href="#thread/${id}">ยกเลิก</a><button class="btn">💾 บันทึกประวัติ</button></div>
   </form></div>`);
 }
