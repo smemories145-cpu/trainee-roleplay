@@ -2693,7 +2693,7 @@ function characterBioRpcError(action,error){
  }
  return action+'ไม่สำเร็จ: '+message;
 }
-async function characterBioReadableLength(content,mode){
+function characterBioReadableLength(content,mode){
  const value=String(content||'');
  if(mode!=='html')return textLen(value,'rich');
  const readable=value.replace(/<(style|script|head)\b[\s\S]*?<\/\1>/gi,' ')
