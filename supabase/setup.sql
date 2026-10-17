@@ -1088,3 +1088,5 @@ grant execute on function public.site_mail_mark_read(text) to authenticated;
 revoke all on function public.site_mail_delete(text, text) from public, anon;
 grant execute on function public.site_mail_delete(text, text) to authenticated;
 
+-- Refresh PostgREST after all RPC functions and grants are installed.
+notify pgrst, 'reload schema';
