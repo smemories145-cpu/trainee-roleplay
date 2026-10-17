@@ -1900,7 +1900,7 @@ function renderBody(content,mode,css,allowCharacterHtmlFallback=false){
  /* Older Supabase RPC versions can store a custom archive as mode "rich".
     If it is clearly a standalone HTML/CSS document, still isolate it instead
     of sanitizing away the user's <head>/<style> and breaking the layout. */
- const looksLikeCustomHtml=allowCharacterHtmlFallback&&/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(source);
+ const looksLikeCustomHtml=allowCharacterHtmlFallback&&/(<!doctype\s+html|<html\b|<head\b|<style\b)/i.test(source);
  if(mode==='html'||looksLikeCustomHtml)return codeFrame(source,css,true);
  return `<div class="rich">${sanitize(toRich(content,mode))}</div>`;
 }
@@ -1918,7 +1918,7 @@ function codeFrame(html,css='',isolated=false){
   htmlAttrs=ht?ht[1]:'';bodyAttrs=bt?bt[1]:'';
   body=bm?bm[1]:source.replace(/<!doctype[^>]*>/ig,'').replace(/<\/?html[^>]*>/ig,'').replace(/<head[^>]*>[\s\S]*?<\/head>/ig,'');
  }
- const doc=`<!DOCTYPE html><html${fullDoc?htmlAttrs:'' }><head><meta charset="utf-8">${fullDoc?'':`<base target="_blank">
+ const doc=`<!DOCTYPE html><html${fullDoc?htmlAttrs:'' }><head><meta charset="utf-8">${hasFullDoc?'':`<base target="_blank">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
 :root{--pri:${S.pri};--sec:${S.sec};--profile-accent:#998BA5}
@@ -1956,7 +1956,7 @@ img,video,iframe{max-width:100%}a{color:${S.pri}}*,*::before,*::after{box-sizing
 .profile-container .text-block{font-size:13px;line-height:1.95;color:#ded6e5;margin:0 0 24px;white-space:pre-wrap}
 .profile-container .divider{height:1px;background:#39313f;margin:24px 0}
 @media(max-width:560px){.profile-container .banner{height:160px}.profile-header-section{padding:0 15px 17px}.profile-header-section .avatar-row{margin-top:-42px}.profile-header-section .avatar{width:86px;height:86px;flex-basis:86px}.profile-header-section .action-buttons{font-size:10px;gap:5px}.profile-container .content-body{padding:18px 14px}.profile-container .info-grid{grid-template-columns:1fr}.profile-container .gallery-grid{gap:6px}.profile-container .gallery-item{height:100px}.profile-container .nav-tabs{padding:0 8px}.profile-container .nav-tab{padding:11px 10px}}
-</style>`}${head}${fullDoc?'':`<style>${css||''}
+</style>`}${head}${hasFullDoc?'':`<style>${css||''}
 html,body{width:100%;max-width:100%;min-width:0;height:auto!important;min-height:0!important}
 /* Measure intrinsic content, not the iframe viewport; viewport-sized roots can
    otherwise create a self-growing resize loop. */
@@ -1972,7 +1972,7 @@ img,video{height:auto}
 }</style>`}
 
 </head><body${fullDoc?bodyAttrs:''}>${body||''}
-<script>(function(){function report(){try{var b=document.body;if(!b)return;var full=${fullDoc?'true':'false'};var h=full?0:b.scrollHeight;var kids=b.children;for(var i=0;i<kids.length;i++){var el=kids[i];if(el.tagName==='SCRIPT'||el.tagName==='STYLE')continue;var r=el.getBoundingClientRect();h=Math.max(h,r.bottom+window.scrollY)}if(!full)h=Math.max(h,b.offsetHeight);if(h===0){var range=document.createRange();range.selectNodeContents(b);var rr=range.getBoundingClientRect();h=rr.bottom+window.scrollY}if(Number.isFinite(h)&&h>0)parent.postMessage({cf:'${id}',h:Math.ceil(h+8)},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>`;
+<script>(function(){function report(){try{var b=document.body,r0=document.documentElement;if(!b||!r0)return;var h=Math.max(b.scrollHeight,b.offsetHeight,b.clientHeight,r0.scrollHeight,r0.offsetHeight,r0.clientHeight);var kids=b.children;for(var i=0;i<kids.length;i++){var el=kids[i];if(el.tagName==='SCRIPT'||el.tagName==='STYLE')continue;var r=el.getBoundingClientRect();h=Math.max(h,r.bottom+window.scrollY)}if(!full)h=Math.max(h,b.offsetHeight);if(h===0){var range=document.createRange();range.selectNodeContents(b);var rr=range.getBoundingClientRect();h=rr.bottom+window.scrollY}if(Number.isFinite(h)&&h>0)parent.postMessage({cf:'${id}',h:Math.ceil(h+8)},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>`;
  return `<iframe class="cf" id="${id}" title="พรีวิวโค้ดโปรไฟล์" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" style="display:block;width:100%;min-height:120px;border:0;background:transparent" srcdoc="${esc(doc)}"></iframe>`;
 }
 addEventListener('message',e=>{const d=e.data;if(!d||!d.cf)return;const f=document.getElementById(d.cf);if(f&&e.source===f.contentWindow&&Number.isFinite(d.h)&&d.h>0){const h=Math.max(120,Math.min(Math.ceil(d.h),20000));if(Math.abs(f.getBoundingClientRect().height-h)>1)f.style.height=h+'px'}});
@@ -3099,7 +3099,7 @@ function pageEditCharacterBioThread(id){
   <form class="card topic-composer bio-thread-composer" onsubmit="doUpdateCharacterBioThread(event,'${id}')">
    <div class="topic-composer-heading"><h2>✏️ แก้ไขแฟ้มประวัติ</h2><p>ชื่อกระทู้และเนื้อหาที่บันทึกจะอัปเดตในลิงก์เดิม</p></div>
    <div class="topic-field-row"><label class="topic-field-label" for="bioThreadTitle">ชื่อกระทู้ *</label><div class="topic-field-value"><input id="bioThreadTitle" name="title" required maxlength="120" class="topic-subject" value="${esc(t.title)}"></div></div>
-   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',((t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?t.plot:toRich(t.plot,t.plotMode)),{ph:'เขียน HTML ประวัติของตัวละคร...',outputMode:(t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?'html':'rich',choice:studioData?'studio':((t.plotMode==='html'||/(<!doctype\\s+html|<html\\b|<head\\b|<style\\b)/i.test(String(t.plot||'')))?'html':'rich'),studioData})}</div></div>
+   <div class="topic-field-row"><div class="topic-field-label">เนื้อหาประวัติ *</div><div class="topic-field-value"><div class="bio-thread-guide"><b>แนวทาง</b><span>เล่าเรื่องราวได้ยาวตามต้องการ เลือกโครงสำเร็จรูปเพื่อแทนที่เนื้อหาได้หากต้องการเปลี่ยนสไตล์</span></div>${characterBioEditor('background',((t.plotMode==='html'||/(<!doctype\s+html|<html\b|<head\b|<style\b)/i.test(String(t.plot||'')))?t.plot:toRich(t.plot,t.plotMode)),{ph:'เขียน HTML ประวัติของตัวละคร...',outputMode:(t.plotMode==='html'||/(<!doctype\s+html|<html\b|<head\b|<style\b)/i.test(String(t.plot||'')))?'html':'rich',choice:studioData?'studio':((t.plotMode==='html'||/(<!doctype\s+html|<html\b|<head\b|<style\b)/i.test(String(t.plot||'')))?'html':'rich'),studioData})}</div></div>
    <div class="topic-actions"><a class="btn ghost" href="#thread/${id}">ยกเลิก</a><button class="btn">💾 บันทึกประวัติ</button></div>
   </form></div>`);
 }
