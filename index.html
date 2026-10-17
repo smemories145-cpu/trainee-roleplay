@@ -1463,6 +1463,45 @@ nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
  .home-text-link{font-size:.72rem}
 }
 </style>
+<style id="starlight-editor-toolbar-polish">
+.ed-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;background:linear-gradient(110deg,#1b1b20,#121215);border-bottom:1px solid #34343b}
+.ed-title{font-weight:600;font-size:.94rem;letter-spacing:.01em;color:var(--txt)}
+.ed-head-actions{display:flex;align-items:center;gap:10px;min-width:0}
+.ed-head-actions .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:9px;border:1px solid #414149;background:#222227;color:#e8e8ed;padding:7px 11px;font-weight:500}
+.ed-head-actions .btn:hover{background:#2c2c32;border-color:#777780}
+.ed-bar{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:10px 11px;position:sticky;top:58px;background:linear-gradient(180deg,#1b1b20,#161619);border-bottom:1px solid #36363e;z-index:3}
+.ed-bar .ed-g{display:flex;align-items:center;gap:3px;padding:4px;margin:0;border:1px solid #34343b;border-radius:11px;background:#111114}
+.ed-bar .ed-g:last-child{border:1px solid #34343b}
+.ed-bar .ed-tool{height:34px;min-width:34px;width:34px;padding:0;border:1px solid transparent;border-radius:8px;background:transparent;color:#d2d2da;font-size:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .15s ease,border-color .15s ease,color .15s ease,transform .15s ease,box-shadow .15s ease}
+.ed-bar .ed-tool:hover{background:#303037;border-color:#55555f;color:#fff;transform:translateY(-1px);box-shadow:0 3px 9px #0004}
+.ed-bar .ed-tool:active{transform:translateY(0);box-shadow:none}
+.ed-bar .ed-tool:focus-visible,.ed-bar select:focus-visible,.ed-color-tool:focus-within{outline:2px solid #c5a46d;outline-offset:2px}
+.ed-bar .editor-icon{display:block;width:17px;height:17px;flex:0 0 17px}
+.ed-bar .ed-g-text .ed-tool:nth-child(1){font-weight:800}
+.ed-bar .ed-g-format{gap:5px;padding:4px 6px}
+.ed-bar .ed-select-wrap{display:inline-flex;align-items:center;gap:5px;padding:0 6px;border:1px solid #3b3b43;border-radius:8px;background:#1b1b20;color:#bfc0c9}
+.ed-bar .ed-select-wrap .editor-icon{width:15px;height:15px;color:#c7ae7d}
+.ed-bar .ed-select-wrap select{height:31px;max-width:126px;width:auto;margin:0;padding:0 5px;border:0;outline:0;background:transparent;color:#e6e6eb;font-size:.8rem;cursor:pointer}
+.ed-bar .ed-select-wrap option{background:#17171b;color:#eee}
+.ed-bar .ed-color-tool{position:relative;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;overflow:hidden;border:1px solid #34343b;border-radius:8px;background:#1d1d22;color:#e5e5eb;cursor:pointer}
+.ed-bar .ed-color-tool:hover{border-color:#777780;background:#303037}
+.ed-bar .ed-color-tool .editor-icon{pointer-events:none}
+.ed-bar .ed-color-tool:after{content:"";position:absolute;left:8px;right:8px;bottom:4px;height:3px;border-radius:3px;background:var(--swatch,#c5a46d);pointer-events:none}
+.ed-bar .ed-color-tool input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+.ed-bar .ed-g-history .ed-tool{color:#d4c095}
+.ed-bar .ed-g-code .ed-tool{color:#c5a46d}
+.ed-foot{display:flex;justify-content:space-between;gap:10px;padding:8px 13px;font-size:.74rem;color:#9999a4;border-top:1px solid #303038;background:#111114}
+@media(max-width:760px){
+ .ed-bar{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;gap:6px;padding:8px;scrollbar-width:thin}
+ .ed-bar .ed-g{flex:0 0 auto}
+ .ed-bar .ed-tool,.ed-bar .ed-color-tool{width:32px;min-width:32px;height:32px}
+ .ed-bar .ed-select-wrap select{max-width:98px;font-size:.76rem}
+ .ed-bar .editor-icon{width:16px;height:16px}
+ .ed-head{padding:10px 11px}
+ .ed-foot{flex-direction:column;gap:3px}
+}
+</style>
+
 </head>
 <body>
 <nav id="nav"></nav>
@@ -2462,23 +2501,50 @@ function richEditor(name,val='',o={}){
  const id='ed'+(++EDN),sourceMode=o.mode==='html';
  return `<div class="ed${sourceMode?' html-source-mode':''}" id="${id}" data-name="${name}" data-mode="${sourceMode?'html':'rich'}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
  <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn sm ghost" data-editor-action="toggle-html" title="สลับระหว่างโหมดโค้ด HTML และโหมดจัดรูปแบบ">${sourceMode?'👁 แก้ไขแบบแสดงผล':'&lt;/&gt; โหมด HTML'}</button><span class="ed-count"></span></div></div>
- ${o.code&&canCode()?'<div class="announcement-tools"><label>📄 แบบประกาศ</label><select class="announcement-pick"><option value="official">ประกาศทางการ · กระดาษขาว</option><option value="bulletin">ประกาศบอร์ด · กระดาษคราฟต์</option><option value="minimal">ประกาศมินิมอล</option><option value="executive">ประกาศผู้บริหาร · ครีมทอง</option></select><button type="button" class="btn sm ghost" data-editor-action="announcement">＋ ใส่แบบประกาศ</button></div>':''}
  <div class="ed-bar" ${sourceMode?'hidden':''}>${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" ${sourceMode?'data-html-source="1"':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sourceMode?esc(val):sanitize(val)}</div>
  <div class="ed-foot"><span class="ed-hint">💡 โค้ด HTML จะแสดงเป็นข้อความในช่องเขียน · กดพรีวิวเพื่อตรวจผลลัพธ์</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
+function editorIcon(name){
+ const p={
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-2"/>',
+  redo:'<path d="m15 14 5-5-5-5"/><path d="M20 9h-9a7 7 0 0 0 0 14h2"/>',
+  bold:'<path d="M6 4h7a4 4 0 0 1 0 8H6z"/><path d="M6 12h8a4 4 0 0 1 0 8H6z"/>',
+  italic:'<path d="M14 4H8"/><path d="M16 20h-6"/><path d="M14 4 10 20"/>',
+  underline:'<path d="M6 4v6a6 6 0 0 0 12 0V4"/><path d="M4 21h16"/>',
+  strike:'<path d="M4 12h16"/><path d="M7 7c0-4 10-5 10 0"/><path d="M17 17c0 4-10 5-10 0"/>',
+  color:'<path d="m5 19 7-15 7 15"/><path d="M8 13h8"/>',
+  highlight:'<path d="m14 4 6 6-9 9-6-6z"/><path d="m4 15 5 5"/><path d="M3 22h11"/>',
+  left:'<path d="M4 6h16M4 10h10M4 14h16M4 18h10"/>',
+  center:'<path d="M4 6h16M7 10h10M4 14h16M7 18h10"/>',
+  right:'<path d="M4 6h16M10 10h10M4 14h16M10 18h10"/>',
+  justify:'<path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>',
+  ordered:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 5.5h2v3h-2M3.5 11.5h2v3h-2M3.5 17.5h2v3h-2"/>',
+  link:'<path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/>',
+  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/>',
+  video:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z" fill="currentColor" stroke="none"/>',
+  br:'<path d="M4 5v6h12"/><path d="m12 7 4 4-4 4"/><path d="M20 5v14"/>',
+  hr:'<path d="M3 12h18"/><path d="M7 8v8M17 8v8"/>',
+  spoiler:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/><path d="m4 4 16 16"/>',
+  code:'<path d="m8 6-6 6 6 6"/><path d="m16 6 6 6-6 6"/><path d="m14 3-4 18"/>',
+  paragraph:'<path d="M4 7h16M4 12h12M4 17h16"/><path d="M7 4v16"/>',
+  size:'<path d="M4 19 10 5l6 14"/><path d="M6 15h8"/><path d="M16 19h5M18.5 19V9"/>'
+ };
+ return '<svg class="editor-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(p[name]||p.code)+'</svg>';
+}
 function edBar(id){
- const b=(t,cmd,lbl,val)=>`<button type="button" title="${t}" onmousedown="event.preventDefault()" onclick="ex('${id}','${cmd}'${val?`,'${val}'`:''})">${lbl}</button>`;
- const fn=(t,f,lbl)=>`<button type="button" title="${t}" onmousedown="event.preventDefault()" onclick="${f}('${id}')">${lbl}</button>`;
- return `<div class="ed-g">${b('ย้อนกลับ','undo','↶')}${b('ทำซ้ำ','redo','↷')}</div>
- <div class="ed-g"><select title="รูปแบบย่อหน้า" onchange="if(this.value){ex('${id}','formatBlock','<'+this.value+'>');this.value=''}"><option value="">¶ ย่อหน้า</option><option value="p">ข้อความปกติ</option><option value="h2">หัวข้อใหญ่</option><option value="h3">หัวข้อย่อย</option><option value="blockquote">กล่องอ้างอิง</option></select>
- <select title="ขนาดตัวอักษร" onchange="if(this.value){ex('${id}','fontSize',this.value);this.value=''}"><option value="">ขนาด</option><option value="2">เล็ก</option><option value="3">ปกติ</option><option value="5">ใหญ่</option><option value="6">ใหญ่มาก</option><option value="7">ยักษ์</option></select></div>
- <div class="ed-g">${b('ตัวหนา (Ctrl+B)','bold','<b>B</b>')}${b('ตัวเอียง (Ctrl+I)','italic','<i>I</i>')}${b('ขีดเส้นใต้ (Ctrl+U)','underline','<u>U</u>')}${b('ขีดฆ่า','strikeThrough','<s>S</s>')}
-  <label class="ed-c" title="สีตัวอักษร"><span style="border-bottom:3px solid var(--pri);line-height:1.2">A</span><input type="color" value="#ff5fa2" onchange="ex('${id}','foreColor',this.value)"></label>
-  <label class="ed-c" title="ไฮไลต์"><span style="background:#ffc85766;padding:0 4px;border-radius:3px">ab</span><input type="color" value="#ffc857" onchange="ex('${id}','hiliteColor',this.value)"></label></div>
- <div class="ed-g">${b('ชิดซ้าย','justifyLeft','⇤')}${b('กึ่งกลาง','justifyCenter','≡')}${b('ชิดขวา','justifyRight','⇥')}${b('เต็มแนว','justifyFull','☰')}${b('รายการจุด','insertUnorderedList','•')}${b('รายการตัวเลข','insertOrderedList','1.')}</div>
- <div class="ed-g">${fn('แทรกลิงก์','edLink','🔗')}${fn('แทรกรูปภาพ','edImg','🖼')}${fn('แทรก YouTube','edYT','▶')}${b('ขึ้นบรรทัดใหม่','insertHTML','↵','<br>')}${b('เส้นคั่น','insertHorizontalRule','―')}${fn('กล่องซ่อนข้อความ','edSpoiler','🙈')}</div>
- <div class="ed-g"><button type="button" title="แทรกโค้ด HTML ในช่องเขียนง่าย" onclick="edInsertHTML('${id}')">&lt;/&gt; แทรกโค้ด</button></div>`;
+ const b=(t,cmd,icon,val)=>`<button type="button" class="ed-tool" title="${t}" aria-label="${t}" onmousedown="event.preventDefault()" onclick="ex('${id}','${cmd}'${val?`,'${val}'`:''})">${editorIcon(icon)}</button>`;
+ const fn=(t,f,icon)=>`<button type="button" class="ed-tool" title="${t}" aria-label="${t}" onmousedown="event.preventDefault()" onclick="${f}('${id}')">${editorIcon(icon)}</button>`;
+ return `<div class="ed-g ed-g-history">${b('ย้อนกลับ','undo','undo')}${b('ทำซ้ำ','redo','redo')}</div>
+ <div class="ed-g ed-g-format"><label class="ed-select-wrap" title="รูปแบบย่อหน้า">${editorIcon('paragraph')}<select aria-label="รูปแบบย่อหน้า" onchange="if(this.value){ex('${id}','formatBlock','<'+this.value+'>');this.value=''}"><option value="">ย่อหน้า</option><option value="p">ข้อความปกติ</option><option value="h2">หัวข้อใหญ่</option><option value="h3">หัวข้อย่อย</option><option value="blockquote">กล่องอ้างอิง</option></select></label>
+ <label class="ed-select-wrap" title="ขนาดตัวอักษร">${editorIcon('size')}<select aria-label="ขนาดตัวอักษร" onchange="if(this.value){ex('${id}','fontSize',this.value);this.value=''}"><option value="">ขนาด</option><option value="2">เล็ก</option><option value="3">ปกติ</option><option value="5">ใหญ่</option><option value="6">ใหญ่มาก</option><option value="7">ยักษ์</option></select></label></div>
+ <div class="ed-g ed-g-text">${b('ตัวหนา (Ctrl+B)','bold','bold')}${b('ตัวเอียง (Ctrl+I)','italic','italic')}${b('ขีดเส้นใต้ (Ctrl+U)','underline','underline')}${b('ขีดฆ่า','strikeThrough','strike')}
+ <label class="ed-color-tool" title="สีตัวอักษร" aria-label="สีตัวอักษร">${editorIcon('color')}<input type="color" aria-label="เลือกสีตัวอักษร" value="#d6d6dc" onchange="ex('${id}','foreColor',this.value)"></label>
+ <label class="ed-color-tool" title="ไฮไลต์ข้อความ" aria-label="ไฮไลต์ข้อความ">${editorIcon('highlight')}<input type="color" aria-label="เลือกสีไฮไลต์" value="#e5c879" onchange="ex('${id}','hiliteColor',this.value)"></label></div>
+ <div class="ed-g ed-g-align">${b('ชิดซ้าย','justifyLeft','left')}${b('กึ่งกลาง','justifyCenter','center')}${b('ชิดขวา','justifyRight','right')}${b('เต็มแนว','justifyFull','justify')}${b('รายการจุด','insertUnorderedList','list')}${b('รายการตัวเลข','insertOrderedList','ordered')}</div>
+ <div class="ed-g ed-g-insert">${fn('แทรกลิงก์','edLink','link')}${fn('แทรกรูปภาพ','edImg','image')}${fn('แทรก YouTube','edYT','video')}${b('ขึ้นบรรทัดใหม่','insertHTML','br','<br>')}${b('เส้นคั่น','insertHorizontalRule','hr')}${fn('กล่องซ่อนข้อความ','edSpoiler','spoiler')}</div>
+ <div class="ed-g ed-g-code">${fn('แทรกโค้ด HTML','edInsertHTML','code')}</div>`;
 }
 function saveSel(){const s=getSelection();if(!s.rangeCount)return;const r=s.getRangeAt(0),n=r.startContainer,el=n.nodeType===1?n:n.parentElement;if(el?.closest('.ed-area'))SEL=r.cloneRange()}
 function edFocus(id){
