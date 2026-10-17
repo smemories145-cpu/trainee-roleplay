@@ -1806,6 +1806,9 @@ function characterBioEditor(name,val='',o={}){
  const outputMode=o.outputMode==='html'?'html':'rich';
  const choice=['rich','html','studio'].includes(o.choice)?o.choice:(outputMode==='html'?'html':'rich');
  const title=isPersonality?'นิสัย / บุคลิก':'ประวัติ / เรื่องราวของตัวละคร';
+ const guide=isPersonality
+  ? '<li>นิสัยเด่น 3–5 ข้อ และวิธีแสดงออก</li><li>สิ่งที่ชอบ / ไม่ชอบ และงานอดิเรก</li><li>จุดแข็ง จุดอ่อน หรือสิ่งที่ทำให้ตัวละครมีมิติ</li>'
+  : '<li>ภูมิหลัง ครอบครัว หรือสถานที่ที่เติบโตมา</li><li>เหตุการณ์สำคัญที่หล่อหลอมตัวละคร</li><li>เหตุผลที่เข้ามาเป็นเด็กฝึกหรือศิลปิน</li><li>เป้าหมายและความฝัน</li>';
  const d=o.studioData&&typeof o.studioData==='object'?o.studioData:{};
  const fv=(k,def='')=>esc(d[k]??def);
  const checked=p=>(Array.isArray(d.positions)?d.positions:[]).includes(p)?'checked':'';
