@@ -11,6 +11,16 @@ The website uses GitHub Pages for the front end and Supabase for shared records 
 
 This creates the shared records table, account profile table, access rules, authentication trigger, and server-validated RPCs. The browser publishable key is used by the front end; do not put a secret/service-role key into the website.
 
+## Fix: character biography thread RPC not found
+
+If posting a character archive shows `Could not find the function public.site_create_character_bio_thread(p_thread) in the schema cache`, the frontend has been deployed but the Supabase RPC migration has not been applied yet, or PostgREST has a stale schema cache.
+
+1. Open **Supabase Dashboard → SQL Editor** for the same project connected to STARLIGHT ACADEMY.
+2. Open `supabase/character_bio_threads.sql` from this repository, copy the entire file, paste it into SQL Editor, and run it.
+3. Wait for the query to finish successfully, then reload STARLIGHT ACADEMY with **Ctrl + F5** and try posting again.
+
+This migration uses `CREATE OR REPLACE`, restores the create/edit RPC permissions for authenticated users, and sends a PostgREST schema-cache refresh notification. You do **not** need to rerun the whole setup file just for this error. The website repository cannot create database functions in your Supabase project by itself, so this one-time SQL step must be run in the connected Supabase project.
+
 ## 2. Configure email/password sign-in
 
 The legacy site uses usernames instead of email addresses. The front end maps a username to a synthetic address ending in `@starlight.invalid` for Supabase Auth.
