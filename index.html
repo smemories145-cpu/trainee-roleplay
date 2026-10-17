@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trainee Roleplay</title>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#050506;--card:#111113;--card2:#19191d;--line:#303036;--pri:#d6d6dc;--sec:#85858f;--txt:#ededf0;--mut:#a0a0aa;--ok:#66d6a4;--warn:#e5c879;--bad:#ff7272}
 *{box-sizing:border-box}
@@ -1483,11 +1483,11 @@ nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
 .ed-bar .ed-select-wrap .editor-icon{width:15px;height:15px;color:#c7ae7d}
 .ed-bar .ed-select-wrap select{height:31px;max-width:126px;width:auto;margin:0;padding:0 5px;border:0;outline:0;background:transparent;color:#e6e6eb;font-size:.8rem;cursor:pointer}
 .ed-bar .ed-select-wrap option{background:#17171b;color:#eee}
-.ed-bar .ed-color-tool{position:relative;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;overflow:hidden;border:1px solid #34343b;border-radius:8px;background:#1d1d22;color:#e5e5eb;cursor:pointer}
+.ed-bar .ed-color-tool{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:5px;width:auto;min-width:34px;height:34px;overflow:visible;padding:0 5px;border:1px solid #34343b;border-radius:8px;background:#1d1d22;color:#e5e5eb;cursor:pointer}
 .ed-bar .ed-color-tool:hover{border-color:#777780;background:#303037}
 .ed-bar .ed-color-tool .editor-icon{pointer-events:none}
-.ed-bar .ed-color-tool:after{content:"";position:absolute;left:8px;right:8px;bottom:4px;height:3px;border-radius:3px;background:var(--swatch,#c5a46d);pointer-events:none}
-.ed-bar .ed-color-tool input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+.ed-bar .ed-color-tool:after{display:none}
+.ed-bar .ed-color-tool input[type="color"]{position:relative;inset:auto;flex:0 0 22px;width:22px;height:22px;margin:0;padding:0;border:0;opacity:1;cursor:pointer}.ed-bar .ed-color-tool .ed-hex{position:relative;inset:auto;flex:0 0 70px;width:70px!important;min-width:70px;height:25px;margin:0;padding:2px 4px;border:1px solid #3b3b43;border-radius:5px;background:#101014;color:#f0f0f4;font:11px/1.2 ui-monospace,monospace;text-transform:uppercase;opacity:1;cursor:text}.ed-bar .ed-color-tool .ed-hex.invalid{border-color:#ff7272}
 .ed-bar .ed-g-history .ed-tool{color:#d4c095}
 .ed-bar .ed-g-code .ed-tool{color:#c5a46d}
 .ed-foot{display:flex;justify-content:space-between;gap:10px;padding:8px 13px;font-size:.74rem;color:#9999a4;border-top:1px solid #303038;background:#111114}
@@ -2096,7 +2096,7 @@ function codeFrame(html,css='',isolated=false){
   body=bm?bm[1]:source.replace(/<!doctype[^>]*>/ig,'').replace(/<\/?html[^>]*>/ig,'').replace(/<head[^>]*>[\s\S]*?<\/head>/ig,'');
  }
  const doc=`<!DOCTYPE html><html${fullDoc?htmlAttrs:'' }><head><meta charset="utf-8">${hasFullDoc?'':`<base target="_blank">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--pri:${S.pri};--sec:${S.sec};--profile-accent:#998BA5}
 html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow-wrap:anywhere}
@@ -2690,16 +2690,11 @@ function toggleEditorSource(button){
  setEditorSourceMode(ed,area.dataset.htmlSource!=='1'||!!area.querySelector('pre.html-source-block'));
 }
 async function edInsertHTML(id){
- const ed=document.getElementById(id),area=ed?.querySelector('.ed-area');
- if(!area)return;
- const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรกได้เลย (เช่น <div>, <b>, <img>)\\nโค้ดจะเป็นข้อความในโหมด HTML และจะแสดงผลเฉพาะในพรีวิว/หลังโพสต์');
+ const ed=document.getElementById(id),area=ed?.querySelector('.ed-area');if(!area)return;
+ const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรก (เช่น <div>, <b>, <img>)\\nระบบจะแสดงผลในช่องเขียนทันที และยังปรับแต่งข้อความต่อได้');
  if(!snippet)return;
- if(area.dataset.htmlSource!=='1')setEditorSourceMode(ed,true);
- const current=area.textContent||'';
- area.textContent=(current.trim()?current+'\\n':'')+snippet;
- area.dispatchEvent(new Event('input',{bubbles:true}));
- edCount(ed);
- area.focus();
+ const clean=sanitize(snippet);if(!clean.trim()){toast('ไม่พบ HTML ที่รองรับ','bad');return}
+ edFocus(id);document.execCommand('insertHTML',false,clean);saveSel();edCount(ed);area.dispatchEvent(new Event('input',{bubbles:true}));
 }
 async function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
 let EDITOR_IMAGE_FILE=null;
@@ -2871,23 +2866,18 @@ function initEditors(){
    const d=store.getItem(dk);
    if(d){
     const prefix='__STARLIGHT_HTML_SOURCE__\\n';
-    const oldAnnouncement=/^\\s*<div style="max-width:760px/i.test(d)&&/(?:OFFICIAL ANNOUNCEMENT|OFFICIAL NOTICE|NOTICE BOARD|COMMUNITY NOTICE)/i.test(d);
-    if(d.startsWith(prefix)){
-     a.dataset.htmlSource='1';a.textContent=d.slice(prefix.length);ed.classList.add('html-source-mode');
-    }else if(oldAnnouncement){
-     a.dataset.htmlSource='1';a.textContent=d;ed.classList.add('html-source-mode');
-    }else a.innerHTML=sanitize(d);
-    const isSource=a.dataset.htmlSource==='1';
-    const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=isSource;
-    const toggle=ed.querySelector('[data-editor-action="toggle-html"]');if(toggle&&isSource)toggle.textContent='👁 แก้ไขแบบแสดงผล';
+    if(d.startsWith(prefix))a.innerHTML=sanitize(d.slice(prefix.length));
+    else a.innerHTML=sanitize(d);
+    delete a.dataset.htmlSource;ed.classList.remove('html-source-mode');
+    const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=false;
     setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300);
    }
   }
-  if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.dataset.htmlSource==='1'?'__STARLIGHT_HTML_SOURCE__\\n'+a.textContent:a.innerHTML)});
+  if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.innerHTML)});
   if(a)a.addEventListener('paste',e=>{
    const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();
-   if(a.dataset.htmlSource==='1'){document.execCommand('insertText',false,tx||h);return}
-   document.execCommand('insertHTML',false,h?sanitize(h):esc(tx).replace(/\\n/g,'<br>'));
+   const html=h?sanitize(h):(/<\\/?[a-z][\\w:-]*(?:\\s[^<>]*?)?\\s*\\/?>/i.test(tx)?sanitize(tx):esc(tx).replace(/\\n/g,'<br>'));
+   document.execCommand('insertHTML',false,html);
   });
   ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
   a?.addEventListener('blur',()=>{if(a.dataset.htmlSource!=='1')edParseInlineHTML(a);saveSel();});
