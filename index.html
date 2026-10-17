@@ -627,6 +627,16 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 .bio-application-copy p{margin:0 0 13px;font-size:.87rem;line-height:1.8;color:var(--mut)}
 .character-register-form>.topic-composer-heading{margin:-4px -4px 20px;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .character-register-form .bio-link-field{margin-top:20px;padding:16px;border:1px solid #c5a8ed33;border-radius:13px;background:#c5a8ed0b}
+.agency-members-panel{margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.agency-members-panel h4{margin:0 0 5px}
+.agency-members-panel .agency-members-help{margin:0 0 12px;color:var(--mut);font-size:.82rem;line-height:1.7}
+.agency-members-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;max-height:380px;overflow:auto;padding:2px}
+.agency-member-option{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--card2);cursor:pointer;color:var(--txt);min-width:0}
+.agency-member-option input{width:auto;flex:0 0 auto;margin:0}
+.agency-member-option .member-info{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+.agency-member-option .member-info b{font-size:.88rem}
+.agency-member-option .member-info small{font-size:.74rem;color:var(--mut);line-height:1.45}
+.agency-member-option .member-status{font-size:.7rem;border:1px solid var(--line);border-radius:99px;padding:1px 6px;margin-left:4px}
 .bio-link-field .bio-step-number{margin-bottom:10px}
 .bio-link-copy label{font-size:1rem;color:var(--txt)}
 .bio-link-copy p{margin:4px 0 12px;font-size:.82rem;color:var(--mut);line-height:1.7}
@@ -3788,6 +3798,7 @@ function pageAgency(id){
 }
 function agencyForm(a){
  const v={name:'',color:'#8b7bff',avatar:'',desc:'',html:'',recruiting:true,...(a||{})};
+ const members=DB.get('characters').filter(c=>c.status==='approved'||c.status==='pending').sort((x,y)=>String(x.stageName||x.name||'').localeCompare(String(y.stageName||y.name||'')));
  return `<form class="card" onsubmit="doSaveAgency(event,'${a?.id||''}')"><h3 style="margin-top:0">${a?'✏️ แก้ไขค่าย':'🏢 สร้างค่ายเพลงใหม่'}</h3>
  <div class="row"><div class="f1"><label>ชื่อค่าย *</label><input name="name" required maxlength="40" value="${esc(v.name)}"></div><div style="width:120px"><label>สีประจำค่าย</label><input type="color" name="color" value="${esc(v.color)}"></div></div>
  <label>ลิงก์โลโก้ (https://...)</label><input name="avatar" type="url" value="${esc(v.avatar)}">
@@ -3795,13 +3806,27 @@ function agencyForm(a){
  <label>💻 หน้าค่ายแบบโค้ดอิสระ (HTML/CSS/JS)</label><textarea name="html" rows="6" class="code">${esc(v.html)}</textarea>
  <button type="button" class="btn sm ghost" onclick="pvField(this.form,'html')">👁 พรีวิว</button><div class="preview" hidden></div><br>
  <label class="row" style="color:var(--txt)"><input type="checkbox" name="recruiting" ${v.recruiting?'checked':''} style="width:auto;margin:0"> เปิดรับเด็กฝึก</label><br>
- <button class="btn">${a?'บันทึก':'สร้างค่าย'}</button></form>`;
+ ${a?`<section class="agency-members-panel"><h4>👥 จัดการสมาชิกในค่าย</h4><p class="agency-members-help">เลือกตัวละครที่ต้องการให้สังกัดค่ายนี้ได้โดยตรง เมื่อบันทึกแล้ว สมาชิกที่อนุมัติแล้วจะแสดงในหน้าค่ายทันที ตัวละครที่ยังรออนุมัติจะปรากฏหลังได้รับการอนุมัติ · การเอาเครื่องหมายออกจะยกเลิกสังกัดเฉพาะตัวละครที่อยู่ค่ายนี้</p><div class="agency-members-grid">${members.length?members.map(c=>`<label class="agency-member-option"><input type="checkbox" name="agencyMembers" value="${esc(c.id)}" ${c.agencyId===a.id?'checked':''}><span>${avatar(c,40)}</span><span class="member-info"><b>${esc(c.stageName||c.name)} ${c.status==='pending'?'<span class="member-status">รออนุมัติ</span>':''}</b><small>${esc(DB.get('users').find(u=>u.id===c.ownerId)?.username||'สมาชิก')}${c.agencyId&&c.agencyId!==a.id?' · ย้ายจาก '+esc(agencyOf(c.agencyId)?.name||'ค่ายอื่น'):''}</small></span></label>`).join(''):'<span class="mut">ยังไม่มีตัวละครที่อนุมัติหรือรออนุมัติ</span>'}</div></section>`:''}
+ <br><button class="btn">${a?'บันทึกค่ายและสมาชิก':'สร้างค่าย'}</button></form>`;
 }
-function doSaveAgency(e,id){
+async function doSaveAgency(e,id){
  e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
  const d={name:E.name.value.trim(),color:E.color.value,avatar:E.avatar.value.trim(),desc:edGet(edOf(f,'desc')).content,descMode:'rich',html:E.html.value,recruiting:E.recruiting.checked};
- if(id){update('agencies',id,a=>Object.assign(a,d));toast('บันทึกแล้ว');return go('agency/'+id)}
- const ags=DB.get('agencies'),na={id:uid(),createdAt:Date.now(),...d};ags.push(na);DB.set('agencies',ags);toast('สร้างค่ายแล้ว');go('agency/'+na.id);
+ if(id){
+  update('agencies',id,a=>Object.assign(a,d));
+  const selected=new Set([...f.querySelectorAll('input[name="agencyMembers"]:checked')].map(x=>x.value));
+  const characters=DB.get('characters');let changed=false;
+  characters.forEach(c=>{
+   if(selected.has(c.id)&&c.agencyId!==id){c.agencyId=id;changed=true}
+   else if(!selected.has(c.id)&&c.agencyId===id){c.agencyId='';changed=true}
+  });
+  if(changed)DB.set('characters',characters);
+  if(cloudReady)await cloudQueue;
+  toast('บันทึกข้อมูลค่ายและสมาชิกแล้ว');return go('agency/'+id);
+ }
+ const ags=DB.get('agencies'),na={id:uid(),createdAt:Date.now(),...d};ags.push(na);DB.set('agencies',ags);
+ if(cloudReady)await cloudQueue;
+ toast('สร้างค่ายแล้ว — เลือกสมาชิกต่อได้');go('editagency/'+na.id);
 }
 function pageEditAgency(id){if(!isAdmin())return go('home');const a=agencyOf(id);app(a?`<a href="#agency/${id}">← กลับ</a><br><br>`+agencyForm(a):'<div class="card">ไม่พบค่าย</div>')}
 async function deleteAgency(id){
