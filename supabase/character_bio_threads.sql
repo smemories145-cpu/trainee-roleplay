@@ -205,3 +205,6 @@ revoke all on function public.site_create_character_bio_thread(jsonb) from publi
 grant execute on function public.site_create_character_bio_thread(jsonb) to authenticated;
 revoke all on function public.site_update_character_bio_thread(jsonb) from public, anon;
 grant execute on function public.site_update_character_bio_thread(jsonb) to authenticated;
+
+-- Refresh PostgREST's schema cache so the frontend can resolve these RPC signatures.
+notify pgrst, 'reload schema';
