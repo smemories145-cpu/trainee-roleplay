@@ -2044,7 +2044,7 @@ function sanitize(html){
    if(k==='src'){
     if(tag==='IFRAME'){if(!/^https:\/\/(www\.)?(youtube(-nocookie)?\.com\/embed\/|open\.spotify\.com\/embed\/)/i.test(v)){c.remove();return}continue}
     if(!/^(https?:|data:image\/)/i.test(v))c.removeAttribute(a.name);continue}
-   if(k==='style'){if(/expression|javascript:/i.test(v)){c.removeAttribute(a.name);continue}const fixed=v.replace(/font-family\s*:\s*([^;}]*)/gi,(m,f)=>/TH\s*Sarabun|Sarabun\s*New|Angsana\s*New|Cordia\s*New|Browallia/i.test(f)?\"font-family:'Sarabun','Noto Sans Thai','Prompt',sans-serif\":m);c.setAttribute('style',fixed);continue}
+   if(k==='style'){if(/expression|javascript:/i.test(v)){c.removeAttribute(a.name);continue}const fixed=v.replace(/font-family\s*:\s*([^;}]*)/gi,(m,f)=>/TH\s*Sarabun|Sarabun\s*New|Angsana\s*New|Cordia\s*New|Browallia/i.test(f)?"font-family:'Sarabun','Noto Sans Thai','Prompt',sans-serif":m);c.setAttribute('style',fixed);continue}
    if(k==='target'||k==='rel')continue;
    if(!OK_ATTR.includes(k))c.removeAttribute(a.name);
   }
@@ -2520,11 +2520,11 @@ function applyCharacterProfileTemplate(button){
 }
 function richEditor(name,val='',o={}){
  const id='ed'+(++EDN);
- return \`<div class="ed" id="\${id}" data-name="\${name}" data-mode="rich" data-draft="\${esc(o.draft||'')}" data-tpl="\${esc(o.tpl||'')}">
+ return `<div class="ed" id="${id}" data-name="${name}" data-mode="rich" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
  <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><span class="ed-count"></span></div></div>
- <div class="ed-bar">\${edBar(id)}</div>
- <div class="ed-area rich" contenteditable="true" data-ph="\${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">\${sanitize(val)}</div>
- <div class="ed-foot"><span class="ed-hint">💡 พิมพ์หรือวางโค้ด HTML ในช่องนี้ได้เลย แล้วปรับแต่งข้อความ สี และขนาดต่อได้ทันที</span><span>Ctrl+Enter = ส่ง</span></div></div>\`;
+ <div class="ed-bar">${edBar(id)}</div>
+ <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sanitize(val)}</div>
+ <div class="ed-foot"><span class="ed-hint">💡 พิมพ์หรือวางโค้ด HTML ในช่องนี้ได้เลย แล้วปรับแต่งข้อความ สี และขนาดต่อได้ทันที</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function editorIcon(name){
  const p={
@@ -2555,16 +2555,16 @@ function editorIcon(name){
  return '<svg class="editor-icon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(p[name]||p.code)+'</svg>';
 }
 function edBar(id){
- const b=(t,cmd,icon,val)=>\`<button type="button" class="ed-tool" title="\${t}" aria-label="\${t}" onmousedown="event.preventDefault()" onclick="ex('\${id}','\${cmd}'\${val?\`,'\${val}'\`:''})">\${editorIcon(icon)}</button>\`;
- const fn=(t,f,icon)=>\`<button type="button" class="ed-tool" title="\${t}" aria-label="\${t}" onmousedown="event.preventDefault()" onclick="\${f}('\${id}')">\${editorIcon(icon)}</button>\`;
- return \`<div class="ed-g ed-g-history">\${b('ย้อนกลับ','undo','undo')}\${b('ทำซ้ำ','redo','redo')}</div>
- <div class="ed-g ed-g-format"><label class="ed-select-wrap" title="รูปแบบย่อหน้า">\${editorIcon('paragraph')}<select aria-label="รูปแบบย่อหน้า" onchange="if(this.value){ex('\${id}','formatBlock','<'+this.value+'>');this.value=''}"><option value="">ย่อหน้า</option><option value="p">ข้อความปกติ</option><option value="h2">หัวข้อใหญ่</option><option value="h3">หัวข้อย่อย</option><option value="blockquote">กล่องอ้างอิง</option></select></label>
- <label class="ed-select-wrap" title="ขนาดตัวอักษร">\${editorIcon('size')}<select aria-label="ขนาดตัวอักษร" onchange="if(this.value){edFontSize('\${id}',this.value);this.value=''}"><option value="">ขนาด px</option><option value="12">12 px</option><option value="14">14 px</option><option value="16">16 px</option><option value="18">18 px</option><option value="20">20 px</option><option value="24">24 px</option><option value="28">28 px</option><option value="32">32 px</option><option value="36">36 px</option><option value="48">48 px</option></select></label></div>
- <div class="ed-g ed-g-text">\${b('ตัวหนา (Ctrl+B)','bold','bold')}\${b('ตัวเอียง (Ctrl+I)','italic','italic')}\${b('ขีดเส้นใต้ (Ctrl+U)','underline','underline')}\${b('ขีดฆ่า','strikeThrough','strike')}
- <label class="ed-color-tool" title="สีตัวอักษร" aria-label="สีตัวอักษร">\${editorIcon('color')}<input type="color" aria-label="เลือกสีตัวอักษร" value="#d6d6dc" oninput="edSyncHex(this)" onchange="ex('\${id}','foreColor',this.value)"><input class="ed-hex" type="text" value="#D6D6DC" maxlength="7" spellcheck="false" aria-label="รหัส HEX สีตัวอักษร" title="ใส่รหัส HEX เช่น #FFCC00" onchange="edSetHexColor('\${id}',this,'foreColor')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"></label>
- <label class="ed-color-tool" title="ไฮไลต์ข้อความ" aria-label="ไฮไลต์ข้อความ">\${editorIcon('highlight')}<input type="color" aria-label="เลือกสีไฮไลต์" value="#e5c879" oninput="edSyncHex(this)" onchange="ex('\${id}','hiliteColor',this.value)"><input class="ed-hex" type="text" value="#E5C879" maxlength="7" spellcheck="false" aria-label="รหัส HEX สีไฮไลต์" title="ใส่รหัส HEX เช่น #FFCC00" onchange="edSetHexColor('\${id}',this,'hiliteColor')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"></label></div>
- <div class="ed-g ed-g-align">\${b('ชิดซ้าย','justifyLeft','left')}\${b('กึ่งกลาง','justifyCenter','center')}\${b('ชิดขวา','justifyRight','right')}\${b('เต็มแนว','justifyFull','justify')}\${b('รายการจุด','insertUnorderedList','list')}\${b('รายการตัวเลข','insertOrderedList','ordered')}</div>
- <div class="ed-g ed-g-insert">\${fn('แทรกลิงก์','edLink','link')}\${fn('แทรกรูปภาพ','edImg','image')}\${fn('แทรก YouTube','edYT','video')}\${b('ขึ้นบรรทัดใหม่','insertHTML','br','<br>')}\${b('เส้นคั่น','insertHorizontalRule','hr')}\${fn('กล่องซ่อนข้อความ','edSpoiler','spoiler')}\${fn('แทรกโค้ด HTML','edInsertHTML','code')}</div>\`;
+ const b=(t,cmd,icon,val)=>`<button type="button" class="ed-tool" title="${t}" aria-label="${t}" onmousedown="event.preventDefault()" onclick="ex('${id}','${cmd}'${val?`,'${val}'`:''})">${editorIcon(icon)}</button>`;
+ const fn=(t,f,icon)=>`<button type="button" class="ed-tool" title="${t}" aria-label="${t}" onmousedown="event.preventDefault()" onclick="${f}('${id}')">${editorIcon(icon)}</button>`;
+ return `<div class="ed-g ed-g-history">${b('ย้อนกลับ','undo','undo')}${b('ทำซ้ำ','redo','redo')}</div>
+ <div class="ed-g ed-g-format"><label class="ed-select-wrap" title="รูปแบบย่อหน้า">${editorIcon('paragraph')}<select aria-label="รูปแบบย่อหน้า" onchange="if(this.value){ex('${id}','formatBlock','<'+this.value+'>');this.value=''}"><option value="">ย่อหน้า</option><option value="p">ข้อความปกติ</option><option value="h2">หัวข้อใหญ่</option><option value="h3">หัวข้อย่อย</option><option value="blockquote">กล่องอ้างอิง</option></select></label>
+ <label class="ed-select-wrap" title="ขนาดตัวอักษร">${editorIcon('size')}<select aria-label="ขนาดตัวอักษร" onchange="if(this.value){edFontSize('${id}',this.value);this.value=''}"><option value="">ขนาด px</option><option value="12">12 px</option><option value="14">14 px</option><option value="16">16 px</option><option value="18">18 px</option><option value="20">20 px</option><option value="24">24 px</option><option value="28">28 px</option><option value="32">32 px</option><option value="36">36 px</option><option value="48">48 px</option></select></label></div>
+ <div class="ed-g ed-g-text">${b('ตัวหนา (Ctrl+B)','bold','bold')}${b('ตัวเอียง (Ctrl+I)','italic','italic')}${b('ขีดเส้นใต้ (Ctrl+U)','underline','underline')}${b('ขีดฆ่า','strikeThrough','strike')}
+ <label class="ed-color-tool" title="สีตัวอักษร" aria-label="สีตัวอักษร">${editorIcon('color')}<input type="color" aria-label="เลือกสีตัวอักษร" value="#d6d6dc" oninput="edSyncHex(this)" onchange="ex('${id}','foreColor',this.value)"><input class="ed-hex" type="text" value="#D6D6DC" maxlength="7" spellcheck="false" aria-label="รหัส HEX สีตัวอักษร" title="ใส่รหัส HEX เช่น #FFCC00" onchange="edSetHexColor('${id}',this,'foreColor')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"></label>
+ <label class="ed-color-tool" title="ไฮไลต์ข้อความ" aria-label="ไฮไลต์ข้อความ">${editorIcon('highlight')}<input type="color" aria-label="เลือกสีไฮไลต์" value="#e5c879" oninput="edSyncHex(this)" onchange="ex('${id}','hiliteColor',this.value)"><input class="ed-hex" type="text" value="#E5C879" maxlength="7" spellcheck="false" aria-label="รหัส HEX สีไฮไลต์" title="ใส่รหัส HEX เช่น #FFCC00" onchange="edSetHexColor('${id}',this,'hiliteColor')" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"></label></div>
+ <div class="ed-g ed-g-align">${b('ชิดซ้าย','justifyLeft','left')}${b('กึ่งกลาง','justifyCenter','center')}${b('ชิดขวา','justifyRight','right')}${b('เต็มแนว','justifyFull','justify')}${b('รายการจุด','insertUnorderedList','list')}${b('รายการตัวเลข','insertOrderedList','ordered')}</div>
+ <div class="ed-g ed-g-insert">${fn('แทรกลิงก์','edLink','link')}${fn('แทรกรูปภาพ','edImg','image')}${fn('แทรก YouTube','edYT','video')}${b('ขึ้นบรรทัดใหม่','insertHTML','br','<br>')}${b('เส้นคั่น','insertHorizontalRule','hr')}${fn('กล่องซ่อนข้อความ','edSpoiler','spoiler')}${fn('แทรกโค้ด HTML','edInsertHTML','code')}</div>`;
 }
 function saveSel(){const s=getSelection();if(!s.rangeCount)return;const r=s.getRangeAt(0),n=r.startContainer,el=n.nodeType===1?n:n.parentElement;if(el?.closest('.ed-area'))SEL=r.cloneRange()}
 function edFocus(id){
