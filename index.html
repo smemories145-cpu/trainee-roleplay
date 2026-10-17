@@ -3779,15 +3779,19 @@ async function giveWon(id){
 }
 
 /* ================= AGENCIES ================= */
+function agencyMembers(a){
+ const chars=DB.get('characters'),linked=new Set((a?.memberCharacterIds||[]).map(String));
+ return chars.filter(c=>c.status==='approved'&&(c.agencyId===a?.id||linked.has(String(c.id))));
+}
 function agencyCard(a){
- const cs=DB.get('characters').filter(c=>c.agencyId===a.id&&c.status==='approved').length,gs=DB.get('groups').filter(g=>g.agencyId===a.id&&g.status==='debuted').length;
+ const cs=agencyMembers(a).length,gs=DB.get('groups').filter(g=>g.agencyId===a.id&&g.status==='debuted').length;
  return `<a class="card item" href="#agency/${a.id}" style="text-align:center;margin:0;border-top:4px solid ${esc(a.color)}"><div style="display:flex;justify-content:center">${avatar(a,80)}</div><h3 style="margin:10px 0 4px">${esc(a.name)}</h3>
   <div class="mut">👥 ${cs} คน · 🎤 ${gs} วงเดบิวต์</div><div style="margin-top:6px">${a.recruiting?'<span class="badge" style="--c:var(--ok)">เปิดรับเด็กฝึก</span>':'<span class="badge" style="--c:var(--mut)">ปิดรับ</span>'}</div></a>`;
 }
 function pageAgencies(){const ags=DB.get('agencies');app(`<div class="row between"><h2>🏢 ค่ายเพลง</h2>${isAdmin()?'<a class="btn" href="#admin/agencies">+ จัดการค่าย</a>':''}</div>${ags.length?`<div class="grid">${ags.map(agencyCard).join('')}</div>`:'<div class="card mut">ยังไม่มีค่ายเพลง</div>'}`)}
 function pageAgency(id){
  const a=agencyOf(id);if(!a)return app('<div class="card">ไม่พบค่าย</div>');
- const cs=DB.get('characters').filter(c=>c.agencyId===id&&c.status==='approved').sort((x,y)=>y.stage-x.stage||y.exp-x.exp),gs=DB.get('groups').filter(g=>g.agencyId===id&&g.status!=='disbanded');
+ const cs=agencyMembers(a).sort((x,y)=>y.stage-x.stage||y.exp-x.exp),gs=DB.get('groups').filter(g=>g.agencyId===id&&g.status!=='disbanded');
  app(`<a href="#agencies">← ค่ายทั้งหมด</a><br><br>
  <div class="card" style="border-top:4px solid ${esc(a.color)}"><div class="row" style="gap:20px">${avatar(a,100)}<div class="f1"><h2 style="margin:0">${esc(a.name)}</h2><div class="mut">👥 ${cs.length} คน · 🎤 ${gs.length} วง</div>${a.recruiting?'<span class="badge" style="--c:var(--ok)">เปิดรับเด็กฝึก</span>':''}</div></div>
   ${a.desc?`<br>${renderBody(a.desc,a.descMode)}`:''}
@@ -3806,15 +3810,15 @@ function agencyForm(a){
  <label>💻 หน้าค่ายแบบโค้ดอิสระ (HTML/CSS/JS)</label><textarea name="html" rows="6" class="code">${esc(v.html)}</textarea>
  <button type="button" class="btn sm ghost" onclick="pvField(this.form,'html')">👁 พรีวิว</button><div class="preview" hidden></div><br>
  <label class="row" style="color:var(--txt)"><input type="checkbox" name="recruiting" ${v.recruiting?'checked':''} style="width:auto;margin:0"> เปิดรับเด็กฝึก</label><br>
- ${a?`<section class="agency-members-panel"><h4>👥 จัดการสมาชิกในค่าย</h4><p class="agency-members-help">เลือกตัวละครที่ต้องการให้สังกัดค่ายนี้ได้โดยตรง เมื่อบันทึกแล้ว สมาชิกที่อนุมัติแล้วจะแสดงในหน้าค่ายทันที ตัวละครที่ยังรออนุมัติจะปรากฏหลังได้รับการอนุมัติ · การเอาเครื่องหมายออกจะยกเลิกสังกัดเฉพาะตัวละครที่อยู่ค่ายนี้</p><div class="agency-members-grid">${members.length?members.map(c=>`<label class="agency-member-option"><input type="checkbox" name="agencyMembers" value="${esc(c.id)}" ${c.agencyId===a.id?'checked':''}><span>${avatar(c,40)}</span><span class="member-info"><b>${esc(c.stageName||c.name)} ${c.status==='pending'?'<span class="member-status">รออนุมัติ</span>':c.status==='rejected'?'<span class="member-status">ไม่ผ่าน</span>':''}</b><small>${esc(DB.get('users').find(u=>u.id===c.ownerId)?.username||'สมาชิก')}${c.agencyId&&c.agencyId!==a.id?' · ย้ายจาก '+esc(agencyOf(c.agencyId)?.name||'ค่ายอื่น'):''}</small></span></label>`).join(''):'<span class="mut">ยังไม่มีตัวละครที่อนุมัติหรือรออนุมัติ</span>'}</div></section>`:''}
+ ${a?`<section class="agency-members-panel"><h4>👥 จัดการสมาชิกในค่าย</h4><p class="agency-members-help">เลือกตัวละครที่ต้องการให้สังกัดค่ายนี้ได้โดยตรง เมื่อบันทึกแล้ว สมาชิกที่อนุมัติแล้วจะแสดงในหน้าค่ายทันที ตัวละครที่ยังรออนุมัติจะปรากฏหลังได้รับการอนุมัติ · การเอาเครื่องหมายออกจะยกเลิกสังกัดเฉพาะตัวละครที่อยู่ค่ายนี้</p><div class="agency-members-grid">${members.length?members.map(c=>`<label class="agency-member-option"><input type="checkbox" name="agencyMembers" value="${esc(c.id)}" ${(c.agencyId===a.id||(a.memberCharacterIds||[]).map(String).includes(String(c.id)))?'checked':''}><span>${avatar(c,40)}</span><span class="member-info"><b>${esc(c.stageName||c.name)} ${c.status==='pending'?'<span class="member-status">รออนุมัติ</span>':c.status==='rejected'?'<span class="member-status">ไม่ผ่าน</span>':''}</b><small>${esc(DB.get('users').find(u=>u.id===c.ownerId)?.username||'สมาชิก')}${c.agencyId&&c.agencyId!==a.id?' · ย้ายจาก '+esc(agencyOf(c.agencyId)?.name||'ค่ายอื่น'):''}</small></span></label>`).join(''):'<span class="mut">ยังไม่มีตัวละครที่อนุมัติหรือรออนุมัติ</span>'}</div></section>`:''}
  <br><button class="btn">${a?'บันทึกค่ายและสมาชิก':'สร้างค่าย'}</button></form>`;
 }
 async function doSaveAgency(e,id){
  e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
  const d={name:E.name.value.trim(),color:E.color.value,avatar:E.avatar.value.trim(),desc:edGet(edOf(f,'desc')).content,descMode:'rich',html:E.html.value,recruiting:E.recruiting.checked};
  if(id){
-  update('agencies',id,a=>Object.assign(a,d));
   const selected=new Set([...f.querySelectorAll('input[name="agencyMembers"]:checked')].map(x=>x.value));
+  update('agencies',id,a=>Object.assign(a,d,{memberCharacterIds:[...selected]}));
   const characters=DB.get('characters');let changed=false;
   characters.forEach(c=>{
    if(selected.has(c.id)&&c.agencyId!==id){c.agencyId=id;changed=true}
@@ -3824,7 +3828,7 @@ async function doSaveAgency(e,id){
   if(cloudReady)await cloudQueue;
   toast('บันทึกข้อมูลค่ายและสมาชิกแล้ว');return go('agency/'+id);
  }
- const ags=DB.get('agencies'),na={id:uid(),createdAt:Date.now(),...d};ags.push(na);DB.set('agencies',ags);
+ const ags=DB.get('agencies'),na={id:uid(),createdAt:Date.now(),memberCharacterIds:[],...d};ags.push(na);DB.set('agencies',ags);
  if(cloudReady)await cloudQueue;
  toast('สร้างค่ายแล้ว — เลือกสมาชิกต่อได้');go('editagency/'+na.id);
 }
@@ -4128,7 +4132,7 @@ function pageAdmin(tab,sub,sub2){
   <td><div class="row"><a class="btn sm ghost" href="#admin/shop/${it.id}">แก้ไข</a><button class="btn sm bad" onclick="deleteItem('${it.id}')">ลบ</button></div></div></td></tr>`).join('')}</table>${items.length?'':'<p class="mut">ยังไม่มีสินค้า</p>'}</div>`;
  }else if(tab==='agencies'){
   body=`${ags.length?`<div class="card" style="overflow-x:auto"><table><tr><th>ค่าย</th><th>รับสมัคร</th><th>สมาชิก</th><th></th></tr>
-  ${ags.map(a=>`<tr><td><a href="#agency/${a.id}">${esc(a.name)}</a></td><td>${a.recruiting?'🟢 เปิด':'⚪ ปิด'}</td><td>${chars.filter(c=>c.agencyId===a.id&&c.status==='approved').length}</td>
+  ${ags.map(a=>`<tr><td><a href="#agency/${a.id}">${esc(a.name)}</a></td><td>${a.recruiting?'🟢 เปิด':'⚪ ปิด'}</td><td>${agencyMembers(a).length}</td>
   <td><div class="row"><a class="btn sm ghost" href="#editagency/${a.id}">แก้ไข</a><button class="btn sm bad" onclick="deleteAgency('${a.id}')">ลบ</button></div></div></td></tr>`).join('')}</table></div>`:''}${agencyForm()}`;
  }else if(tab==='groups'){
   const ready=chars.filter(c=>c.status==='approved'&&c.stage>=DEBUT_STAGE&&!groupOf(c.id));
