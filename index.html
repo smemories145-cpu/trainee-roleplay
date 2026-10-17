@@ -580,6 +580,16 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 .ed-head-actions .btn{white-space:nowrap}
 .ed.html-source-mode .ed-area{font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);color:var(--txt);tab-size:2}
 .ed.html-source-mode .ed-bar{display:none!important}
+.admin-permissions-modal{width:min(760px,calc(100vw - 24px));max-width:760px;max-height:min(88vh,900px);overflow:auto}
+.admin-permissions-modal .mut{font-size:.85rem;line-height:1.7;margin:0 0 14px}
+.admin-permissions-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.admin-permission-option{display:flex;align-items:flex-start;gap:10px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card2);cursor:pointer;min-width:0}
+.admin-permission-option input{margin:3px 0 0;flex:none;width:17px;height:17px;accent-color:var(--pri)}
+.admin-permission-option span{display:grid;gap:4px;min-width:0}
+.admin-permission-option b{font-size:.9rem;line-height:1.45}
+.admin-permission-option small{font-size:.76rem;line-height:1.6;color:var(--mut)}
+@media(max-width:620px){.admin-permissions-list{grid-template-columns:1fr}.admin-permissions-modal{padding:15px}}
+
 .ed .ed-source-area{display:block;width:100%;min-height:300px;max-height:70vh;resize:vertical;box-sizing:border-box;border:0;outline:none;border-radius:0;padding:16px;background:var(--bg);color:var(--txt);font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre;overflow:auto;tab-size:2}
 .ed .ed-source-area[hidden],.ed .ed-area[hidden]{display:none!important}
 .ed.html-source-mode .ed-source-area{background:var(--bg);color:var(--txt)}
@@ -2016,7 +2026,22 @@ async function hash(s){
  return 'f'+(h2>>>0).toString(16)+(h1>>>0).toString(16);
 }
 function me(){const id=store.getItem('sa_session');return DB.get('users').find(u=>u.id===id)}
-const isAdmin=()=>cloudProfile?cloudProfile.role==='admin':me()?.role==='admin';
+const isAdmin=()=>cloudProfile?cloudProfile.role==='admin':(me()?.role==='admin'&&!(Array.isArray(me()?.permissions)&&me().permissions.length>0));
+const ADMIN_PERMISSION_OPTIONS=[
+ {key:'manage_character_review',label:'อนุมัติ / ปฏิเสธตัวละคร',desc:'ตรวจตัวละครใหม่และเปลี่ยนสถานะอนุมัติ'},
+ {key:'manage_characters',label:'จัดการตัวละครและความก้าวหน้า',desc:'แก้ไขข้อมูลตัวละคร เลื่อนขั้น และปรับ EXP'},
+ {key:'manage_economy',label:'จัดการเงินวอน',desc:'เพิ่มหรือหักเงินของตัวละคร'},
+ {key:'manage_posts',label:'ดูแลโพสต์',desc:'แก้ไขหรือลบโพสต์ของสมาชิกคนอื่น'},
+ {key:'manage_threads',label:'จัดการกระทู้',desc:'สร้าง แก้ไข ปักหมุด ปิด และลบกระทู้'},
+ {key:'manage_forums',label:'จัดการฟอรั่ม',desc:'สร้าง แก้ไข จัดหมวดหมู่ และเรียงลำดับฟอรั่ม'},
+ {key:'manage_shop',label:'จัดการร้านค้า',desc:'เพิ่ม แก้ไข และลบสินค้า'},
+ {key:'manage_agencies',label:'จัดการค่ายเพลง',desc:'สร้าง แก้ไข และลบค่าย รวมถึงจัดสมาชิก'},
+ {key:'manage_groups',label:'จัดการศิลปินและวง',desc:'จัดสมาชิกวง เปลี่ยนสถานะ และประกาศเดบิวต์'},
+ {key:'manage_members',label:'ดูรายชื่อสมาชิก',desc:'เข้าดูรายชื่อและบทบาทสมาชิก โดยไม่สามารถเปลี่ยนสิทธิ์แอดมิน'},
+ {key:'manage_settings',label:'ตั้งค่าเว็บไซต์',desc:'เปลี่ยนชื่อเว็บ ธีม ข้อความหน้าแรก และ CSS'}
+];
+const hasAdminPermission=key=>{if(isAdmin())return true;const u=me();return !!(u&&u.role==='admin'&&Array.isArray(u.permissions)&&u.permissions.includes(key));};
+const canAccessAdminPanel=()=>isAdmin()||ADMIN_PERMISSION_OPTIONS.some(p=>hasAdminPermission(p.key));
 const canCode=()=>S.allowPlayerCode||isAdmin();
 function update(k,id,fn){const a=DB.get(k);const o=a.find(x=>x.id===id);if(o){fn(o);DB.set(k,a)}return o}
 function toast(m,t='ok'){const e=document.getElementById('toast');if(!e)return;e.textContent=m;e.className='show '+(t==='bad'?'bad':'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='',3500)}
@@ -3317,7 +3342,7 @@ function ensureKimAdminCharacter(u){
  if(changed)DB.set('characters',cs);
 }
 function renderNav(){
- const u=me(),pc=pendingCount(),admin=!!u&&isAdmin();
+ const u=me(),pc=pendingCount(),admin=!!u&&isAdmin(),adminPanel=!!u&&canAccessAdminPanel();
  if(admin)ensureKimAdminCharacter(u);
  let pill='';
  if(u){
@@ -3330,7 +3355,7 @@ function renderNav(){
  <div class="links">
   <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a><button type="button" class="btn sm ghost theme-open-btn" onclick="openThemePicker()">🎨 สีธีม</button>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
-  ${admin?`<a href="#admin">👑 แอดมิน ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
+  ${adminPanel?`<a href="#admin">👑 แผงดูแล ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
   ${u?`${pill}<a href="#profile/${u.id}" class="row" style="color:var(--txt);gap:6px">${avatar(u,30)}<span>${esc(u.username)}</span></a><a href="#settings" class="btn sm ghost" style="padding:4px 8px">⚙️</a><button class="btn sm ghost" onclick="logout()">ออก</button>`
      :'<a href="#login">เข้าสู่ระบบ</a><a href="#register" class="btn sm">สมัครสมาชิก</a>'}
  </div>`;
@@ -3446,11 +3471,11 @@ function pageHome(){
   ${S.homeHtml?`<div class="card home-custom-content">${codeFrame(S.homeHtml)}</div>`:''}
   <section class="home-quicklinks"><a href="#threads"><span class="quick-icon">✧</span><span><b>ฟอรั่ม</b><small>พูดคุยและสร้างเรื่องราว</small></span><strong>↗</strong></a><a href="#chars"><span class="quick-icon">✦</span><span><b>ทำเนียบเด็กฝึก</b><small>ค้นพบตัวละครในชุมชน</small></span><strong>↗</strong></a><a href="#agencies"><span class="quick-icon">☾</span><span><b>ค่ายเพลง</b><small>สำรวจค่ายและโอกาสใหม่</small></span><strong>↗</strong></a><a href="#groups"><span class="quick-icon">♢</span><span><b>ศิลปินและวง</b><small>พบกับผลงานและยูนิตต่าง ๆ</small></span><strong>↗</strong></a></section>
   <section class="home-section"><div class="home-section-heading"><div><span class="home-kicker">LATEST STORIES</span><h2>เรื่องราวล่าสุด <span>✦</span></h2><p class="mut">ติดตามความเคลื่อนไหวจากทุกมุมของชุมชน</p></div><a class="home-text-link" href="#threads">ดูฟอรั่มทั้งหมด ↗</a></div><div class="home-recent-list">${recentHtml}</div></section>
-  <section class="home-section"><div class="home-section-heading"><div><span class="home-kicker">EXPLORE THE COMMUNITY</span><h2>พื้นที่ของเรา <span>✧</span></h2><p class="mut">เลือกบอร์ดที่สนใจ แล้วเริ่มต้นเรื่องราวของคุณ</p></div>${isAdmin()?'<a class="btn sm ghost" href="#admin/forums">จัดการฟอรั่ม</a>':''}</div><div class="home-forums">${forumHtml||'<div class="home-empty">ยังไม่มีหมวดหมู่ฟอรั่ม</div>'}</div></section>`);
+  <section class="home-section"><div class="home-section-heading"><div><span class="home-kicker">EXPLORE THE COMMUNITY</span><h2>พื้นที่ของเรา <span>✧</span></h2><p class="mut">เลือกบอร์ดที่สนใจ แล้วเริ่มต้นเรื่องราวของคุณ</p></div>${hasAdminPermission('manage_forums')?'<a class="btn sm ghost" href="#admin/forums">จัดการฟอรั่ม</a>':''}</div><div class="home-forums">${forumHtml||'<div class="home-empty">ยังไม่มีหมวดหมู่ฟอรั่ม</div>'}</div></section>`);
 }
 function pageThreads(){
  const th=DB.get('threads').sort(sortThreads);
- app(`<div class="row between"><h2>💬 กระทู้ทั้งหมด</h2>${isAdmin()?'<a class="btn" href="#admin/newthread">+ สร้างกระทู้</a>':''}</div>${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้</div>'}`);
+ app(`<div class="row between"><h2>💬 กระทู้ทั้งหมด</h2>${hasAdminPermission('manage_threads')?'<a class="btn" href="#admin/newthread">+ สร้างกระทู้</a>':''}</div>${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้</div>'}`);
 }
 function pageForum(fid){
  const forums=DB.get('forums'),f=forums.find(x=>x.id===fid);if(!f)return app('<div class="card">ไม่พบฟอรั่มนี้</div>');
@@ -3461,12 +3486,12 @@ function pageForum(fid){
  const bgStyle=f.banner&&/^https?:\/\//i.test(f.banner)?`style="background-image:url('${esc(f.banner)}');background-size:${f.bannerFit==='contain'?'contain':'cover'};background-position:${['center','top','bottom','left','right'].includes(f.bannerPosition)?f.bannerPosition:'center'}"`:'';
  const createAction=f.id===CHARACTER_BIO_FORUM_ID
   ?(u?`<a class="btn" href="#newbio">＋ เขียนกระทู้ประวัติตัวละคร</a>`:`<a class="btn" href="#login">เข้าสู่ระบบเพื่อเขียนประวัติ</a>`)
-  :(isAdmin()?`<a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในฟอรั่มนี้</a>`:'');
+  :(hasAdminPermission('manage_threads')?`<a class="btn" href="#admin/newthread/${f.id}">＋ สร้างกระทู้ในฟอรั่มนี้</a>`:'');
  const breadcrumb=parent
   ?`<a href="#home">หน้าแรก</a><span aria-hidden="true">/</span><a href="#forum/${parent.id}">${esc(parent.name)}</a><span aria-hidden="true">/</span><span>${esc(f.name)}</span>`
   :`<a href="#home">← หน้าแรก</a><span aria-hidden="true">/</span><span>${esc(f.name)}</span>`;
  const childHtml=children.length?`<section class="forum-children-section">
-   <div class="forum-children-heading"><div><span class="home-kicker">EXPLORE THIS FORUM</span><h3>ซับฟอรั่ม <span>${children.length}</span></h3><p class="mut">เลือกพื้นที่ย่อยเพื่อดูรายละเอียด ภาพปก และกระทู้ของแต่ละฟอรั่ม</p></div>${isAdmin()?'<a class="btn sm ghost" href="#admin/forums">จัดการฟอรั่ม</a>':''}</div>
+   <div class="forum-children-heading"><div><span class="home-kicker">EXPLORE THIS FORUM</span><h3>ซับฟอรั่ม <span>${children.length}</span></h3><p class="mut">เลือกพื้นที่ย่อยเพื่อดูรายละเอียด ภาพปก และกระทู้ของแต่ละฟอรั่ม</p></div>${hasAdminPermission('manage_forums')?'<a class="btn sm ghost" href="#admin/forums">จัดการฟอรั่ม</a>':''}</div>
    <div class="forum-children-list home-forums">${children.map(child=>forumListingCard(child,{forums,threads,posts,users})).join('')}</div>
   </section>`:'';
  app(`<div class="forum-page-shell">
@@ -3482,12 +3507,13 @@ function pageForum(fid){
   </div>
   ${f.id===CHARACTER_BIO_FORUM_ID?`<div class="card bio-forum-guide"><h3 style="margin-top:0">📖 วิธีลงทะเบียนประวัติตัวละคร</h3><ol><li>กด “เขียนกระทู้ประวัติตัวละคร” แล้วตั้งชื่อกระทู้ให้จำง่าย (ข้ามขั้นตอนนี้ก่อนได้)</li><li>เขียนประวัติยาวได้เต็มที่ จะตกแต่งด้วย HTML หรือเลือกโครงสำเร็จรูปก็ได้</li><li>หลังเผยแพร่แล้ว คัดลอก URL ไปใส่ในหน้าแก้ไขตัวละครเมื่อพร้อม ไม่จำเป็นต้องมีตั้งแต่วันสมัคร</li></ol><p class="mut" style="margin-bottom:0">ระบบตรวจว่ากระทู้อยู่ในคลังนี้และเป็นของบัญชีเดียวกับผู้สมัคร</p></div>`:''}
   ${childHtml}
-  <section class="forum-topic-list"><div class="forum-children-heading forum-topic-heading"><div><span class="home-kicker">LATEST TOPICS</span><h3>กระทู้ในฟอรั่ม</h3><p class="mut">กระทู้ที่อยู่ในพื้นที่นี้โดยตรง</p></div>${isAdmin()&&f.id!==CHARACTER_BIO_FORUM_ID?`<a class="btn sm" href="#admin/newthread/${f.id}">＋ สร้างกระทู้</a>`:''}</div>
+  <section class="forum-topic-list"><div class="forum-children-heading forum-topic-heading"><div><span class="home-kicker">LATEST TOPICS</span><h3>กระทู้ในฟอรั่ม</h3><p class="mut">กระทู้ที่อยู่ในพื้นที่นี้โดยตรง</p></div>${hasAdminPermission('manage_threads')&&f.id!==CHARACTER_BIO_FORUM_ID?`<a class="btn sm" href="#admin/newthread/${f.id}">＋ สร้างกระทู้</a>`:''}</div>
    ${th.length?th.map(threadItem).join(''):'<div class="card mut">ยังไม่มีกระทู้ในฟอรั่มนี้ — เริ่มสร้างกระทู้แรกกันเลย!</div>'}
   </section>
  </div>`);
 }
 function pageNewThreadToForum(fid){
+ if(!hasAdminPermission('manage_threads'))return go('home');
  const f=DB.get('forums').find(x=>x.id===fid);if(!f)return go('home');
  app(`<a href="#forum/${fid}">← กลับไป ${esc(f.name)}</a><br><br>`+threadForm(null,fid));
 }
@@ -3779,10 +3805,10 @@ function pageThread(id,view=''){
   const openingChar=(t.authorCharId&&chars.find(c=>c.id===t.authorCharId&&c.ownerId===t.authorId&&c.status==='approved'))||chars.find(c=>c.ownerId===t.authorId&&c.status==='approved')||null;
   const openingSide=threadStarterSide(t,opener,openingChar,cnt);
  const postHtml=(p,globalIndex)=>{
-  const c=chars.find(x=>x.id===p.charId),o=users.find(x=>x.id===p.userId),st=statOf(p.train),canEdit=u&&(u.id===p.userId||isAdmin());
+  const c=chars.find(x=>x.id===p.charId),o=users.find(x=>x.id===p.userId),st=statOf(p.train),canEdit=u&&(u.id===p.userId||isAdmin()||hasAdminPermission('manage_posts'));
   const postNumber=globalIndex+2,isTarget=targetPostId===p.id;
   const info=p.gm?'📢 ประกาศจากผู้ดำเนินเรื่อง':`ผู้เล่น: <a href="#profile/${o?.id}"><b>${esc(o?.username||'-')}</b></a>${st?` · 🏋️ ฝึก${st.n} +${p.gain||0}`:''}${p.wonGain?` · 💰 +${wonFmt(p.wonGain)}`:''}`;
-  const tools=`<button type="button" class="post-number-link" title="คัดลอกลิงก์โพสต์ #${postNumber}" aria-label="คัดลอกลิงก์โพสต์ #${postNumber}" onclick="copyPostLink('${t.id}','${p.id}')">#${postNumber} <span aria-hidden="true">↗</span></button> · ${fmt(p.createdAt)}${p.editedAt?' (แก้ไขแล้ว)':''}${canEdit?` · <a href="#editpost/${p.id}">แก้ไข</a>`:''}${isAdmin()?` · <a onclick="deletePost('${p.id}')">ลบ</a>`:''}`;
+  const tools=`<button type="button" class="post-number-link" title="คัดลอกลิงก์โพสต์ #${postNumber}" aria-label="คัดลอกลิงก์โพสต์ #${postNumber}" onclick="copyPostLink('${t.id}','${p.id}')">#${postNumber} <span aria-hidden="true">↗</span></button> · ${fmt(p.createdAt)}${p.editedAt?' (แก้ไขแล้ว)':''}${canEdit?` · <a href="#editpost/${p.id}">แก้ไข</a>`:''}${hasAdminPermission('manage_posts')?` · <a onclick="deletePost('${p.id}')">ลบ</a>`:''}`;
   return `<div id="post-${esc(p.id)}" class="card post ${p.gm?'gm':''}${isTarget?' post-permalink-target':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
    <div class="post-content-column" style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
    ${p.subject?`<h3 class="post-subject">${esc(p.subject)}</h3>`:''}
@@ -3836,7 +3862,7 @@ function pageThread(id,view=''){
     <h3 class="thread-opening-story-title">📖 เนื้อเรื่อง</h3>
     ${renderBody(t.plot,t.plotMode,t.css,t.characterBio===true)}
     ${t.characterBio&&u&&(u.id===t.authorId||isAdmin())?`<br><div class="row"><a class="btn sm ghost" href="#editbio/${t.id}">✏️ แก้ไขประวัติ</a></div>`:''}
-    ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
+    ${hasAdminPermission('manage_threads')?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
    </div>
   </div></div>
   <div id="thread-replies-heading" class="thread-replies-heading"><h3>💬 โรลเพลย์ (${posts.length})</h3>${totalPages>1?`<span>หน้า ${page} / ${totalPages}</span>`:''}</div>
@@ -3858,7 +3884,7 @@ async function doReply(e,tid){
  if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
  if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
  const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),createdAt:Date.now()};
- if(isAdmin()&&E.as?.value==='gm'){
+ if(hasAdminPermission('manage_threads')&&E.as?.value==='gm'){
   posts.push({...base,charId:null,gm:true});DB.set('posts',posts);
   if(cloudReady)await cloudQueue;
   toast('โพสต์ในฐานะ GM แล้ว');
@@ -3888,7 +3914,7 @@ async function doReply(e,tid){
 }
 function pageEditPost(id){
  const u=me(),p=DB.get('posts').find(x=>x.id===id);
- if(!p||!u||(p.userId!==u.id&&!isAdmin()))return go('home');
+ if(!p||!u||(p.userId!==u.id&&!isAdmin()&&!hasAdminPermission('manage_posts')))return go('home');
  const t=DB.get('threads').find(x=>x.id===p.threadId);
  app(`<a href="#thread/${p.threadId}">← กลับไปกระทู้</a><br><br>
  <form class="card topic-composer" data-tid="${p.threadId}" onsubmit="doEditPost(event,'${id}')">
@@ -3900,7 +3926,7 @@ function pageEditPost(id){
 }
 function doEditPost(e,id){
  e.preventDefault();const u=me(),p=DB.get('posts').find(x=>x.id===id);
- if(!p||(p.userId!==u?.id&&!isAdmin()))return;
+ if(!p||(p.userId!==u?.id&&!isAdmin()&&!hasAdminPermission('manage_posts')))return;
  const {content,mode}=edGet(edOf(e.target,'content'));
  if(!content)return toast('เนื้อหาว่างอยู่','bad');
  if(!p.gm&&textLen(content,mode)<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร`,'bad');
@@ -3991,9 +4017,9 @@ function pageChar(id){
    ${c.status==='rejected'&&c.reason?`<div class="rules">เหตุผลที่ไม่ผ่าน: ${esc(c.reason)}</div>`:''}
    ${c.status==='approved'?`<div style="max-width:400px;margin:8px auto"><div class="row between mut" style="font-size:.8rem"><span>EXP ${c.exp}${next?` / ${next.exp}`:''}</span><span>${next?'ขั้นถัดไป: '+esc(next.n):'สูงสุด ✨'}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`:''}
    <div class="row" style="justify-content:center;margin-top:10px">
-    ${isAdmin()&&c.status==='pending'?`<button class="btn sm ok" onclick="approveChar('${c.id}')">อนุมัติ</button><button class="btn sm bad" onclick="rejectChar('${c.id}')">ไม่อนุมัติ</button>`:''}
-    ${isOwner||isAdmin()?`<a class="btn sm" href="#editchar/${c.id}">🎨 แก้ไข/ตกแต่งโปรไฟล์</a>`:''}
-    ${(isOwner&&c.status!=='approved')||isAdmin()?`<button class="btn sm bad" onclick="deleteChar('${c.id}')">ลบตัวละคร</button>`:''}
+    ${hasAdminPermission('manage_character_review')&&c.status==='pending'?`<button class="btn sm ok" onclick="approveChar('${c.id}')">อนุมัติ</button><button class="btn sm bad" onclick="rejectChar('${c.id}')">ไม่อนุมัติ</button>`:''}
+    ${isOwner||isAdmin()||hasAdminPermission('manage_characters')?`<a class="btn sm" href="#editchar/${c.id}">🎨 แก้ไข/ตกแต่งโปรไฟล์</a>`:''}
+    ${(isOwner&&c.status!=='approved')||isAdmin()||hasAdminPermission('manage_characters')?`<button class="btn sm bad" onclick="deleteChar('${c.id}')">ลบตัวละคร</button>`:''}
    </div>
   </div>
   <div class="profile-main-layout">
@@ -4013,7 +4039,7 @@ function pageChar(id){
      <div class="row" style="gap:24px"><div>${radar(c.stats)}</div><div class="f1">${statBars(c.stats,cap)}</div></div>
      ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ซ้อมทุก ${PRACTICE_CD/3600e3} ชม. ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${cd>0?`· ⏳ ซ้อมได้อีกใน ${fmtLeft(cd)}`:'· ✅ พร้อมซ้อม!'}</p>
      <div class="row">${STATS.map(st=>{const dis=cd>0||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n}</button>`}).join('')}</div>`:''}</div>
-    ${isAdmin()&&c.status==='approved'?adminCharForm(c):''}
+    ${hasAdminPermission('manage_characters')&&c.status==='approved'?adminCharForm(c):''}
    </div>
   </div>
  </div>`);
@@ -4024,13 +4050,13 @@ function adminCharForm(c){
  <div class="row"><div class="f1"><label>สังกัดค่าย</label><select name="agencyId">${agencyOptions(c.agencyId,'ไม่สังกัด')}</select></div>
  <div class="f1"><label>ขั้น</label><select name="stage">${STAGES.map((s,i)=>`<option value="${i}" ${i===c.stage?'selected':''}>${i} — ${esc(s.n)}</option>`).join('')}</select></div>
  <div class="f1"><label>EXP</label><input type="number" name="exp" min="0" value="${c.exp}"></div>
- <div class="f1"><label>💰 เงินวอน</label><input type="number" name="won" min="0" value="${c.won||0}"></div></div>
+ ${hasAdminPermission('manage_economy')?`<div class='f1'><label>💰 เงินวอน</label><input type='number' name='won' min='0' value='${c.won||0}'></div>`:''}</div>
  <!-- Admin-only updates must never round-trip or overwrite custom profile HTML. -->
  <button class="btn sm">บันทึก</button></form>`;
 }
 function saveCharAdmin(e,id){
- e.preventDefault();if(!isAdmin())return;const E=e.target.elements,c=DB.get('characters').find(x=>x.id===id);
- const nw=Math.max(0,+E.won.value||0),diff=nw-(c.won||0);
+ e.preventDefault();if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการตัวละคร','bad');const E=e.target.elements,c=DB.get('characters').find(x=>x.id===id);
+ const nw=E.won?Math.max(0,+E.won.value||0):(c.won||0),diff=nw-(c.won||0);
  update('characters',id,c=>{STATS.forEach(s=>c.stats[s.k]=Math.max(0,Math.min(100,+E['st_'+s.k].value||0)));c.agencyId=E.agencyId.value;c.stage=+E.stage.value;c.exp=Math.max(0,+E.exp.value||0);});
  if(diff)addWon(id,diff,'แอดมินปรับยอดเงิน');
  toast('บันทึกแล้ว');render();
@@ -4088,8 +4114,8 @@ function collectSide(f){ const E=f.elements;
 function previewSide(f,id){const c=DB.get('characters').find(x=>x.id===id);if(!c)return;const box=f.querySelector('.side-pv');if(box)box.innerHTML=sideCard({...c,...collectSide(f)},me(),0)}
 function pageEditChar(id){
  const u=me(),c=DB.get('characters').find(x=>x.id===id);
- if(!c||!u||(c.ownerId!==u.id&&!isAdmin()))return go('home');
- const full=c.status!=='approved'||isAdmin(),items=DB.get('items');
+ if(!c||!u||(c.ownerId!==u.id&&!isAdmin()&&!hasAdminPermission('manage_characters')))return go('home');
+ const full=c.status!=='approved'||isAdmin()||hasAdminPermission('manage_characters'),items=DB.get('items');
  const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
  const shownInv=new Set((c.showcase||[]).filter(s=>s.inv).map(s=>s.inv));
  const custom=(c.showcase||[]).filter(s=>!s.inv);
@@ -4149,7 +4175,7 @@ function pageShop(cat){
  const u=me(),c=u&&getActiveChar(u),items=DB.get('items'),list=cat?items.filter(i=>i.cat===cat):items;
  const rich=DB.get('characters').filter(x=>x.status==='approved').sort((a,b)=>(b.won||0)-(a.won||0)).slice(0,5);
  const cats=[...new Set(items.map(i=>i.cat))];
- app(`<div class="row between"><h2>🛍 ร้านค้า</h2>${isAdmin()?'<a class="btn sm ghost" href="#admin/shop">⚙️ จัดการสินค้า</a>':''}</div>
+ app(`<div class="row between"><h2>🛍 ร้านค้า</h2>${hasAdminPermission('manage_shop')?'<a class="btn sm ghost" href="#admin/shop">⚙️ จัดการสินค้า</a>':''}</div>
  <div class="card row between">${c?`<div class="row">${avatar(c,44)}<div><b>${esc(c.stageName||c.name)}</b><div class="won">💰 ${wonFmt(c.won)}</div></div></div><a class="btn sm ghost" href="#char/${c.id}">💳 กระเป๋าเงิน / โอนเงิน</a>`:'<span class="mut">เข้าสู่ระบบและมีตัวละครที่อนุมัติแล้วเพื่อซื้อของ</span>'}</div>
  <div class="tabs"><a href="#shop" class="${!cat?'on':''}">ทั้งหมด</a>${cats.map(x=>`<a href="#shop/${encodeURIComponent(x)}" class="${cat&&decodeURIComponent(cat)===x?'on':''}">${esc(x)}</a>`).join('')}</div>
  ${(cat?items.filter(i=>i.cat===decodeURIComponent(cat)):list).length?`<div class="grid">${(cat?items.filter(i=>i.cat===decodeURIComponent(cat)):list).map(it=>{const owned=c&&(c.inv||[]).some(x=>x.iid===it.id),out=it.stock===0;
@@ -4187,14 +4213,14 @@ function itemForm(it){
  <div class="row"><button class="btn">${it?'บันทึก':'เพิ่มสินค้า'}</button>${it?'<a class="btn ghost" href="#admin/shop">ยกเลิก</a>':''}</div></form>`;
 }
 function doSaveItem(e,id){
- e.preventDefault();if(!isAdmin())return;const E=e.target.elements;
+ e.preventDefault();if(!hasAdminPermission('manage_shop'))return toast('ไม่มีสิทธิ์จัดการร้านค้า','bad');const E=e.target.elements;
  const d={name:E.name.value.trim(),cat:E.cat.value,price:Math.max(0,+E.price.value||0),stock:E.stock.value===''?-1:Math.max(0,+E.stock.value),img:E.img.value.trim(),desc:E.desc.value.trim()};
  if(id)update('items',id,x=>Object.assign(x,d));else{const a=DB.get('items');a.push({id:uid(),...d});DB.set('items',a)}
  toast('บันทึกสินค้าแล้ว');go('admin/shop');
 }
-async function deleteItem(id){if(!isAdmin()||!await ask('ลบสินค้านี้?'))return;DB.set('items',DB.get('items').filter(x=>x.id!==id));toast('ลบแล้ว');render()}
+async function deleteItem(id){if(!hasAdminPermission('manage_shop')||!await ask('ลบสินค้านี้?'))return;DB.set('items',DB.get('items').filter(x=>x.id!==id));toast('ลบแล้ว');render()}
 async function giveWon(id){
- if(!isAdmin())return;const r=await askText('จำนวนเงินวอน (ใส่ค่าลบเพื่อหัก):','1000');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');
+ if(!hasAdminPermission('manage_economy'))return toast('ไม่มีสิทธิ์จัดการเงินวอน','bad');const r=await askText('จำนวนเงินวอน (ใส่ค่าลบเพื่อหัก):','1000');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');
  const note=await askText('เหตุผล:',v>0?'รางวัลจากแอดมิน':'หักโดยแอดมิน');addWon(id,v,note||'แอดมินปรับยอด');toast('อัปเดตเงินแล้ว');render();
 }
 
@@ -4208,14 +4234,14 @@ function agencyCard(a){
  return `<a class="card item" href="#agency/${a.id}" style="text-align:center;margin:0;border-top:4px solid ${esc(a.color)}"><div style="display:flex;justify-content:center">${avatar(a,80)}</div><h3 style="margin:10px 0 4px">${esc(a.name)}</h3>
   <div class="mut">👥 ${cs} คน · 🎤 ${gs} วงเดบิวต์</div><div style="margin-top:6px">${a.recruiting?'<span class="badge" style="--c:var(--ok)">เปิดรับเด็กฝึก</span>':'<span class="badge" style="--c:var(--mut)">ปิดรับ</span>'}</div></a>`;
 }
-function pageAgencies(){const ags=DB.get('agencies');app(`<div class="row between"><h2>🏢 ค่ายเพลง</h2>${isAdmin()?'<a class="btn" href="#admin/agencies">+ จัดการค่าย</a>':''}</div>${ags.length?`<div class="grid">${ags.map(agencyCard).join('')}</div>`:'<div class="card mut">ยังไม่มีค่ายเพลง</div>'}`)}
+function pageAgencies(){const ags=DB.get('agencies');app(`<div class="row between"><h2>🏢 ค่ายเพลง</h2>${hasAdminPermission('manage_agencies')?'<a class="btn" href="#admin/agencies">+ จัดการค่าย</a>':''}</div>${ags.length?`<div class="grid">${ags.map(agencyCard).join('')}</div>`:'<div class="card mut">ยังไม่มีค่ายเพลง</div>'}`)}
 function pageAgency(id){
  const a=agencyOf(id);if(!a)return app('<div class="card">ไม่พบค่าย</div>');
  const cs=agencyMembers(a).sort((x,y)=>y.stage-x.stage||y.exp-x.exp),gs=DB.get('groups').filter(g=>g.agencyId===id&&g.status!=='disbanded');
  app(`<a href="#agencies">← ค่ายทั้งหมด</a><br><br>
  <div class="card" style="border-top:4px solid ${esc(a.color)}"><div class="row" style="gap:20px">${avatar(a,100)}<div class="f1"><h2 style="margin:0">${esc(a.name)}</h2><div class="mut">👥 ${cs.length} คน · 🎤 ${gs.length} วง</div>${a.recruiting?'<span class="badge" style="--c:var(--ok)">เปิดรับเด็กฝึก</span>':''}</div></div>
   ${a.desc?`<br>${renderBody(a.desc,a.descMode)}`:''}
-  ${isAdmin()?`<div class="row"><a class="btn sm ghost" href="#editagency/${a.id}">✏️ แก้ไข</a><button class="btn sm bad" onclick="deleteAgency('${a.id}')">ลบค่าย</button></div>`:''}</div>
+  ${hasAdminPermission('manage_agencies')?`<div class="row"><a class="btn sm ghost" href="#editagency/${a.id}">✏️ แก้ไข</a><button class="btn sm bad" onclick="deleteAgency('${a.id}')">ลบค่าย</button></div>`:''}</div>
  ${a.html?`<div class="card">${codeFrame(a.html)}</div>`:''}
  ${gs.length?`<h3>🎤 ศิลปินในสังกัด</h3><div class="grid">${gs.map(groupCard).join('')}</div><br>`:''}
  <h3>👥 สมาชิกในค่าย</h3>${cs.length?`<div class="grid">${cs.map(charCard).join('')}</div>`:'<div class="card mut">ยังไม่มีสมาชิก</div>'}`);
@@ -4234,7 +4260,7 @@ function agencyForm(a){
  <br><button class="btn">${a?'บันทึกค่ายและสมาชิก':'สร้างค่าย'}</button></form>`;
 }
 async function doSaveAgency(e,id){
- e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
+ e.preventDefault();if(!hasAdminPermission('manage_agencies'))return toast('ไม่มีสิทธิ์จัดการค่ายเพลง','bad');const f=e.target,E=f.elements;
  const d={name:E.name.value.trim(),color:E.color.value,avatar:E.avatar.value.trim(),desc:edGet(edOf(f,'desc')).content,descMode:'rich',html:E.html.value,recruiting:E.recruiting.checked};
  if(id){
   const selected=new Set([...f.querySelectorAll('input[name="agencyMembers"]:checked')].map(x=>x.value));
@@ -4252,9 +4278,9 @@ async function doSaveAgency(e,id){
  if(cloudReady)await cloudQueue;
  toast('สร้างค่ายแล้ว — เลือกสมาชิกต่อได้');go('editagency/'+na.id);
 }
-function pageEditAgency(id){if(!isAdmin())return go('home');const a=agencyOf(id);app(a?`<a href="#agency/${id}">← กลับ</a><br><br>`+agencyForm(a):'<div class="card">ไม่พบค่าย</div>')}
+function pageEditAgency(id){if(!hasAdminPermission('manage_agencies'))return go('home');const a=agencyOf(id);app(a?`<a href="#agency/${id}">← กลับ</a><br><br>`+agencyForm(a):'<div class="card">ไม่พบค่าย</div>')}
 async function deleteAgency(id){
- if(!isAdmin()||!await ask('ลบค่ายนี้? สมาชิกจะกลายเป็น "ไม่สังกัด"'))return;
+ if(!hasAdminPermission('manage_agencies')||!await ask('ลบค่ายนี้? สมาชิกจะกลายเป็น "ไม่สังกัด"'))return;
  DB.set('agencies',DB.get('agencies').filter(a=>a.id!==id));
  ['characters','groups','threads'].forEach(k=>{const arr=DB.get(k);arr.forEach(x=>{if(x.agencyId===id)x.agencyId=''});DB.set(k,arr)});
  toast('ลบค่ายแล้ว');go('agencies');
@@ -4268,7 +4294,7 @@ function groupCard(g){
 }
 function pageGroups(tab){
  tab=tab||'debuted';const all=DB.get('groups'),gs=all.filter(g=>g.status===tab).sort((a,b)=>(b.debutAt||b.createdAt)-(a.debutAt||a.createdAt));
- app(`<div class="row between"><h2>🎤 ศิลปิน & วง</h2>${isAdmin()?'<a class="btn" href="#editgroup/new">+ จัดวงใหม่</a>':''}</div>
+ app(`<div class="row between"><h2>🎤 ศิลปิน & วง</h2>${hasAdminPermission('manage_groups')?'<a class="btn" href="#editgroup/new">+ จัดวงใหม่</a>':''}</div>
  <div class="tabs">${Object.entries(GST).map(([k,v])=>`<a href="#groups/${k}" class="${tab===k?'on':''}">${v[0]} (${all.filter(g=>g.status===k).length})</a>`).join('')}</div>
  ${gs.length?`<div class="grid">${gs.map(groupCard).join('')}</div>`:'<div class="card mut">ยังไม่มีวงในหมวดนี้</div>'}`);
 }
@@ -4281,7 +4307,7 @@ function pageGroup(id){
   <div class="mut">${esc(g.type)} · ${mem.length} คน${g.fandom?` · แฟนด้อม: ${esc(g.fandom)}`:''}</div>
   <div class="row" style="margin:8px 0"><span class="badge" style="--c:${s[1]}">${s[0]}</span>${agencyBadge(g.agencyId)}${g.debutAt?`<span class="mut">เดบิวต์ ${fmt(g.debutAt)}</span>`:''}</div></div></div>
   ${g.concept?`<h3>💡 คอนเซปต์</h3>${renderBody(g.concept,g.conceptMode)}`:''}
-  ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editgroup/${g.id}">✏️ แก้ไข</a>${g.status==='planning'?`<button class="btn sm ok" onclick="debutGroup('${g.id}')">🎉 เดบิวต์!</button>`:''}${g.status==='debuted'?`<button class="btn sm ghost" onclick="disbandGroup('${g.id}')">💤 ยุบวง</button>`:''}<button class="btn sm bad" onclick="deleteGroup('${g.id}')">ลบ</button></div>`:''}</div>
+  ${hasAdminPermission('manage_groups')?`<br><div class="row"><a class="btn sm ghost" href="#editgroup/${g.id}">✏️ แก้ไข</a>${g.status==='planning'?`<button class="btn sm ok" onclick="debutGroup('${g.id}')">🎉 เดบิวต์!</button>`:''}${g.status==='debuted'?`<button class="btn sm ghost" onclick="disbandGroup('${g.id}')">💤 ยุบวง</button>`:''}<button class="btn sm bad" onclick="deleteGroup('${g.id}')">ลบ</button></div>`:''}</div>
  ${g.html?`<div class="card">${codeFrame(g.html)}</div>`:''}
  <div class="card"><h3 style="margin-top:0">👥 สมาชิก</h3><div class="grid">${mem.map(m=>`<a class="card item" href="#char/${m.c.id}" style="text-align:center;margin:0"><div style="display:flex;justify-content:center">${avatar(m.c,70)}</div><b>${esc(m.c.stageName||m.c.name)}</b><div class="mut">${esc(m.role)}</div>${stageBadge(m.c.stage)}</a>`).join('')}</div></div>
  <div class="card"><h3 style="margin-top:0">📊 ค่าสถานะเฉลี่ยของวง</h3><div class="row" style="gap:24px"><div>${radar(avg)}</div><div class="f1">${statBars(avg)}<p class="mut">พลังวงเฉลี่ย ⚡${sum(avg)}</p></div></div></div>`);
@@ -4308,12 +4334,12 @@ function groupForm(g){
  <button class="btn">${g?'บันทึก':'สร้างวง'}</button></form>`;
 }
 function pageEditGroup(id){
- if(!isAdmin())return go('home');const g=id!=='new'?DB.get('groups').find(x=>x.id===id):null;
+ if(!hasAdminPermission('manage_groups'))return go('home');const g=id!=='new'?DB.get('groups').find(x=>x.id===id):null;
  if(id!=='new'&&!g)return app('<div class="card">ไม่พบวง</div>');
  app(`<a href="#admin/groups">← กลับ</a><br><br>`+groupForm(g));
 }
 function doSaveGroup(e,id){
- e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements,cs=DB.get('characters');
+ e.preventDefault();if(!hasAdminPermission('manage_groups'))return toast('ไม่มีสิทธิ์จัดการวง','bad');const f=e.target,E=f.elements,cs=DB.get('characters');
  const members=[...f.querySelectorAll('[name=m]:checked')].map(x=>({charId:x.value,role:E['role_'+x.value].value.trim()||suggestRole(cs.find(c=>c.id===x.value))}));
  const type=E.type.value,solo=type==='ศิลปินเดี่ยว';
  if(solo&&members.length!==1)return toast('ศิลปินเดี่ยวต้องมีสมาชิก 1 คน','bad');
@@ -4324,7 +4350,7 @@ function doSaveGroup(e,id){
  toast('จัดวงแล้ว! พร้อมเมื่อไหร่กดปุ่มเดบิวต์ได้เลย');go('group/'+ng.id);
 }
 async function debutGroup(id){
- if(!isAdmin())return;const g=DB.get('groups').find(x=>x.id===id);
+ if(!hasAdminPermission('manage_groups'))return toast('ไม่มีสิทธิ์จัดการวง','bad');const g=DB.get('groups').find(x=>x.id===id);
  if(!g||!await ask(`ประกาศเดบิวต์ "${g.name}"?\nสมาชิกที่ต่ำกว่าขั้น "${STAGES[ARTIST_STAGE].n}" จะถูกเลื่อนขั้นอัตโนมัติ`))return;
  const cs=DB.get('characters');cs.forEach(c=>{if(g.members.some(m=>m.charId===c.id)&&c.stage<ARTIST_STAGE)c.stage=ARTIST_STAGE});DB.set('characters',cs);
  update('groups',id,x=>{x.status='debuted';x.debutAt=Date.now()});
@@ -4335,8 +4361,8 @@ async function debutGroup(id){
   rulesMode:'rich',rules:'<p>ร่วมแสดงความยินดี สัมภาษณ์ หรือโรลเพลย์งานเปิดตัวได้ในกระทู้นี้</p>',minStage:0,maxStage:STAGES.length-1,exp:5,won:500,train:[],statGain:0,agencyId:'',css:'',tpl:'',deadline:'',status:'open',pinned:false,createdAt:Date.now()});
  DB.set('threads',th);toast(`🎉 ${g.name} เดบิวต์แล้ว! สร้างกระทู้ประกาศให้แล้ว`);render();
 }
-async function disbandGroup(id){if(!isAdmin()||!await ask('ยุบวงนี้? สมาชิกจะสามารถถูกจัดเข้าวงใหม่ได้'))return;update('groups',id,g=>g.status='disbanded');toast('ยุบวงแล้ว');render()}
-async function deleteGroup(id){if(!isAdmin()||!await ask('ลบวงนี้ถาวร?'))return;DB.set('groups',DB.get('groups').filter(g=>g.id!==id));toast('ลบวงแล้ว');go('groups')}
+async function disbandGroup(id){if(!hasAdminPermission('manage_groups')||!await ask('ยุบวงนี้? สมาชิกจะสามารถถูกจัดเข้าวงใหม่ได้'))return;update('groups',id,g=>g.status='disbanded');toast('ยุบวงแล้ว');render()}
+async function deleteGroup(id){if(!hasAdminPermission('manage_groups')||!await ask('ลบวงนี้ถาวร?'))return;DB.set('groups',DB.get('groups').filter(g=>g.id!==id));toast('ลบวงแล้ว');go('groups')}
 
 /* ================= ADMIN: THREADS ================= */
 function threadForm(t,preForumId){
@@ -4370,7 +4396,7 @@ function threadForm(t,preForumId){
 }
 async function fillSample(f){const E=f.elements;if((E.css.value||E.tpl.value)&&!await ask('แทนที่โค้ดเดิม?'))return;E.css.value=SAMPLE_CSS;E.tpl.value=SAMPLE_TPL}
 function doSaveThread(e,id){
- e.preventDefault();if(!isAdmin())return;const f=e.target,E=f.elements;
+ e.preventDefault();if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');const f=e.target,E=f.elements;
  const plot=edGet(edOf(f,'plot'));
  if(!plot.content)return toast('กรุณาเขียนเนื้อเรื่อง','bad');
  const authorMode=E.authorMode?.value||'character';
@@ -4381,7 +4407,7 @@ function doSaveThread(e,id){
  if(id){update('threads',id,t=>Object.assign(t,d));toast('บันทึกแล้ว');return go('thread/'+id)}
  const th=DB.get('threads'),nt={id:uid(),authorId:me().id,status:'open',createdAt:Date.now(),...d};th.push(nt);DB.set('threads',th);toast('สร้างกระทู้แล้ว');go('thread/'+nt.id);
 }
-function pageEditThread(id){if(!isAdmin())return go('home');const t=DB.get('threads').find(x=>x.id===id);app(t?`<a href="#thread/${id}">← กลับ</a><br><br>`+threadForm(t):'<div class="card">ไม่พบกระทู้</div>')}
+function pageEditThread(id){if(!hasAdminPermission('manage_threads'))return go('home');const t=DB.get('threads').find(x=>x.id===id);app(t?`<a href="#thread/${id}">← กลับ</a><br><br>`+threadForm(t):'<div class="card">ไม่พบกระทู้</div>')}
 
 /* ================= ADMIN: FORUMS ================= */
 function forumsBody(){
@@ -4399,7 +4425,7 @@ function forumsBody(){
  }).join('');
 }
 function openCategoryEditor(id){
- if(!isAdmin())return;
+ if(!hasAdminPermission('manage_forums'))return toast('ไม่มีสิทธิ์จัดการฟอรั่ม','bad');
  const cat=DB.get('categories').find(x=>x.id===id);
  document.getElementById('quickUtilityModal')?.remove();
  const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';
@@ -4420,9 +4446,9 @@ function openCategoryEditor(id){
 }
 function addCat(){openCategoryEditor('')}
 function editCat(id){openCategoryEditor(id)}
-async function deleteCat(id){if(!isAdmin()||!await ask('ลบหมวดหมู่นี้และซับฟอรั่มข้างใน?'))return;DB.set('categories',DB.get('categories').filter(c=>c.id!==id));DB.set('forums',DB.get('forums').filter(f=>f.catId!==id));render()}
+async function deleteCat(id){if(!hasAdminPermission('manage_forums')||!await ask('ลบหมวดหมู่นี้และซับฟอรั่มข้างใน?'))return;DB.set('categories',DB.get('categories').filter(c=>c.id!==id));DB.set('forums',DB.get('forums').filter(f=>f.catId!==id));render()}
 function openForumEditor(id,catId){
- if(!isAdmin())return;
+ if(!hasAdminPermission('manage_forums'))return toast('ไม่มีสิทธิ์จัดการฟอรั่ม','bad');
  const forums=DB.get('forums'),cats=DB.get('categories'),f=forums.find(x=>x.id===id);
  if(!catId)catId=f?.catId||cats[0]?.id||'';
  const currentCat=f?.catId||catId;
@@ -4474,14 +4500,14 @@ function openForumEditor(id,catId){
 async function addForum(catId){openForumEditor('',catId)}
 function editForum(id){const f=DB.get('forums').find(x=>x.id===id);if(f)openForumEditor(id,f.catId)}
 function moveForum(id,delta){
- if(!isAdmin())return;
+ if(!hasAdminPermission('manage_forums'))return;
  const forums=DB.get('forums'),f=forums.find(x=>x.id===id);if(!f)return;
  const siblings=forums.filter(x=>x.catId===f.catId).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
  const from=siblings.findIndex(x=>x.id===id),to=from+delta;if(from<0||to<0||to>=siblings.length)return;
  [siblings[from],siblings[to]]=[siblings[to],siblings[from]];siblings.forEach((x,i)=>x.order=i+1);
  DB.set('forums',forums);toast('เปลี่ยนลำดับฟอรั่มแล้ว');render();
 }
-async function deleteForum(id){if(!isAdmin()||!await ask('ลบฟอรั่มนี้? กระทู้เก่าจะยังอยู่แต่ไม่แสดงในรายการฟอรั่ม'))return;DB.set('forums',DB.get('forums').filter(f=>f.id!==id));render()}
+async function deleteForum(id){if(!hasAdminPermission('manage_forums')||!await ask('ลบฟอรั่มนี้? กระทู้เก่าจะยังอยู่แต่ไม่แสดงในรายการฟอรั่ม'))return;DB.set('forums',DB.get('forums').filter(f=>f.id!==id));render()}
 
 /* ================= ADMIN: SETTINGS ================= */
 function settingsForm(){
@@ -4504,7 +4530,7 @@ function settingsForm(){
  <div class="row"><button class="btn ghost" onclick="exportData()">⬇ ดาวน์โหลดไฟล์สำรอง</button><label class="btn ghost">⬆ กู้คืนจากไฟล์<input type="file" accept=".json" hidden onchange="importData(this)"></label></div></div>`;
 }
 function doSaveSettings(e){
- e.preventDefault();if(!isAdmin())return;const E=e.target.elements;
+ e.preventDefault();if(!hasAdminPermission('manage_settings'))return toast('ไม่มีสิทธิ์ตั้งค่าเว็บไซต์','bad');const E=e.target.elements;
  const stages=STAGES.map((s,i)=>({n:E['sn'+i].value.trim()||s.n,en:E['se'+i].value.trim(),exp:i?Math.max(0,+E['sx'+i].value||0):0,c:E['sc'+i].value}));
  for(let i=1;i<stages.length;i++)if(stages[i].exp<=stages[i-1].exp)return toast(`EXP ของขั้น ${i} ต้องมากกว่าขั้น ${i-1}`,'bad');
  DB.set('settings',{...DB.get('settings',{}),siteName:E.siteName.value.trim(),tagline:E.tagline.value.trim(),logo:E.logo.value.trim(),pri:E.pri.value,sec:E.sec.value,bg:E.bg.value,
@@ -4525,12 +4551,45 @@ async function importData(inp){
  inp.value='';
 }
 
+function openAdminPermissions(id){
+ if(!isAdmin())return toast('มีเพียงแอดมินหลักที่กำหนดสิทธิ์ได้','bad');
+ const target=DB.get('users').find(x=>x.id===id),owner=me();
+ if(!target)return toast('ไม่พบบัญชีสมาชิก','bad');
+ if(owner&&target.id===owner.id)return toast('ไม่สามารถลดสิทธิ์ของบัญชีที่กำลังใช้งานได้','bad');
+ const current=new Set(Array.isArray(target.permissions)?target.permissions:[]);
+ const rows=ADMIN_PERMISSION_OPTIONS.map(p=>'<label class="admin-permission-option"><input type="checkbox" name="adminPermission" value="'+p.key+'" '+(current.has(p.key)?'checked':'')+'><span><b>'+esc(p.label)+'</b><small>'+esc(p.desc)+'</small></span></label>').join('');
+ document.getElementById('adminPermissionModal')?.remove();
+ const wrap=document.createElement('div');wrap.id='adminPermissionModal';wrap.className='qu-modal-backdrop';
+ wrap.innerHTML='<section class="qu-modal admin-permissions-modal" role="dialog" aria-modal="true" aria-labelledby="adminPermissionsTitle"><div class="qu-modal-head"><div><span class="qu-modal-kicker">ROLE & ACCESS</span><h2 id="adminPermissionsTitle">🔐 กำหนดสิทธิ์แอดมิน</h2><p>บัญชี: <b>'+esc(target.username)+'</b></p></div><button type="button" class="qu-modal-close" data-admin-perm-close aria-label="ปิด">×</button></div><p class="mut">เลือกเฉพาะหน้าที่ต้องการให้ดูแล แอดมินย่อยจะไม่มีสิทธิ์แจกสิทธิ์แอดมินให้คนอื่น และไม่มีสิทธิ์เต็มเหมือนแอดมินหลัก</p><div class="admin-permissions-list">'+rows+'</div><div class="qu-modal-actions"><button type="button" class="btn ghost" data-admin-perm-close>ยกเลิก</button><button type="button" class="btn" id="adminPermissionsSave">บันทึกสิทธิ์</button></div></section>';
+ document.body.appendChild(wrap);
+ wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('[data-admin-perm-close]'))wrap.remove()});
+ wrap.querySelector('#adminPermissionsSave').addEventListener('click',()=>saveAdminPermissions(id));
+ wrap.addEventListener('keydown',e=>{if(e.key==='Escape')wrap.remove()});
+}
+async function saveAdminPermissions(id){
+ if(!isAdmin())return toast('มีเพียงแอดมินหลักที่กำหนดสิทธิ์ได้','bad');
+ const wrap=document.getElementById('adminPermissionModal');if(!wrap)return;
+ const target=DB.get('users').find(x=>x.id===id),owner=me();
+ if(!target||target.id===owner?.id)return toast('ไม่สามารถแก้สิทธิ์ของบัญชีนี้ได้','bad');
+ const permissions=[...wrap.querySelectorAll('input[name="adminPermission"]:checked')].map(x=>x.value);
+ if(!await ask('บันทึกสิทธิ์ของ '+target.username+' ใช่ไหม?'+(permissions.length?'':'\nเมื่อไม่เลือกสิทธิ์เลย บัญชีนี้จะกลับเป็นผู้เล่น')))return;
+ const users=DB.get('users'),index=users.findIndex(x=>x.id===id);if(index<0)return toast('ไม่พบบัญชีสมาชิก','bad');
+ if(supaClient&&cloudReady){const {error}=await supaClient.rpc('site_set_admin_permissions',{p_app_user_id:id,p_permissions:permissions});if(error)return toast('บันทึกสิทธิ์บนฐานข้อมูลไม่สำเร็จ: '+error.message,'bad');}
+ users[index]={...users[index],role:permissions.length?'admin':'player',permissions};
+ DB.set('users',users);
+ if(cloudReady)await cloudQueue;
+ wrap.remove();toast(permissions.length?'บันทึกสิทธิ์แอดมินแล้ว':'ถอดสิทธิ์แอดมินแล้ว');render();
+}
+
 /* ================= ADMIN PANEL ================= */
 function pageAdmin(tab,sub,sub2){
- if(!isAdmin()){app('<div class="card" style="max-width:620px;margin:32px auto"><h2>🔒 ต้องใช้บัญชีแอดมิน</h2><p>หน้า “สร้างกระทู้” อยู่ในแผงควบคุมแอดมิน แต่ระบบไม่พบสิทธิ์แอดมินของบัญชีที่กำลังใช้งาน จึงไม่พาเด้งกลับหน้าแรกเงียบ ๆ แล้ว</p><div class="row"><a class="btn" href="#login">เข้าสู่ระบบใหม่</a><a class="btn ghost" href="#home">กลับหน้าแรก</a></div></div>');return;}tab=tab||'pending';
+ if(!canAccessAdminPanel()){app('<div class="card" style="max-width:620px;margin:32px auto"><h2>🔒 ไม่มีสิทธิ์เข้าถึงแผงดูแล</h2><p>บัญชีนี้ยังไม่ได้รับสิทธิ์ผู้ดูแลที่จำเป็น</p><div class="row"><a class="btn ghost" href="#home">กลับหน้าแรก</a></div></div>');return;}tab=tab||'pending';
  const users=DB.get('users'),chars=DB.get('characters'),ags=DB.get('agencies'),groups=DB.get('groups');
  const uname=id=>esc(users.find(u=>u.id===id)?.username||'-');
- const T=[['pending',`⏳ รออนุมัติ (${pendingCount()})`],['chars','🎭 ตัวละคร'],['newthread','🆕 สร้างกระทู้'],['forums','📂 ฟอรั่ม'],['shop','🛍 ร้านค้า'],['agencies','🏢 ค่ายเพลง'],['groups','🎤 วง'],['users','👥 สมาชิก'],['settings','⚙️ ตั้งค่า']];
+ const TAll=[['pending',`⏳ รออนุมัติ (${pendingCount()})`,'manage_character_review'],['chars','🎭 ตัวละคร','manage_characters'],['newthread','🆕 สร้างกระทู้','manage_threads'],['forums','📂 ฟอรั่ม','manage_forums'],['shop','🛍 ร้านค้า','manage_shop'],['agencies','🏢 ค่ายเพลง','manage_agencies'],['groups','🎤 วง','manage_groups'],['users','👥 สมาชิก','manage_members'],['settings','⚙️ ตั้งค่า','manage_settings']];
+ const T=TAll.filter(([key,label,permission])=>hasAdminPermission(permission)||(key==='chars'&&hasAdminPermission('manage_economy'))||isAdmin());
+ if(!T.length){app('<div class="card">บัญชีนี้ยังไม่ได้รับสิทธิ์สำหรับแผงดูแล</div>');return;}
+ if(!T.some(([key])=>key===tab))tab=T[0][0];
  let body='';
  if(tab==='pending'){
   body=chars.filter(c=>c.status==='pending').map(c=>`<div class="card"><div class="row">${avatar(c,64)}<div><h3 style="margin:0">${esc(c.name)} ${c.stageName?`(${esc(c.stageName)})`:''}</h3>
@@ -4541,7 +4600,7 @@ function pageAdmin(tab,sub,sub2){
   const a=chars.filter(c=>c.status==='approved').sort((x,y)=>y.stage-x.stage||y.exp-x.exp);
   body=`<div class="card" style="overflow-x:auto"><table><tr><th>ตัวละคร</th><th>ผู้เล่น</th><th>ระดับ</th><th>EXP</th><th>💰</th><th>จัดการ</th></tr>
   ${a.map(c=>`<tr><td><a href="#char/${c.id}">${esc(c.stageName||c.name)}</a></td><td>${uname(c.ownerId)}</td><td>${stageBadge(c.stage)} ${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อม</span>':''}</td><td>${c.exp}</td><td class="won">${wonFmt(c.won)}</td>
-  <td><div class="row"><button class="btn sm ok" title="เลื่อนขั้น" onclick="setStage('${c.id}',1)">▲</button><button class="btn sm ghost" title="ลดขั้น" onclick="setStage('${c.id}',-1)">▼</button><button class="btn sm ghost" onclick="giveExp('${c.id}')">±EXP</button><button class="btn sm ghost" onclick="giveWon('${c.id}')">±₩</button></div></td></tr>`).join('')}</table>
+  <td><div class="row">${hasAdminPermission('manage_characters')?`<button class="btn sm ok" title="เลื่อนขั้น" onclick="setStage('${c.id}',1)">▲</button><button class="btn sm ghost" title="ลดขั้น" onclick="setStage('${c.id}',-1)">▼</button><button class="btn sm ghost" onclick="giveExp('${c.id}')">±EXP</button>`:''}${(hasAdminPermission('manage_economy')||hasAdminPermission('manage_characters'))?`<button class="btn sm ghost" onclick="giveWon('${c.id}')">±₩</button>`:''}</div></td></tr>`).join('')}</table>
   ${a.length?'':'<p class="mut">ยังไม่มีตัวละครที่อนุมัติ</p>'}</div>`;
  }else if(tab==='newthread')body=threadForm(null,sub);
  else if(tab==='forums')body=forumsBody();
@@ -4562,25 +4621,26 @@ function pageAdmin(tab,sub,sub2){
   <td><div class="row"><a class="btn sm ghost" href="#editgroup/${g.id}">แก้ไข</a>${g.status==='planning'?`<button class="btn sm ok" onclick="debutGroup('${g.id}')">🎉 เดบิวต์</button>`:''}</div></div></td></tr>`).join('')}</table>${groups.length?'':'<p class="mut">ยังไม่มีวง</p>'}</div>`;
  }else if(tab==='users'){
   const u=me();
-  body=`<div class="card" style="overflow-x:auto"><table><tr><th>ชื่อผู้ใช้</th><th>บทบาท</th><th>ตัวละคร</th><th>สมัครเมื่อ</th><th></th></tr>
-  ${users.map(x=>`<tr><td><a href="#profile/${x.id}"><b>${esc(x.username)}</b></a></td><td>${x.role==='admin'?'👑 แอดมิน':'ผู้เล่น'}</td><td>${chars.filter(c=>c.ownerId===x.id).length}</td><td>${fmt(x.createdAt)}</td>
-  <td>${x.id!==u.id?`<button class="btn sm ghost" onclick="toggleAdmin('${x.id}')">${x.role==='admin'?'ถอดแอดมิน':'ตั้งเป็นแอดมิน'}</button>`:'<span class="mut">(คุณ)</span>'}</td></tr>`).join('')}</table></div>`;
+  body=`<div class="card" style="overflow-x:auto"><p class="mut">แอดมินหลักเท่านั้นที่กำหนดสิทธิ์แอดมินย่อยได้ แอดมินย่อยไม่สามารถเพิ่มสิทธิ์ให้ตัวเองหรือผู้อื่น</p><table><tr><th>ชื่อผู้ใช้</th><th>บทบาท</th><th>ตัวละคร</th><th>สมัครเมื่อ</th><th></th></tr>
+  ${users.map(x=>`<tr><td><a href="#profile/${x.id}"><b>${esc(x.username)}</b></a></td><td>${x.role==='admin'?(Array.isArray(x.permissions)&&x.permissions.length?'👑 แอดมินกำหนดสิทธิ์':'👑 แอดมิน'):'ผู้เล่น'}</td><td>${chars.filter(c=>c.ownerId===x.id).length}</td><td>${fmt(x.createdAt)}</td>
+  <td>${x.id!==u.id&&isAdmin()?`<button class="btn sm ghost" onclick="openAdminPermissions('${x.id}')">กำหนดสิทธิ์</button>`:'<span class="mut">—</span>'}</td></tr>`).join('')}</table></div>`;
  }else if(tab==='settings')body=settingsForm();
  app(`<h2>👑 แผงควบคุมแอดมิน</h2><div class="tabs">${T.map(([k,n])=>`<a href="#admin/${k}" class="${tab===k?'on':''}">${n}</a>`).join('')}</div>${body}`);
 }
 
-function approveChar(id){if(!isAdmin())return;update('characters',id,c=>{c.status='approved';c.reason=''});toast('อนุมัติตัวละครแล้ว');render()}
-async function rejectChar(id){if(!isAdmin())return;const r=await askText('เหตุผลที่ไม่อนุมัติ (ผู้เล่นจะเห็นข้อความนี้):');if(r===null)return;update('characters',id,c=>{c.status='rejected';c.reason=r});toast('ไม่อนุมัติแล้ว');render()}
-function setStage(id,d){if(!isAdmin())return;const c=update('characters',id,c=>{c.stage=Math.max(0,Math.min(STAGES.length-1,c.stage+d))});toast(`${c.stageName||c.name} → ${STAGES[c.stage].n}`);render()}
-async function giveExp(id){if(!isAdmin())return;const r=await askText('จำนวน EXP (ใส่ค่าลบเพื่อหัก):','10');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');update('characters',id,c=>c.exp=Math.max(0,c.exp+v));toast('อัปเดต EXP แล้ว');render()}
-function toggleThread(id){if(!isAdmin())return;update('threads',id,t=>t.status=t.status==='open'?'closed':'open');render()}
-function pinThread(id){if(!isAdmin())return;update('threads',id,t=>t.pinned=!t.pinned);render()}
-async function deleteThread(id){if(!isAdmin()||!await ask('ลบกระทู้นี้และโพสต์ทั้งหมด?'))return;DB.set('threads',DB.get('threads').filter(t=>t.id!==id));DB.set('posts',DB.get('posts').filter(p=>p.threadId!==id));toast('ลบกระทู้แล้ว');go('threads')}
-async function deletePost(id){if(!isAdmin()||!await ask('ลบโพสต์นี้?'))return;DB.set('posts',DB.get('posts').filter(p=>p.id!==id));render()}
-function toggleAdmin(id){if(!isAdmin())return;update('users',id,u=>u.role=u.role==='admin'?'player':'admin');render()}
+
+function approveChar(id){if(!hasAdminPermission('manage_character_review'))return toast('ไม่มีสิทธิ์อนุมัติตัวละคร','bad');update('characters',id,c=>{c.status='approved';c.reason=''});toast('อนุมัติตัวละครแล้ว');render()}
+async function rejectChar(id){if(!hasAdminPermission('manage_character_review'))return toast('ไม่มีสิทธิ์ปฏิเสธตัวละคร','bad');const r=await askText('เหตุผลที่ไม่อนุมัติ (ผู้เล่นจะเห็นข้อความนี้):');if(r===null)return;update('characters',id,c=>{c.status='rejected';c.reason=r});toast('ไม่อนุมัติแล้ว');render()}
+function setStage(id,d){if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการระดับตัวละคร','bad');const c=update('characters',id,c=>{c.stage=Math.max(0,Math.min(STAGES.length-1,c.stage+d))});toast(`${c.stageName||c.name} → ${STAGES[c.stage].n}`);render()}
+async function giveExp(id){if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการ EXP','bad');const r=await askText('จำนวน EXP (ใส่ค่าลบเพื่อหัก):','10');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');update('characters',id,c=>c.exp=Math.max(0,c.exp+v));toast('อัปเดต EXP แล้ว');render()}
+function toggleThread(id){if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');update('threads',id,t=>t.status=t.status==='open'?'closed':'open');render()}
+function pinThread(id){if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');update('threads',id,t=>t.pinned=!t.pinned);render()}
+async function deleteThread(id){if(!hasAdminPermission('manage_threads')||!await ask('ลบกระทู้นี้และโพสต์ทั้งหมด?'))return;DB.set('threads',DB.get('threads').filter(t=>t.id!==id));DB.set('posts',DB.get('posts').filter(p=>p.threadId!==id));toast('ลบกระทู้แล้ว');go('threads')}
+async function deletePost(id){if(!hasAdminPermission('manage_posts')||!await ask('ลบโพสต์นี้?'))return;DB.set('posts',DB.get('posts').filter(p=>p.id!==id));render()}
+function toggleAdmin(id){if(!isAdmin())return toast('มีเพียงแอดมินหลักที่กำหนดสิทธิ์แอดมินได้','bad');openAdminPermissions(id)}
 async function deleteChar(id){
  const u=me(),c=DB.get('characters').find(x=>x.id===id);
- if(!c||!(isAdmin()||(c.ownerId===u?.id&&c.status!=='approved'))||!await ask('ลบตัวละครนี้ตัวนี้?'))return;
+ if(!c||!(isAdmin()||hasAdminPermission('manage_characters')||(c.ownerId===u?.id&&c.status!=='approved'))||!await ask('ลบตัวละครนี้ตัวนี้?'))return;
  DB.set('characters',DB.get('characters').filter(x=>x.id!==id));
  const gs=DB.get('groups');gs.forEach(g=>g.members=g.members.filter(m=>m.charId!==id));DB.set('groups',gs);
  toast('ลบตัวละครแล้ว');go('mychars');

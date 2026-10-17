@@ -8,8 +8,11 @@ create table if not exists public.site_profiles (
   app_user_id text not null unique,
   username text not null unique,
   role text not null default 'player' check (role in ('admin','player')),
+  permissions text[] not null default '{}',
   created_at timestamptz not null default now()
 );
+
+alter table public.site_profiles add column if not exists permissions text[] not null default '{}';
 
 create table if not exists public.site_records (
   collection text not null check (collection in
@@ -104,6 +107,10 @@ declare
   v_stat_key text;
   v_stat_value integer;
   v_stat_total integer;
+  v_authorized boolean := false;
+  v_manage_characters boolean := false;
+  v_manage_character_review boolean := false;
+  v_manage_economy boolean := false;
 begin
   if auth.uid() is null then
     raise exception 'Sign in is required';
@@ -123,10 +130,30 @@ begin
   from public.site_records
   where collection = p_collection and record_id = p_record_id;
 
+  v_manage_characters := 'manage_characters' = any(coalesce(v_profile.permissions, '{}'::text[]));
+  v_manage_character_review := 'manage_character_review' = any(coalesce(v_profile.permissions, '{}'::text[]));
+  v_manage_economy := 'manage_economy' = any(coalesce(v_profile.permissions, '{}'::text[]));
+  v_authorized := case p_collection
+    when 'posts' then 'manage_posts' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'threads' then 'manage_threads' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'forums' then 'manage_forums' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'categories' then 'manage_forums' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'settings' then 'manage_settings' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'items' then 'manage_shop' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'agencies' then 'manage_agencies' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'groups' then 'manage_groups' = any(coalesce(v_profile.permissions, '{}'::text[]))
+    when 'characters' then false
+    else false
+  end;
+
   if p_delete then
     if not found then return jsonb_build_object('ok', true, 'deleted', false); end if;
     if not v_admin then
-      if p_collection = 'posts' then
+      if p_collection = 'posts' and 'manage_posts' = any(coalesce(v_profile.permissions, '{}'::text[])) then
+        null;
+      elsif p_collection = 'characters' and v_manage_characters then
+        null;
+      elsif p_collection = 'posts' then
         if v_old ->> 'userId' is distinct from v_profile.app_user_id then
           raise exception 'Cannot delete another user''s post';
         end if;
@@ -153,12 +180,38 @@ begin
     raise exception 'Record ID mismatch';
   end if;
 
-  if not v_admin then
+  if not v_admin
+    and p_collection = 'characters'
+    and v_old is not null
+    and v_new ->> 'ownerId' is distinct from v_profile.app_user_id then
+    if (v_new - array['status','reason','won','inv','ledger','lastPractice','lastSalary']::text[])
+       is distinct from
+       (v_old - array['status','reason','won','inv','ledger','lastPractice','lastSalary']::text[])
+       and not v_manage_characters then
+      raise exception 'Character management permission required';
+    end if;
+    if ((v_new -> 'status') is distinct from (v_old -> 'status')
+        or (v_new -> 'reason') is distinct from (v_old -> 'reason'))
+       and not v_manage_character_review then
+      raise exception 'Character review permission required';
+    end if;
+    if ((v_new -> 'won') is distinct from (v_old -> 'won')
+        or (v_new -> 'inv') is distinct from (v_old -> 'inv')
+        or (v_new -> 'ledger') is distinct from (v_old -> 'ledger')
+        or (v_new -> 'lastPractice') is distinct from (v_old -> 'lastPractice')
+        or (v_new -> 'lastSalary') is distinct from (v_old -> 'lastSalary'))
+       and not v_manage_economy then
+      raise exception 'Economy permission required';
+    end if;
+  elsif not v_admin and v_authorized then
+    null;
+  elsif not v_admin then
     if p_collection = 'users' then
       if v_new ->> 'id' is distinct from v_profile.app_user_id then
         raise exception 'Cannot modify another account';
       end if;
-      v_new := jsonb_set(v_new, '{role}', to_jsonb(v_profile.role), true);
+      v_new := jsonb_set(v_new, '{role}', to_jsonb(case when v_profile.role = 'admin' or cardinality(coalesce(v_profile.permissions, '{}'::text[])) > 0 then 'admin' else 'player' end), true);
+      v_new := jsonb_set(v_new, '{permissions}', to_jsonb(coalesce(v_profile.permissions, '{}'::text[])), true);
       v_new := jsonb_set(v_new, '{username}', to_jsonb(v_profile.username), true);
     elsif p_collection = 'characters' then
       if v_new ->> 'ownerId' is distinct from v_profile.app_user_id then
@@ -233,6 +286,64 @@ begin
   return jsonb_build_object('ok', true, 'collection', p_collection, 'record_id', p_record_id);
 end;
 $$;
+
+create or replace function public.site_set_admin_permissions(
+  p_app_user_id text,
+  p_permissions text[]
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $
+declare
+  v_caller public.site_profiles%rowtype;
+  v_target public.site_profiles%rowtype;
+  v_permissions text[] := coalesce(p_permissions, '{}'::text[]);
+  v_allowed text[] := array[
+    'manage_character_review','manage_characters','manage_economy','manage_posts',
+    'manage_threads','manage_forums','manage_shop','manage_agencies','manage_groups',
+    'manage_members','manage_settings'
+  ];
+begin
+  if auth.uid() is null then raise exception 'Sign in is required'; end if;
+
+  select * into v_caller from public.site_profiles
+  where auth_user_id = (select auth.uid());
+  if not found or v_caller.role <> 'admin' then
+    raise exception 'Only the primary administrator can assign admin permissions';
+  end if;
+  if p_app_user_id is null or p_app_user_id = v_caller.app_user_id then
+    raise exception 'Choose another account; your own permissions cannot be changed here';
+  end if;
+  if not (v_permissions <@ v_allowed) then
+    raise exception 'One or more permission keys are invalid';
+  end if;
+
+  select * into v_target from public.site_profiles
+  where app_user_id = p_app_user_id
+  for update;
+  if not found then raise exception 'Target account does not exist'; end if;
+
+  if v_target.role = 'admin' then
+    raise exception 'A full administrator account cannot be changed from the delegated-permissions screen';
+  end if;
+
+  update public.site_profiles
+  set permissions = (select coalesce(array_agg(distinct p), '{}'::text[]) from unnest(v_permissions) p)
+  where app_user_id = p_app_user_id;
+
+  return jsonb_build_object(
+    'ok', true,
+    'app_user_id', p_app_user_id,
+    'permissions', to_jsonb(v_permissions),
+    'role', case when cardinality(v_permissions) > 0 then 'admin' else 'player' end
+  );
+end;
+$;
+
+revoke all on function public.site_set_admin_permissions(text, text[]) from public, anon;
+grant execute on function public.site_set_admin_permissions(text, text[]) to authenticated;
 
 create or replace function public.site_import_local_snapshot(p_snapshot jsonb)
 returns jsonb
