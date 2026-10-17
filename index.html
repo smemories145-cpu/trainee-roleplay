@@ -580,6 +580,11 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 .ed-head-actions .btn{white-space:nowrap}
 .ed.html-source-mode .ed-area{font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);color:var(--txt);tab-size:2}
 .ed.html-source-mode .ed-bar{display:none!important}
+.ed .ed-source-area{display:block;width:100%;min-height:300px;max-height:70vh;resize:vertical;box-sizing:border-box;border:0;outline:none;border-radius:0;padding:16px;background:var(--bg);color:var(--txt);font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre;overflow:auto;tab-size:2}
+.ed .ed-source-area[hidden],.ed .ed-area[hidden]{display:none!important}
+.ed.html-source-mode .ed-source-area{background:var(--bg);color:var(--txt)}
+.ed .ed-source-toggle{font-size:.76rem;padding:7px 10px}
+
 .topic-composer>.preview[data-preview-for]{margin:12px 18px;background:var(--card);color:var(--txt);overflow-wrap:anywhere}
 .topic-composer>.preview[data-preview-for]>.rich{background:transparent}
 .reply-composer>.reply-preview{margin:0 0 14px;background:var(--card);color:var(--txt);overflow-wrap:anywhere}
@@ -2551,12 +2556,13 @@ function applyCharacterProfileTemplate(button){
  toast('ใส่เทมเพลตแล้ว — แก้โค้ดและกดพรีวิวก่อนบันทึกได้เลย');
 }
 function richEditor(name,val='',o={}){
- const id='ed'+(++EDN);
- return `<div class="ed" id="${id}" data-name="${name}" data-mode="rich" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
- <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML ดิบ">📄 HTML ดิบ</button><span class="ed-count"></span></div></div>
- <div class="ed-bar">${edBar(id)}</div>
- <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sanitize(val)}</div>
- <div class="ed-foot"><span class="ed-hint">💡 พิมพ์หรือวางโค้ด HTML ในช่องนี้ได้เลย แล้วปรับแต่งข้อความ สี และขนาดต่อได้ทันที</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
+ const id='ed'+(++EDN),htmlMode=o.mode==='html',initial=String(val??'');
+ return `<div class="ed${htmlMode?' html-source-mode':''}" id="${id}" data-name="${name}" data-mode="rich" data-html-source="${htmlMode?'1':'0'}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
+ <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML ดิบ">${htmlMode?'👁 กลับไปหน้าเขียน':'📄 HTML ดิบ'}</button><span class="ed-count"></span></div></div>
+ <div class="ed-bar" ${htmlMode?'hidden':''}>${edBar(id)}</div>
+ <div class="ed-area rich" contenteditable="true" ${htmlMode?'hidden':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${htmlMode?'':sanitize(val)}</div>
+ <textarea class="ed-source-area" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="โค้ด HTML ดิบ" placeholder="วางหรือแก้ไข HTML / CSS ได้ที่นี่..." ${htmlMode?'':'hidden'}>${htmlMode?esc(initial):''}</textarea>
+ <div class="ed-foot"><span class="ed-hint">💡 เขียนข้อความตามปกติได้ หรือกด 📄 HTML ดิบ เพื่อวางและแก้โค้ดเต็มชุด จากนั้นใช้ Preview เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function editorIcon(name){
  const p={
@@ -2693,37 +2699,29 @@ function ex(id,cmd,val=null){
 }
 const ins=(id,html)=>ex(id,'insertHTML',html);
 function setEditorSourceMode(ed,sourceMode){
- const area=ed?.querySelector('.ed-area');if(!ed||!area)return;
+ const area=ed?.querySelector('.ed-area'),source=ed?.querySelector('.ed-source-area');
+ if(!ed||!area||!source)return;
  const bar=ed.querySelector('.ed-bar'),toggle=ed.querySelector('[data-editor-action="toggle-html"]');
  if(sourceMode){
-  if(area.dataset.htmlSource!=='1'){
+  if(ed.dataset.htmlSource!=='1'){
    const savedCode=area.querySelector('pre.html-source-block');
    let html=savedCode?(savedCode.textContent||''):(area.innerHTML||'');
    const css=ed.dataset.sourceCss||'';
-   if(css&&!/<style\\b/i.test(html))html='<style>\\n'+css+'\\n</style>\\n'+html;
-   area.dataset.htmlSource='1';
-   area.textContent=html;
+   if(css&&!/<style\b/i.test(html))html=editorCssDocument(html,css);
+   source.value=html;
   }
+  ed.dataset.htmlSource='1';
   ed.classList.add('html-source-mode');
+  area.hidden=true;source.hidden=false;
   if(bar)bar.hidden=true;
-  if(toggle){toggle.textContent='👁 กลับไปหน้าเขียน';toggle.title='กลับไปแก้ไขข้อความแบบแสดงผล';}
+  if(toggle){toggle.textContent='👁 กลับไปหน้าเขียน';toggle.title='กลับไปแก้ไขแบบแสดงผล';}
  }else{
-  const raw=area.dataset.htmlSource==='1'?(area.textContent||''):(area.querySelector('pre.html-source-block')?.textContent||area.innerHTML||'');
+  const raw=String(source.value||'');
   const parsed=extractEditorHtmlSource(raw);
-  if(parsed.html){
-   area.innerHTML=parsed.html;
-   setEditorSourceCss(ed,parsed.css);
-  }else{
-   area.textContent=raw;
-   delete area.dataset.htmlSource;
-   ed.classList.remove('html-source-mode');
-   if(bar)bar.hidden=false;
-   if(toggle){toggle.textContent='📄 HTML ดิบ';toggle.title='ดูหรือแก้ไขโค้ด HTML ดิบ';}
-   area.dispatchEvent(new Event('input',{bubbles:true}));
-   edCount(ed);
-   return;
-  }
-  delete area.dataset.htmlSource;
+  area.innerHTML=parsed.html;
+  setEditorSourceCss(ed,parsed.css);
+  delete ed.dataset.htmlSource;
+  area.hidden=false;source.hidden=true;
   ed.classList.remove('html-source-mode');
   if(bar)bar.hidden=false;
   if(toggle){toggle.textContent='📄 HTML ดิบ';toggle.title='ดูหรือแก้ไขโค้ด HTML ดิบ';}
@@ -2732,8 +2730,8 @@ function setEditorSourceMode(ed,sourceMode){
  edCount(ed);
 }
 function toggleEditorSource(button){
- const ed=button?.closest('.ed'),area=ed?.querySelector('.ed-area');if(!area)return;
- setEditorSourceMode(ed,area.dataset.htmlSource!=='1'||!!area.querySelector('pre.html-source-block'));
+ const ed=button?.closest('.ed');if(!ed)return;
+ setEditorSourceMode(ed,ed.dataset.htmlSource!=='1');
 }
 async function edInsertHTML(id){
  const ed=document.getElementById(id),area=ed?.querySelector('.ed-area');if(!area)return;
@@ -2817,29 +2815,18 @@ async function edSpoiler(id){saveSel();const r=SEL;const t=await askText('หั
 function fmtHtml(h){return String(h||'').replace(/(<\/(p|div|h2|h3|blockquote|li|ul|ol|details)>|<br>)/g,'$1\n')}
 function insertPostAnnouncement(button){
  try{
- const ed=button&&button.closest('.ed');
- if(!ed){toast('หาเครื่องมือเขียนประกาศไม่พบ','bad');return false}
- const area=ed.querySelector('.ed-area');
- if(!area){toast('หาแถบเขียนข้อความไม่พบ','bad');return false}
- const pick=ed.querySelector('.announcement-pick')?.value||'official';
- const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
- const x=skins[pick]||skins.official;
- const html='<div style="width:100%;max-width:min(1280px,100%);margin:12px auto;padding:clamp(20px,3.5vw,48px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:clamp(19px,1.35vw,24px);line-height:1.85;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:clamp(13px,1vw,16px);letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:clamp(28px,2.2vw,36px);color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:clamp(30px,2.4vw,40px);line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:clamp(15px,1.1vw,18px);color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:clamp(15px,1.1vw,18px);color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
- area.dataset.htmlSource='1';
- area.textContent=html;
- ed.classList.add('html-source-mode');
- const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=true;
- const toggle=ed.querySelector('[data-editor-action="toggle-html"]');if(toggle)toggle.textContent='👁 แก้ไขแบบแสดงผล';
- ed.dataset.mode='rich';
- edCount(ed);
- area.dispatchEvent(new Event('input',{bubbles:true}));
- edCount(ed);
- area.focus();
- const range=document.createRange();range.selectNodeContents(area);range.collapse(false);
- const sel=window.getSelection();if(sel){sel.removeAllRanges();sel.addRange(range)}
- if(typeof saveSel==='function')saveSel();
- toast('ใส่โค้ด HTML ของแบบประกาศแล้ว');
- return false;
+  const ed=button?.closest('.ed'),area=ed?.querySelector('.ed-area'),source=ed?.querySelector('.ed-source-area');
+  if(!ed||!area||!source){toast('หาเครื่องมือเขียนประกาศไม่พบ','bad');return false}
+  const pick=ed.querySelector('.announcement-pick')?.value||'official';
+  const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
+  const x=skins[pick]||skins.official;
+  const html='<div style="width:100%;max-width:min(1280px,100%);margin:12px auto;padding:clamp(20px,3.5vw,48px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:clamp(19px,1.35vw,24px);line-height:1.85;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:clamp(13px,1vw,16px);letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:clamp(28px,2.2vw,36px);color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:clamp(30px,2.4vw,40px);line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:clamp(15px,1.1vw,18px);color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:clamp(15px,1.1vw,18px);color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
+  source.value=html;
+  ed.dataset.htmlSource='1';
+  setEditorSourceMode(ed,false);
+  ed.dataset.mode='rich';edCount(ed);
+  toast('ใส่แบบประกาศแล้ว — ดูผลด้านบนด้วยปุ่มพรีวิว');
+  return false;
  }catch(err){
   console.error('insertPostAnnouncement failed',err);
   toast('ใส่แบบประกาศไม่สำเร็จ: '+(err?.message||String(err)),'bad');
@@ -2852,12 +2839,13 @@ function edUI(ed){
  const code=ed.querySelector('.char-bio-code');
  if(code){ed.dataset.mode='charcode';if(!code.dataset.countHook){code.dataset.countHook='1';code.addEventListener('input',()=>edCount(ed))}edCount(ed);return}
  ed.dataset.mode='rich';
- const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area'),toggle=ed.querySelector('[data-editor-action="toggle-html"]');
- const sourceMode=area?.dataset.htmlSource==='1';
+ const bar=ed.querySelector('.ed-bar'),area=ed.querySelector('.ed-area'),source=ed.querySelector('.ed-source-area'),toggle=ed.querySelector('[data-editor-action="toggle-html"]');
+ const sourceMode=ed.dataset.htmlSource==='1';
  if(bar)bar.hidden=sourceMode;
- if(area)area.hidden=false;
+ if(area)area.hidden=sourceMode;
+ if(source)source.hidden=!sourceMode;
  ed.classList.toggle('html-source-mode',sourceMode);
- if(toggle){toggle.textContent=sourceMode?'👁 แก้ไขแบบแสดงผล':'</> โหมด HTML';toggle.title=sourceMode?'แสดงผล HTML แล้วจัดรูปแบบด้วยแถบเครื่องมือ':'สลับไปแก้ไขโค้ด HTML'}
+ if(toggle){toggle.textContent=sourceMode?'👁 กลับไปหน้าเขียน':'📄 HTML ดิบ';toggle.title=sourceMode?'กลับไปแก้ไขแบบแสดงผล':'ดูหรือแก้ไขโค้ด HTML ดิบ'}
  edCount(ed);
 }
 function edParseInlineHTML(area){
@@ -2878,9 +2866,10 @@ function edParseInlineHTML(area){
  return changed;
 }
 function edCount(ed){
- if(!ed)return;const t=ed.dataset.mode,area=t==='charcode'?ed.querySelector('.char-bio-code'):ed.querySelector(t==='rich'?'.ed-area':t==='src'?'.ed-src':'.ed-code');
+ if(!ed)return;
+ const t=ed.dataset.mode,area=t==='charcode'?ed.querySelector('.char-bio-code'):(ed.dataset.htmlSource==='1'?ed.querySelector('.ed-source-area'):ed.querySelector(t==='rich'?'.ed-area':t==='src'?'.ed-src':'.ed-code'));
  const source=area?('value'in area?area.value:area.textContent):'';
- const n=area?(t==='charcode'?String(source||'').length:textLen(source,t==='rich'?'rich':'html')):0;
+ const n=area?(t==='charcode'?String(source||'').length:textLen(source,ed.dataset.htmlSource==='1'?'html':t==='rich'?'rich':'html')):0;
  const cnt=ed.querySelector('.ed-count');if(cnt)cnt.textContent=n.toLocaleString()+' ตัวอักษร';
 }
 const EDITOR_VISUAL_DRAFT_PREFIX='__STARLIGHT_VISUAL_HTML_V1__:';
@@ -2947,8 +2936,9 @@ function setEditorSourceCss(ed,css){
  else{delete ed.dataset.sourceCss;area?.removeAttribute('data-editor-css-scope');document.getElementById('editor-scope-'+ed.id)?.remove();}
 }
 function saveEditorDraft(ed,area,key){
- if(!key||!area)return;const value=EDITOR_VISUAL_DRAFT_PREFIX+JSON.stringify({html:area.innerHTML,css:ed.dataset.sourceCss||''});
- store.setItem(key,value);
+ if(!key||!area)return;
+ const source=ed.querySelector('.ed-source-area');
+ store.setItem(key,EDITOR_VISUAL_DRAFT_PREFIX+JSON.stringify({html:area.innerHTML,css:ed.dataset.sourceCss||'',source:source?.value||'',sourceMode:ed.dataset.htmlSource==='1'}));
 }
 function insertEditorPaste(ed,html,css=''){
  const area=ed?.querySelector('.ed-area');if(!area)return;
@@ -2965,9 +2955,9 @@ function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
  const code=ed.querySelector('.char-bio-code');
  if(code){if(ed.dataset.outputMode==='html')return{mode:'html',content:String(code.value||'').trim()};const clean=cleanCharacterBio(code.value),meaningful=textLen(clean,'rich')>0||/<(img|iframe|hr|table|div|h[1-6]|ul|ol|li|p)\b/i.test(clean);return{mode:'rich',content:meaningful?clean:''}}
- const area=ed.querySelector('.ed-area');
+ const area=ed.querySelector('.ed-area'),source=ed.querySelector('.ed-source-area');
  if(!area)return{mode:'rich',content:''};
- if(area.dataset.htmlSource==='1')return{mode:'html',content:String(area.textContent||'').trim()};
+ if(ed.dataset.htmlSource==='1')return{mode:'html',content:String(source?.value||'').trim()};
  if(!area.children.length){
   const pasted=getEditorHtmlSource(area.textContent||'');
   if(pasted){const parts=extractEditorHtmlSource(pasted);if(parts.html){area.innerHTML=parts.html;setEditorSourceCss(ed,parts.css);}}
@@ -2976,9 +2966,7 @@ function edGet(ed){
  {
   const copy=area.cloneNode(true);
   copy.querySelectorAll('pre.html-source-block').forEach(block=>{
-   const rendered=document.createElement('div');
-   rendered.innerHTML=sanitize(block.textContent||'');
-   block.replaceWith(...rendered.childNodes);
+   const rendered=document.createElement('div');rendered.innerHTML=sanitize(block.textContent||'');block.replaceWith(...rendered.childNodes);
   });
   raw=copy.innerHTML||copy.textContent||'';
  }
@@ -2991,48 +2979,46 @@ function edGet(ed){
 const edOf=(f,name)=>f?.querySelector(`.ed[data-name="${name}"]`);
 function initEditors(){
  document.querySelectorAll('.ed:not([data-ok])').forEach(ed=>{
-  ed.dataset.ok=1;const a=ed.querySelector('.ed-area'),dk=ed.dataset.draft?'sa_draft_'+ed.dataset.draft:'';
+  ed.dataset.ok=1;
+  const a=ed.querySelector('.ed-area'),source=ed.querySelector('.ed-source-area'),dk=ed.dataset.draft?'sa_draft_'+ed.dataset.draft:'';
   if(dk&&a&&!a.innerHTML.trim()){
    const d=store.getItem(dk);
    if(d){
     try{
      if(d.startsWith(EDITOR_VISUAL_DRAFT_PREFIX)){
       const saved=JSON.parse(d.slice(EDITOR_VISUAL_DRAFT_PREFIX.length));a.innerHTML=sanitize(saved.html||'');setEditorSourceCss(ed,saved.css||'');
+      if(source&&saved.sourceMode){source.value=saved.source||'';ed.dataset.htmlSource='1'}
      }else{
       const oldPrefix='__STARLIGHT_HTML_SOURCE__'+'\\'+'n';
       const oldNewlinePrefix='__STARLIGHT_HTML_SOURCE__'+'\n';
       const legacySource=d.startsWith(oldPrefix)?d.slice(oldPrefix.length):d.startsWith(oldNewlinePrefix)?d.slice(oldNewlinePrefix.length):d;
       const pasted=getEditorHtmlSource(legacySource);
-      if(pasted){const parts=extractEditorHtmlSource(pasted);a.innerHTML=parts.html;setEditorSourceCss(ed,parts.css);}
-      else a.innerHTML=sanitize(d);
+      if(pasted){const parts=extractEditorHtmlSource(pasted);a.innerHTML=parts.html;setEditorSourceCss(ed,parts.css)}else a.innerHTML=sanitize(d);
      }
     }catch(err){a.innerHTML=sanitize(d)}
-    delete a.dataset.htmlSource;ed.classList.remove('html-source-mode');
-    const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=false;
+    const sourceMode=ed.dataset.htmlSource==='1';a.hidden=sourceMode;if(source)source.hidden=!sourceMode;ed.classList.toggle('html-source-mode',sourceMode);
+    const bar=ed.querySelector('.ed-bar');if(bar)bar.hidden=sourceMode;
     setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300);
    }
   }
   if(a)a.addEventListener('input',()=>{edCount(ed);saveEditorDraft(ed,a,dk)});
+  if(source)source.addEventListener('input',()=>{edCount(ed);saveEditorDraft(ed,a,dk)});
   if(a)a.addEventListener('paste',e=>{
+   if(ed.dataset.htmlSource==='1')return;
    const clip=e.clipboardData,tx=clip.getData('text/plain'),h=clip.getData('text/html');e.preventDefault();
-   let source=getEditorHtmlSource(tx);
-   if(!source&&h){
+   let found=getEditorHtmlSource(tx);
+   if(!found&&h){
     const tmp=document.createElement('template');tmp.innerHTML=h;
     const code=tmp.content.querySelector('pre code,pre');
-    if(code)source=getEditorHtmlSource(code.textContent||'');
-    if(!source)source=getEditorHtmlSource(tmp.content.textContent||'');
+    if(code)found=getEditorHtmlSource(code.textContent||'');
+    if(!found)found=getEditorHtmlSource(tmp.content.textContent||'');
    }
-   if(source){
-    const parts=extractEditorHtmlSource(source);
-    insertEditorPaste(ed,parts.html,parts.css);
-    return;
-   }
+   if(found){const parts=extractEditorHtmlSource(found);insertEditorPaste(ed,parts.html,parts.css);return}
    if(h){insertEditorPaste(ed,sanitize(h));return}
-   document.execCommand('insertText',false,tx);
-   a.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);
+   document.execCommand('insertText',false,tx);a.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);
   });
   ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
-  a?.addEventListener('blur',()=>{if(a.dataset.htmlSource!=='1')edParseInlineHTML(a);saveSel();});
+  a?.addEventListener('blur',()=>{if(ed.dataset.htmlSource!=='1')edParseInlineHTML(a);saveSel();});
   ed.addEventListener('keydown',e=>{
    if(e.target?.matches('.char-bio-code'))return;
    if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();ed.closest('form')?.requestSubmit();return}
