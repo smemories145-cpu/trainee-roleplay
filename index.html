@@ -1542,7 +1542,7 @@ ${head}
 html,body{width:100%;max-width:100%;min-width:0}
 /* Full HTML documents may use viewport-height sizing. Prevent the auto-resizing
    preview iframe from feeding its own height back into 100vh/min-height. */
-${fullDoc?`html,body{height:auto!important;min-height:0!important}`:'' }
+${fullDoc?'html,body{height:auto!important;min-height:0!important}':''}
 body{padding:0}
 body>*{box-sizing:border-box}
 /* Do not force direct child divs to 100% width: profile cards must keep their
