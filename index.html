@@ -4050,13 +4050,13 @@ function adminCharForm(c){
  <div class="row"><div class="f1"><label>สังกัดค่าย</label><select name="agencyId">${agencyOptions(c.agencyId,'ไม่สังกัด')}</select></div>
  <div class="f1"><label>ขั้น</label><select name="stage">${STAGES.map((s,i)=>`<option value="${i}" ${i===c.stage?'selected':''}>${i} — ${esc(s.n)}</option>`).join('')}</select></div>
  <div class="f1"><label>EXP</label><input type="number" name="exp" min="0" value="${c.exp}"></div>
- <div class="f1"><label>💰 เงินวอน</label><input type="number" name="won" min="0" value="${c.won||0}"></div></div>
+ ${hasAdminPermission('manage_economy')?`<div class='f1'><label>💰 เงินวอน</label><input type='number' name='won' min='0' value='${c.won||0}'></div>`:''}</div>
  <!-- Admin-only updates must never round-trip or overwrite custom profile HTML. -->
  <button class="btn sm">บันทึก</button></form>`;
 }
 function saveCharAdmin(e,id){
  e.preventDefault();if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการตัวละคร','bad');const E=e.target.elements,c=DB.get('characters').find(x=>x.id===id);
- const nw=Math.max(0,+E.won.value||0),diff=nw-(c.won||0);
+ const nw=E.won?Math.max(0,+E.won.value||0):(c.won||0),diff=nw-(c.won||0);
  update('characters',id,c=>{STATS.forEach(s=>c.stats[s.k]=Math.max(0,Math.min(100,+E['st_'+s.k].value||0)));c.agencyId=E.agencyId.value;c.stage=+E.stage.value;c.exp=Math.max(0,+E.exp.value||0);});
  if(diff)addWon(id,diff,'แอดมินปรับยอดเงิน');
  toast('บันทึกแล้ว');render();
