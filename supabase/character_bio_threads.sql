@@ -13,6 +13,8 @@ declare
   v_thread_id text;
   v_title text;
   v_body text;
+  v_plot_mode text;
+  v_body_readable text;
   v_author_char_id text;
   v_char jsonb;
   v_order integer;
@@ -33,12 +35,20 @@ begin
   v_thread_id := nullif(trim(p_thread ->> 'id'), '');
   v_title := trim(coalesce(p_thread ->> 'title', ''));
   v_body := coalesce(p_thread ->> 'plot', '');
+  v_plot_mode := coalesce(nullif(trim(p_thread ->> 'plotMode'), ''), 'rich');
+  if v_plot_mode not in ('rich','html') then
+    raise exception 'Biography display mode must be rich or html';
+  end if;
+  v_body_readable := regexp_replace(v_body, '<style[^>]*>.*?</style>', ' ', 'gi');
+  v_body_readable := regexp_replace(v_body_readable, '<script[^>]*>.*?</script>', ' ', 'gi');
+  v_body_readable := regexp_replace(v_body_readable, '<head[^>]*>.*?</head>', ' ', 'gi');
+  v_body_readable := regexp_replace(v_body_readable, '<[^>]*>', ' ', 'g');
 
   if v_thread_id is null then raise exception 'Thread ID is required'; end if;
   if length(v_title) < 3 or length(v_title) > 120 then
     raise exception 'Thread title must be 3 to 120 characters';
   end if;
-  if length(btrim(regexp_replace(v_body, '<[^>]*>', ' ', 'g'))) < 80 then
+  if length(btrim(regexp_replace(v_body_readable, '[[:space:]]+', ' ', 'g'))) < 80 then
     raise exception 'Biography must contain at least 80 characters';
   end if;
 
@@ -115,7 +125,7 @@ begin
     'train', '[]'::jsonb,
     'statGain', 0,
     'plot', v_body,
-    'plotMode', 'rich',
+    'plotMode', v_plot_mode,
     'rules', '',
     'rulesMode', 'rich',
     'css', '',
@@ -146,6 +156,8 @@ declare
   v_thread_id text;
   v_title text;
   v_body text;
+  v_plot_mode text;
+  v_body_readable text;
   v_now_ms bigint;
 begin
   if auth.uid() is null then raise exception 'Sign in is required'; end if;
@@ -162,11 +174,19 @@ begin
   v_thread_id := nullif(trim(p_thread ->> 'id'), '');
   v_title := trim(coalesce(p_thread ->> 'title', ''));
   v_body := coalesce(p_thread ->> 'plot', '');
+  v_plot_mode := coalesce(nullif(trim(p_thread ->> 'plotMode'), ''), 'rich');
+  if v_plot_mode not in ('rich','html') then
+    raise exception 'Biography display mode must be rich or html';
+  end if;
+  v_body_readable := regexp_replace(v_body, '<style[^>]*>.*?</style>', ' ', 'gi');
+  v_body_readable := regexp_replace(v_body_readable, '<script[^>]*>.*?</script>', ' ', 'gi');
+  v_body_readable := regexp_replace(v_body_readable, '<head[^>]*>.*?</head>', ' ', 'gi');
+  v_body_readable := regexp_replace(v_body_readable, '<[^>]*>', ' ', 'g');
   if v_thread_id is null then raise exception 'Thread ID is required'; end if;
   if length(v_title) < 3 or length(v_title) > 120 then
     raise exception 'Thread title must be 3 to 120 characters';
   end if;
-  if length(btrim(regexp_replace(v_body, '<[^>]*>', ' ', 'g'))) < 80 then
+  if length(btrim(regexp_replace(v_body_readable, '[[:space:]]+', ' ', 'g'))) < 80 then
     raise exception 'Biography must contain at least 80 characters';
   end if;
 
@@ -189,7 +209,7 @@ begin
   v_new := v_old || jsonb_build_object(
     'title', v_title,
     'plot', v_body,
-    'plotMode', 'rich',
+    'plotMode', v_plot_mode,
     'updatedAt', v_now_ms
   );
 
