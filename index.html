@@ -1997,7 +1997,7 @@ function characterBioEditor(name,val='',o={}){
   ? '<li>นิสัยเด่น 3–5 ข้อ และวิธีแสดงออก</li><li>สิ่งที่ชอบ / ไม่ชอบ และงานอดิเรก</li><li>จุดแข็ง จุดอ่อน หรือสิ่งที่ทำให้ตัวละครมีมิติ</li>'
   : '<li>ภูมิหลัง ครอบครัว หรือสถานที่ที่เติบโตมา</li><li>เหตุการณ์สำคัญที่หล่อหลอมตัวละคร</li><li>เหตุผลที่เข้ามาเป็นเด็กฝึกหรือศิลปิน</li><li>เป้าหมายและความฝัน</li>';
  const d=o.studioData&&typeof o.studioData==='object'?o.studioData:{};
- const fv=(k,def='')=>esc(d[k]??def);
+ const fv=(k,def='')=>esc((String(k).includes('.')?String(k).split('.').reduce((v,p)=>v?.[p],d):d[k])??def);
  const checked=p=>(Array.isArray(d.positions)?d.positions:[]).includes(p)?'checked':'';
  const positions=['Vocal','Dance','Rap','Producer','Visual','Leader','Actor'];
  const positionChoices=positions.map(p=>'<label class="char-bio-studio-check"><input type="checkbox" data-studio-position="'+p+'" '+checked(p)+'><span>'+p+'</span></label>').join('');
