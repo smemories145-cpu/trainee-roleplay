@@ -1977,9 +1977,14 @@ img,video{height:auto}
  .profile-header-section{padding-left:clamp(12px,3vw,24px);padding-right:clamp(12px,3vw,24px)}
  .profile-container .content-body{padding:clamp(14px,3vw,24px)}
 }</style>`}
-
+<style id="starlight-iframe-sizing">
+/* The iframe height must follow authored content, never the iframe viewport. */
+html,body{height:auto!important;min-height:0!important;max-height:none!important}
+body{box-sizing:border-box}
+body>*{box-sizing:border-box}
+</style>
 </head><body${fullDoc?bodyAttrs:''}>${body||''}
-<script>(function(){function report(){try{var b=document.body,r0=document.documentElement;if(!b||!r0)return;var h=Math.max(b.scrollHeight,b.offsetHeight,b.clientHeight,r0.scrollHeight,r0.offsetHeight,r0.clientHeight);var kids=b.children;for(var i=0;i<kids.length;i++){var el=kids[i];if(el.tagName==='SCRIPT'||el.tagName==='STYLE')continue;var r=el.getBoundingClientRect();h=Math.max(h,r.bottom+window.scrollY)}if(h===0){var range=document.createRange();range.selectNodeContents(b);var rr=range.getBoundingClientRect();h=rr.bottom+window.scrollY}if(Number.isFinite(h)&&h>0)parent.postMessage({cf:'${id}',h:Math.ceil(h+8)},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>`;
+<script>(function(){var lastHeight=0;function report(){try{var b=document.body;if(!b)return;var h=0,kids=b.children;for(var i=0;i<kids.length;i++){var el=kids[i];if(el.tagName==='SCRIPT'||el.tagName==='STYLE'||el.hidden)continue;var r=el.getBoundingClientRect(),st=getComputedStyle(el);var bottom=r.bottom+(parseFloat(st.marginBottom)||0)+(window.scrollY||0);if(Number.isFinite(bottom))h=Math.max(h,bottom)}if(h<=0){var range=document.createRange();range.selectNodeContents(b);var rr=range.getBoundingClientRect();h=Math.max(0,rr.bottom+(window.scrollY||0))}h=Math.ceil(h+(parseFloat(getComputedStyle(b).marginBottom)||0)+8);if(Number.isFinite(h)&&h>0&&Math.abs(h-lastHeight)>1){lastHeight=h;parent.postMessage({cf:'${id}',h:h},'*')}}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>`;
  return `<iframe class="cf" id="${id}" title="พรีวิวโค้ดโปรไฟล์" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" style="display:block;width:100%;min-height:120px;border:0;background:transparent" srcdoc="${esc(doc)}"></iframe>`;
 }
 addEventListener('message',e=>{const d=e.data;if(!d||!d.cf)return;const f=document.getElementById(d.cf);if(f&&e.source===f.contentWindow&&Number.isFinite(d.h)&&d.h>0){const h=Math.max(120,Math.min(Math.ceil(d.h),20000));if(Math.abs(f.getBoundingClientRect().height-h)>1)f.style.height=h+'px'}});
