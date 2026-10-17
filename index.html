@@ -64,7 +64,7 @@ details{margin:6px 0 14px;background:var(--card2);border-radius:10px;padding:10p
 summary{cursor:pointer;font-weight:600}
 
 /* ---------- เนื้อหาโพสต์ ---------- */
-.rich{line-height:1.75;word-wrap:break-word}
+.rich{font-family:'Prompt','Noto Sans Thai','Sarabun',sans-serif;line-height:1.75;word-wrap:break-word}
 .rich p{margin:0 0 .6em}
 .rich img{max-width:100%;border-radius:8px}
 .rich h2,.rich h3{margin:.4em 0}
@@ -2519,12 +2519,12 @@ function applyCharacterProfileTemplate(button){
  toast('ใส่เทมเพลตแล้ว — แก้โค้ดและกดพรีวิวก่อนบันทึกได้เลย');
 }
 function richEditor(name,val='',o={}){
- const id='ed'+(++EDN),sourceMode=o.mode==='html';
- return `<div class="ed${sourceMode?' html-source-mode':''}" id="${id}" data-name="${name}" data-mode="${sourceMode?'html':'rich'}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
- <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn sm ghost" data-editor-action="toggle-html" title="สลับระหว่างโหมดโค้ด HTML และโหมดจัดรูปแบบ">${sourceMode?'👁 แก้ไขแบบแสดงผล':'&lt;/&gt; โหมด HTML'}</button><span class="ed-count"></span></div></div>
- <div class="ed-bar" ${sourceMode?'hidden':''}>${edBar(id)}</div>
- <div class="ed-area rich" contenteditable="true" ${sourceMode?'data-html-source="1"':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${sourceMode?esc(val):sanitize(val)}</div>
- <div class="ed-foot"><span class="ed-hint">💡 โค้ด HTML จะแสดงเป็นข้อความในช่องเขียน · กดพรีวิวเพื่อตรวจผลลัพธ์</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
+ const id='ed'+(++EDN);
+ return \`<div class="ed" id="\${id}" data-name="\${name}" data-mode="rich" data-draft="\${esc(o.draft||'')}" data-tpl="\${esc(o.tpl||'')}">
+ <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><span class="ed-count"></span></div></div>
+ <div class="ed-bar">\${edBar(id)}</div>
+ <div class="ed-area rich" contenteditable="true" data-ph="\${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">\${sanitize(val)}</div>
+ <div class="ed-foot"><span class="ed-hint">💡 พิมพ์หรือวางโค้ด HTML ในช่องนี้ได้เลย แล้วปรับแต่งข้อความ สี และขนาดต่อได้ทันที</span><span>Ctrl+Enter = ส่ง</span></div></div>\`;
 }
 function editorIcon(name){
  const p={
