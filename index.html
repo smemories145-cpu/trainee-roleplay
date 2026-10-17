@@ -417,13 +417,32 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 </style>
 <style id="customCss"></style>
 <style id="threadReplyAndTallPortrait">
-.post-layout{grid-template-columns:minmax(230px,260px) minmax(0,1fr)}
-.side-por{aspect-ratio:2.35/5;min-height:460px;max-height:680px}
+/* Larger profile rail on wide displays, with responsive fallbacks. */
+.post-layout{grid-template-columns:minmax(280px,320px) minmax(0,1fr)}
+.post>.post-layout{grid-template-columns:minmax(280px,320px) minmax(0,1fr);gap:clamp(20px,2vw,30px)}
+.thread-opening-post>.post-layout{grid-template-columns:minmax(280px,320px) minmax(0,1fr);gap:clamp(20px,2vw,30px)}
+.side-por{aspect-ratio:3/5;min-height:520px;max-height:780px}
+.side-inventory{padding:9px;border:1px solid var(--line);border-radius:11px;background:var(--card)}
+.side-inventory-head{font-size:.78rem;font-weight:600;color:var(--mut);text-align:left;margin-bottom:8px}
+.side-inventory-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.side-inventory-item{min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 4px;border:1px solid var(--line);border-radius:8px;background:var(--card2)}
+.side-inventory-item img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px}
+.side-inventory-item .side-inventory-placeholder{display:grid;place-items:center;width:100%;aspect-ratio:1;font-size:1.4rem;background:#ffffff06;border-radius:5px}
+.side-inventory-item small{display:block;width:100%;font-size:.66rem;line-height:1.35;overflow-wrap:anywhere;color:var(--txt)}
 .thread-page-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 12px}
 .thread-page-toolbar>div{min-width:0}
 .thread-reply-jump{white-space:nowrap;border-radius:999px;padding:9px 20px}
 #reply-composer{scroll-margin-top:100px}
-@media(max-width:820px){.post-layout,.post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:minmax(0,1fr)}.side-por{aspect-ratio:3/4;min-height:0;max-height:520px}.thread-page-toolbar{align-items:flex-start}.thread-reply-jump{margin-left:auto}}
+@media(max-width:1000px){
+ .post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:minmax(240px,280px) minmax(0,1fr);gap:18px}
+ .side-por{min-height:470px;max-height:700px}
+}
+@media(max-width:820px){
+ .post-layout,.post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:minmax(0,1fr)}
+ .side-por{aspect-ratio:3/4;min-height:0;max-height:520px}
+ .thread-opening-post .side{max-width:360px;width:100%;margin:0 auto}
+ .thread-page-toolbar{align-items:flex-start}.thread-reply-jump{margin-left:auto}
+}
 </style>
 <style id="characterEditUx">
 /* ---------- Character edit page UX refresh ---------- */
@@ -1014,7 +1033,7 @@ function codeFrame(html,css=''){
 :root{--pri:${S.pri};--sec:${S.sec};--profile-accent:#998BA5}
 html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow-wrap:anywhere}
 img,video,iframe{max-width:100%}a{color:${S.pri}}*,*::before,*::after{box-sizing:border-box}
-.profile-container{width:100%;max-width:920px;margin:0 auto;background:#17151d;color:#eeeaf2;border:1px solid #3b3542;border-radius:14px;overflow:hidden;font-family:'Prompt',sans-serif}
+.profile-container{width:100%;max-width:min(1400px,100%);margin:0 auto;background:#17151d;color:#eeeaf2;border:1px solid #3b3542;border-radius:14px;overflow:hidden;font-family:'Prompt',sans-serif}
 .profile-container .banner{height:230px;overflow:hidden;background:#292330}
 .profile-container .banner img{display:block;width:100%;height:100%;object-fit:cover}
 .profile-header-section{padding:0 24px 20px;background:linear-gradient(180deg,#211c28,#17151d)}
@@ -1048,7 +1067,17 @@ img,video,iframe{max-width:100%}a{color:${S.pri}}*,*::before,*::after{box-sizing
 @media(max-width:560px){.profile-container .banner{height:160px}.profile-header-section{padding:0 15px 17px}.profile-header-section .avatar-row{margin-top:-42px}.profile-header-section .avatar{width:86px;height:86px;flex-basis:86px}.profile-header-section .action-buttons{font-size:10px;gap:5px}.profile-container .content-body{padding:18px 14px}.profile-container .info-grid{grid-template-columns:1fr}.profile-container .gallery-grid{gap:6px}.profile-container .gallery-item{height:100px}.profile-container .nav-tabs{padding:0 8px}.profile-container .nav-tab{padding:11px 10px}}
 </style>
 ${head}
-<style>${css||''}</style></head><body>${body||''}
+<style>${css||''}
+html,body{width:100%;max-width:100%;min-width:0}
+body{padding:0}
+body>*{box-sizing:border-box}
+body>div{max-width:100%!important;margin-left:auto!important;margin-right:auto!important}
+img,video,iframe,table{max-width:100%}
+img,video{height:auto}
+@media(max-width:760px){
+ .profile-header-section{padding-left:clamp(12px,3vw,24px);padding-right:clamp(12px,3vw,24px)}
+ .profile-container .content-body{padding:clamp(14px,3vw,24px)}
+}</style></head><body>${body||''}
 <script>(function(){function report(){try{var b=document.body,d=document.documentElement;var h=Math.max(b?b.scrollHeight:0,b?b.offsetHeight:0,d?d.scrollHeight:0,d?d.offsetHeight:0);parent.postMessage({cf:'${id}',h:h+8},'*')}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>`;
  return `<iframe class="cf" id="${id}" title="พรีวิวโค้ดโปรไฟล์" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-forms" style="display:block;width:100%;min-height:120px;border:0;background:transparent" srcdoc="${esc(doc)}"></iframe>`;
 }
@@ -1347,7 +1376,7 @@ function insertPostAnnouncement(button){
  const pick=ed.querySelector('.announcement-pick')?.value||'official';
  const skins={official:{paper:'#fffdf8',ink:'#29251f',edge:'#d8d0c2',accent:'#9b824e',top:'ประกาศ / OFFICIAL ANNOUNCEMENT'},bulletin:{paper:'#f4ead4',ink:'#40382c',edge:'#d4c29f',accent:'#8c7651',top:'NOTICE BOARD · ประกาศสำคัญ'},minimal:{paper:'#fff',ink:'#262626',edge:'#dedede',accent:'#333',top:'COMMUNITY NOTICE'},executive:{paper:'#f7f4ed',ink:'#242c35',edge:'#c7b887',accent:'#a68b4e',top:'OFFICE OF THE CHAIRMAN'}};
  const x=skins[pick]||skins.official;
- const html='<div style="max-width:760px;margin:12px auto;padding:clamp(18px,5vw,36px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:20px;line-height:1.8;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:14px;letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:28px;color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:32px;line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:15px;color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:15px;color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
+ const html='<div style="width:100%;max-width:min(1280px,100%);margin:12px auto;padding:clamp(20px,3.5vw,48px);background:'+x.paper+';color:'+x.ink+';border:1px solid '+x.edge+';box-shadow:0 5px 18px #0002;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:clamp(19px,1.35vw,24px);line-height:1.85;box-sizing:border-box;position:relative"><div style="text-align:center;font-size:clamp(13px,1vw,16px);letter-spacing:2px;border-bottom:1px solid '+x.edge+';padding-bottom:12px">'+x.top+'</div><div style="text-align:center;font-size:clamp(28px,2.2vw,36px);color:'+x.accent+';margin-top:18px">✦</div><h1 style="text-align:center;font-family:TH Sarabun New,Sarabun,sans-serif;font-size:clamp(30px,2.4vw,40px);line-height:1.35;margin:6px 0 4px;color:'+x.ink+'">[หัวข้อประกาศ]</h1><p style="text-align:center;font-size:clamp(15px,1.1vw,18px);color:#777;margin:0 0 18px">เลขที่ประกาศ 001 / 20XX</p><div style="height:3px;width:65px;background:'+x.accent+';margin:0 auto 22px"></div><p>เรียน สมาชิกและผู้เกี่ยวข้องทุกท่าน</p><p>[เขียนเนื้อหาประกาศของคุณที่นี่ ระบุรายละเอียดให้ชัดเจน]</p><div style="padding:12px 16px;margin:20px 0;background:'+x.accent+'12;border-left:3px solid '+x.accent+'"><b>รายละเอียดสำคัญ</b><ol><li>[รายละเอียดข้อที่ 1]</li><li>[รายละเอียดข้อที่ 2]</li><li>[วันที่หรือกำหนดการ]</li></ol></div><p>จึงประกาศมาเพื่อทราบโดยทั่วกัน</p><div style="text-align:right;display:flex;flex-direction:column;margin:28px 0 18px"><b>[ชื่อผู้ประกาศ]</b><span style="font-size:clamp(15px,1.1vw,18px);color:#777">ผู้มีอำนาจลงนาม / ฝ่ายประชาสัมพันธ์</span></div><div style="border-top:1px solid '+x.edge+';padding-top:12px;text-align:center;font:9px Arial,sans-serif;letter-spacing:2px;color:#888">OFFICIAL NOTICE · EST. 20XX</div></div><style>@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap");</style>';
  area.dataset.htmlSource='1';
  area.textContent=html;
  ed.classList.add('html-source-mode');
@@ -1531,6 +1560,8 @@ function showcaseOf(c){
 function sideCard(c,owner,count){
  if(!c)return `<aside class="side"><div class="side-por"><div class="ini">?</div></div><div class="side-body mut">ตัวละครถูกลบ</div></aside>`;
  const img=c.portrait||c.avatar,ag=agencyOf(c.agencyId),g=groupOf(c.id);
+ const items=DB.get('items');
+ const inventory=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it).slice(0,3);
  const top=[...STATS].sort((a,b)=>(c.stats?.[b.k]||0)-(c.stats?.[a.k]||0))[0];
  const ownerName=owner?.username||'สมาชิก';
  return `<aside class="side" style="--ac:${esc(c.sideColor||S.pri)}" ${c.hoverOwner!==false?`title="โพสต์โดย ${esc(ownerName)}"`:''}>
@@ -1544,6 +1575,7 @@ function sideCard(c,owner,count){
    <div class="side-row">${stageBadge(c.stage)}${ag?`<span class="badge" style="--c:${esc(ag.color)}">${esc(ag.name)}</span>`:''}${g?`<span class="badge" style="--c:${esc(g.color)}">🎤 ${esc(g.name)}</span>`:''}</div>
    <div class="side-stats"><div><b>${esc(c.age||'-')}</b><small>อายุ</small></div><div><b>${count}</b><small>โพสต์</small></div><div><b>${sum(c.stats)}</b><small>พลัง</small></div></div>
    <div class="won">💰 ${wonFmt(c.won)}</div>
+   ${inventory.length?`<div class="side-inventory"><div class="side-inventory-head">🎒 ของที่พกมา</div><div class="side-inventory-grid">${inventory.map(x=>`<div class="side-inventory-item" title="${esc(x.it.name)}">${x.it.img?`<img src="${esc(x.it.img)}" alt="${esc(x.it.name)}" loading="lazy" onerror="this.remove()">`:'<div class="side-inventory-placeholder">🎁</div>'}<small>${esc(x.it.name)}</small></div>`).join('')}</div></div>`:''}
    ${showcaseOf(c).map(x=>`<div class="side-box"><div class="side-box-t">${esc(x.label||'')}</div>${x.img?`<img src="${esc(x.img)}" loading="lazy" onerror="this.remove()">`:''}${x.name?`<b>${esc(x.name)}</b>`:''}</div>`).join('')}
   </div></aside>`;
 }
