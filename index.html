@@ -2991,8 +2991,15 @@ function threadStarterUser(t){
 function threadAuthorCharacter(t){
  if(!t||t.authorMode==='academy'||t.authorMode==='gm'||(!t.authorMode&&t.type==='notice'))return null;
  const chars=DB.get('characters');
- return chars.find(c=>c.id===t.authorCharId&&c.ownerId===t.authorId&&c.status==='approved')||
-  (!t.authorMode?chars.find(c=>c.ownerId===t.authorId&&c.status==='approved'):null)||null;
+ // For character-archive threads, prefer the character that actually owns/uses this archive URL.
+ // This prevents the account's first/main character from being shown for a secondary character.
+ if(t.characterBio){
+  const linked=chars.find(c=>c.ownerId===t.authorId&&c.bioThreadId===t.id);
+  if(linked)return linked;
+ }
+ const authorChar=chars.find(c=>c.id===t.authorCharId&&c.ownerId===t.authorId);
+ if(authorChar)return authorChar;
+ return (!t.authorMode?chars.find(c=>c.ownerId===t.authorId&&c.status==='approved'):null)||null;
 }
 function threadAuthorName(t){
  if(t?.authorMode==='academy')return 'Starlight_Academy';
