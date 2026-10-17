@@ -2876,7 +2876,7 @@ function initEditors(){
   if(a)a.addEventListener('input',()=>{edCount(ed);if(dk)store.setItem(dk,a.innerHTML)});
   if(a)a.addEventListener('paste',e=>{
    const h=e.clipboardData.getData('text/html'),tx=e.clipboardData.getData('text/plain');e.preventDefault();
-   const html=h?sanitize(h):(/<\\/?[a-z][\\w:-]*(?:\\s[^<>]*?)?\\s*\\/?>/i.test(tx)?sanitize(tx):esc(tx).replace(/\\n/g,'<br>'));
+   const html=h?sanitize(h):(tx.includes('<')&&tx.includes('>')?sanitize(tx):esc(tx).replaceAll(String.fromCharCode(10),'<br>'));
    document.execCommand('insertHTML',false,html);
   });
   ['keyup','mouseup'].forEach(ev=>a?.addEventListener(ev,saveSel));
