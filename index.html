@@ -302,6 +302,78 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--pri);outline-offset
 @media(max-width:820px){.home-hero{grid-template-columns:minmax(0,1fr) 190px;gap:10px;padding:28px}.home-hero-orbit{width:190px}.home-quicklinks{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.home-hero{grid-template-columns:1fr;min-height:0;padding:26px 20px;border-radius:18px}.home-hero-orbit{position:absolute;right:-60px;top:4px;width:170px;opacity:.28;pointer-events:none}.home-hero-content{max-width:100%}.home-hero h1{font-size:2rem;overflow-wrap:anywhere}.home-hero-content>p{max-width:90%;font-size:.9rem}.home-hero-actions{margin-top:18px}.home-stats{gap:15px;margin-top:23px}.home-quicklinks{gap:8px;margin-bottom:32px}.home-quicklinks>a{padding:11px 9px;gap:8px}.quick-icon{width:32px;height:32px;flex-basis:32px}.home-quicklinks small{white-space:normal;line-height:1.35}.home-section{margin-bottom:32px}.home-section-heading{align-items:flex-start}.home-section-heading h2{font-size:1.35rem}.home-section-heading p{font-size:.8rem}.home-text-link{font-size:.75rem}.home-recent{padding:11px 10px;gap:9px}.home-recent-icon{width:30px;flex-basis:30px;height:30px}.home-recent-title{gap:5px}.home-recent-title b{font-size:.86rem}.home-recent-meta{font-size:.7rem}.home-replies{min-width:37px}.home-replies span{font-size:.62rem}}
 
+
+/* ================= PERSONAL THEME PICKER ================= */
+#themePicker[hidden]{display:none!important}
+#themePicker.theme-overlay{position:fixed;inset:0;z-index:220;display:grid;place-items:center;padding:16px}
+#themePicker .theme-backdrop{position:absolute;inset:0;background:#07050bd9;backdrop-filter:blur(7px)}
+#themePicker .theme-dialog{position:relative;z-index:1;width:min(100%,690px);max-height:88vh;overflow:auto;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:20px;padding:clamp(16px,3vw,26px);box-shadow:0 24px 80px #0008}
+#themePicker .theme-dialog h2{margin:0 0 4px}
+#themePicker .theme-close{position:absolute;right:14px;top:12px;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:22px;cursor:pointer}
+#themePicker .theme-intro{margin:0 44px 18px 0;color:var(--mut);font-size:.88rem}
+#themePicker .theme-section-title{margin:18px 0 10px;font-weight:600}
+#themePicker .theme-presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+#themePicker .theme-preset{min-width:0;text-align:left;padding:10px;background:var(--card2);border:1px solid var(--line);border-radius:12px;color:var(--txt);font:inherit;cursor:pointer;transition:transform .15s,border-color .15s}
+#themePicker .theme-preset:hover{transform:translateY(-2px);border-color:var(--sec)}
+#themePicker .theme-preset.active{border-color:var(--pri);box-shadow:0 0 0 2px color-mix(in srgb,var(--pri) 25%,transparent)}
+#themePicker .theme-preset b{display:block;margin-top:7px;font-size:.82rem}
+#themePicker .theme-preset small{display:block;color:var(--mut);font-size:.7rem}
+#themePicker .theme-swatches{display:flex;overflow:hidden;height:27px;border-radius:8px;border:1px solid #ffffff20}
+#themePicker .theme-swatches i{display:block;flex:1}
+#themePicker .theme-colors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#themePicker .theme-color-field{min-width:0;padding:11px;background:var(--card2);border:1px solid var(--line);border-radius:12px}
+#themePicker .theme-color-field label{display:block;color:var(--txt);font-size:.84rem;margin:0 0 7px}
+#themePicker .theme-color-field input[type=color]{display:block;width:100%;height:44px;padding:3px;margin:0;cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:9px}
+#themePicker .theme-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+#themePicker .theme-actions .row{gap:8px}
+.theme-open-btn{font:inherit;white-space:nowrap}
+body.personal-theme-active{color:var(--txt);background:radial-gradient(ellipse at 15% -10%,color-mix(in srgb,var(--sec) 18%,var(--bg)),transparent 44%),var(--bg)!important}
+body.personal-theme-active nav{background:color-mix(in srgb,var(--bg) 91%,transparent)!important;border-bottom-color:var(--line)!important}
+body.personal-theme-active .card,
+body.personal-theme-active .profile-wrap,
+body.personal-theme-active .forum-pro-card,
+body.personal-theme-active .side,
+body.personal-theme-active .recent-box,
+body.personal-theme-active .home-recent,
+body.personal-theme-active .thread-list-item,
+body.personal-theme-active .as-card{background:var(--card)!important;border-color:var(--line)!important;color:var(--txt)}
+body.personal-theme-active input:not([type=color]):not([type=checkbox]):not([type=radio]),
+body.personal-theme-active select,
+body.personal-theme-active textarea,
+body.personal-theme-active .ed,
+body.personal-theme-active .ed-tabs,
+body.personal-theme-active .ed-area .html-source-block,
+body.personal-theme-active .side-box,
+body.personal-theme-active .tabs a,
+body.personal-theme-active .seg{background:var(--card2);border-color:var(--line);color:var(--txt)}
+body.personal-theme-active input::placeholder,
+body.personal-theme-active textarea::placeholder{color:var(--mut)}
+body.personal-theme-active .btn:not(.ghost):not(.ok):not(.bad),
+body.personal-theme-active .tabs a.on,
+body.personal-theme-active .seg input:checked+span{background:linear-gradient(120deg,var(--pri),var(--sec))!important;border-color:var(--pri)!important;color:var(--theme-btn-text)!important}
+body.personal-theme-active .btn.ghost{border-color:var(--line);color:var(--txt)!important}
+body.personal-theme-active .links>a:not(.btn):not(.row){color:var(--mut)}
+body.personal-theme-active .links>a:not(.btn):not(.row):hover{color:var(--txt)}
+body.personal-theme-active .forum-pro-stats{background:color-mix(in srgb,var(--card2) 70%,transparent);border-color:var(--line)}
+body.personal-theme-active .forum-pro-last{background:color-mix(in srgb,var(--card2) 50%,transparent);border-color:var(--line)}
+body.personal-theme-active .side-por,
+body.personal-theme-active .profile-banner{background:linear-gradient(135deg,var(--pri),var(--sec))!important}
+body.personal-theme-active .ed-bar,
+body.personal-theme-active .ed-foot{background:var(--card)!important;border-color:var(--line)}
+body.personal-theme-active .ed textarea{background:var(--card2)!important;color:var(--txt)}
+body.personal-theme-active .post-top,
+body.personal-theme-active th,
+body.personal-theme-active td{border-color:var(--line)}
+body.personal-theme-active .rules{border-left-color:var(--warn)}
+@media(max-width:600px){
+ #themePicker .theme-presets{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #themePicker .theme-colors{grid-template-columns:1fr}
+ #themePicker .theme-color-field{display:grid;grid-template-columns:1fr 100px;align-items:center;gap:8px}
+ #themePicker .theme-color-field label{margin:0}
+ #themePicker .theme-actions>.row{width:100%}
+ #themePicker .theme-actions button{flex:1}
+}
+
 </style>
 <style id="postReadability">
 /* ---------- อ่านโพสต์โรลเพลย์ได้สบายขึ้น ---------- */
@@ -1583,7 +1655,115 @@ function loadSettings(){
  const prefs=me()?.prefs||{};document.body.classList.toggle('user-compact',!!prefs.compactMode);document.body.classList.toggle('user-reduce-motion',!!prefs.reduceMotion);
  const cs=document.getElementById('customCss');if(cs)cs.textContent=S.customCss||'';
  document.title=S.siteName;
+
+ applyPersonalTheme(getSavedPersonalTheme());
 }
+
+const PERSONAL_THEME_PRESETS=[
+ {id:'lavender',name:'Lavender',desc:'ม่วงลาเวนเดอร์',pri:'#d6a7ff',sec:'#998ba5',bg:'#0b0914'},
+ {id:'rose',name:'Rose Pink',desc:'ชมพูโรส',pri:'#ff8fbd',sec:'#c17ca6',bg:'#190d18'},
+ {id:'ocean',name:'Ocean',desc:'ฟ้าน้ำทะเล',pri:'#78caff',sec:'#7388ed',bg:'#091521'},
+ {id:'mint',name:'Mint',desc:'เขียวมินต์',pri:'#75dfbd',sec:'#73b7a4',bg:'#0b1715'},
+ {id:'peach',name:'Peach',desc:'พีชอบอุ่น',pri:'#ffb58f',sec:'#cf8fac',bg:'#19100f'},
+ {id:'gold',name:'Moon Gold',desc:'ทองพระจันทร์',pri:'#f2cf7b',sec:'#b99276',bg:'#17130d'},
+ {id:'ice',name:'Ice Blue',desc:'ฟ้าเย็น',pri:'#8fe7ee',sec:'#7d9fe7',bg:'#0b151d'},
+ {id:'cream',name:'Soft Cream',desc:'ครีมสว่าง',pri:'#7957a6',sec:'#c084a7',bg:'#f4f0f8'}
+];
+function validThemeHex(v){return typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v)}
+function themeLuminance(hex){
+ if(!validThemeHex(hex))return 0;
+ const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4));
+ return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];
+}
+function getSavedPersonalTheme(){
+ try{const t=JSON.parse(store.getItem('sa_personal_theme')||'null');if(t&&validThemeHex(t.pri)&&validThemeHex(t.sec)&&validThemeHex(t.bg))return{pri:t.pri,sec:t.sec,bg:t.bg}}catch(e){}
+ return null;
+}
+function applyPersonalTheme(theme){
+ const r=document.documentElement.style;
+ if(!theme||!validThemeHex(theme.pri)||!validThemeHex(theme.sec)||!validThemeHex(theme.bg)){
+  document.body.classList.remove('personal-theme-active');
+  ['--card','--card2','--line','--txt','--mut','--theme-btn-text'].forEach(k=>r.removeProperty(k));
+  if(S){r.setProperty('--pri',S.pri);r.setProperty('--sec',S.sec);r.setProperty('--bg',S.bg)}
+  return;
+ }
+ const light=themeLuminance(theme.bg)>.48;
+ const btnText=themeLuminance(theme.pri)>.46?'#241d2b':'#ffffff';
+ r.setProperty('--pri',theme.pri);r.setProperty('--sec',theme.sec);r.setProperty('--bg',theme.bg);
+ r.setProperty('--card',light?'color-mix(in srgb, '+theme.bg+' 95%, #000000 5%)':'color-mix(in srgb, '+theme.bg+' 88%, #ffffff 12%)');
+ r.setProperty('--card2',light?'color-mix(in srgb, '+theme.bg+' 90%, #000000 10%)':'color-mix(in srgb, '+theme.bg+' 80%, '+theme.sec+' 20%)');
+ r.setProperty('--line','color-mix(in srgb, '+theme.bg+' 68%, '+theme.sec+' 32%)');
+ r.setProperty('--txt',light?'#2b2632':'#f4eff9');
+ r.setProperty('--mut',light?'#71687c':'#aaa0b8');
+ r.setProperty('--theme-btn-text',btnText);
+ document.body.classList.add('personal-theme-active');
+}
+function ensureThemePicker(){
+ let root=document.getElementById('themePicker');if(root)return root;
+ root=document.createElement('div');root.id='themePicker';root.className='theme-overlay';root.hidden=true;
+ root.innerHTML=[
+  '<div class="theme-backdrop" onclick="closeThemePicker()"></div>',
+  '<section class="theme-dialog" role="dialog" aria-modal="true" aria-labelledby="themePickerTitle">',
+  '<button type="button" class="theme-close" onclick="closeThemePicker()" aria-label="ปิด">×</button>',
+  '<h2 id="themePickerTitle">🎨 เลือกสีที่ชอบ</h2>',
+  '<p class="theme-intro">ปรับโทน STARLIGHT ให้เป็นสไตล์ของคุณได้เลย สีจะถูกบันทึกไว้ในเบราว์เซอร์นี้</p>',
+  '<div class="theme-section-title">ธีมสำเร็จรูป</div><div id="themePresetList" class="theme-presets"></div>',
+  '<div class="theme-section-title">ปรับสีเอง</div>',
+  '<div class="theme-colors">',
+  '<div class="theme-color-field"><label for="themePrimary">สีหลัก</label><input id="themePrimary" type="color" value="#d6a7ff" oninput="previewThemeDraft()"></div>',
+  '<div class="theme-color-field"><label for="themeSecondary">สีรอง</label><input id="themeSecondary" type="color" value="#998ba5" oninput="previewThemeDraft()"></div>',
+  '<div class="theme-color-field"><label for="themeBackground">สีพื้นหลัง</label><input id="themeBackground" type="color" value="#0b0914" oninput="previewThemeDraft()"></div>',
+  '</div>',
+  '<div class="theme-actions"><button type="button" class="btn ghost" onclick="resetPersonalTheme()">↺ กลับสีเริ่มต้นของเว็บ</button><div class="row"><button type="button" class="btn ghost" onclick="closeThemePicker()">ยกเลิก</button><button type="button" class="btn" onclick="savePersonalTheme()">ใช้สีนี้</button></div></div>',
+  '</section>'
+ ].join('');
+ document.body.appendChild(root);
+ const list=root.querySelector('#themePresetList');
+ list.innerHTML=PERSONAL_THEME_PRESETS.map(p=>'<button type="button" class="theme-preset" data-theme-preset="'+p.id+'" onclick="previewThemePreset(\''+p.id+'\')"><span class="theme-swatches"><i style="background:'+p.pri+'"></i><i style="background:'+p.sec+'"></i><i style="background:'+p.bg+'"></i></span><b>'+p.name+'</b><small>'+p.desc+'</small></button>').join('');
+ return root;
+}
+function currentThemeDraft(){
+ const p=document.getElementById('themePrimary'),s=document.getElementById('themeSecondary'),b=document.getElementById('themeBackground');
+ return{pri:p?.value||S?.pri||DEFAULT_SETTINGS.pri,sec:s?.value||S?.sec||DEFAULT_SETTINGS.sec,bg:b?.value||S?.bg||DEFAULT_SETTINGS.bg};
+}
+function setThemeDraft(theme){
+ const p=document.getElementById('themePrimary'),s=document.getElementById('themeSecondary'),b=document.getElementById('themeBackground');
+ if(!p||!s||!b)return;
+ p.value=theme.pri;s.value=theme.sec;b.value=theme.bg;
+}
+function updateThemePresetHighlight(){
+ const t=currentThemeDraft();
+ document.querySelectorAll('#themePresetList [data-theme-preset]').forEach(el=>{
+  const p=PERSONAL_THEME_PRESETS.find(x=>x.id===el.dataset.themePreset);
+  el.classList.toggle('active',!!p&&p.pri.toLowerCase()===t.pri.toLowerCase()&&p.sec.toLowerCase()===t.sec.toLowerCase()&&p.bg.toLowerCase()===t.bg.toLowerCase());
+ });
+}
+function previewThemeDraft(){const t=currentThemeDraft();applyPersonalTheme(t);updateThemePresetHighlight()}
+function previewThemePreset(id){
+ const p=PERSONAL_THEME_PRESETS.find(x=>x.id===id);if(!p)return;
+ setThemeDraft(p);previewThemeDraft();
+}
+function openThemePicker(){
+ const root=ensureThemePicker(),t=getSavedPersonalTheme()||{pri:S?.pri||DEFAULT_SETTINGS.pri,sec:S?.sec||DEFAULT_SETTINGS.sec,bg:S?.bg||DEFAULT_SETTINGS.bg};
+ setThemeDraft(t);root.hidden=false;previewThemeDraft();
+ const close=document.querySelector('#themePicker .theme-close');if(close)close.focus();
+}
+function closeThemePicker(){
+ const root=document.getElementById('themePicker');if(root)root.hidden=true;
+ applyPersonalTheme(getSavedPersonalTheme());
+}
+function savePersonalTheme(){
+ const t=currentThemeDraft();if(!validThemeHex(t.pri)||!validThemeHex(t.sec)||!validThemeHex(t.bg))return toast('กรุณาเลือกสีให้ครบ','bad');
+ store.setItem('sa_personal_theme',JSON.stringify(t));applyPersonalTheme(t);
+ const root=document.getElementById('themePicker');if(root)root.hidden=true;
+ toast('บันทึกสีธีมของคุณแล้ว');
+}
+function resetPersonalTheme(){
+ store.removeItem('sa_personal_theme');applyPersonalTheme(null);
+ const root=document.getElementById('themePicker');if(root)root.hidden=true;
+ toast('คืนค่าสีเริ่มต้นของเว็บไซต์แล้ว');
+}
+
 function migrateSet(k,v){if(cloudReady&&!isAdmin()){store.setItem('sa_'+k,JSON.stringify(v));return}DB.set(k,v)}
 function migrate(){
  try{
@@ -2727,7 +2907,7 @@ function renderNav(){
  const navEl=document.getElementById('nav');
  if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
  <div class="links">
-  <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a>
+  <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a><button type="button" class="btn sm ghost theme-open-btn" onclick="openThemePicker()">🎨 สีธีม</button>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
   ${admin?`<a href="#admin">👑 แอดมิน ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
   ${u?`${pill}<a href="#profile/${u.id}" class="row" style="color:var(--txt);gap:6px">${avatar(u,30)}<span>${esc(u.username)}</span></a><a href="#settings" class="btn sm ghost" style="padding:4px 8px">⚙️</a><button class="btn sm ghost" onclick="logout()">ออก</button>`
