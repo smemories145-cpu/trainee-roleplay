@@ -767,37 +767,39 @@ input:focus,select:focus,textarea:focus{border-color:rgba(216,182,244,.55);box-s
 }
 </style>
 <style id="starlightPortrait400x1000">
-/* Main STARLIGHT RP thread UI: double the 200×500 portrait size on wide desktops. */
+/* Balanced portrait sizing: 240 × 600 on desktop, scaled down for laptop/tablet. */
 .post>.post-layout,.thread-opening-post>.post-layout{
- grid-template-columns:402px minmax(0,1fr);
- gap:clamp(18px,2vw,28px);
+ grid-template-columns:242px minmax(0,1fr);
+ gap:clamp(18px,2vw,26px);
 }
 .post>.post-layout>.side,.thread-opening-post>.post-layout>.side{
- width:402px;min-width:0;max-width:402px;
+ width:242px;min-width:0;max-width:242px;
  border-radius:16px;
 }
 .post>.post-layout>.side>.side-por,.thread-opening-post>.post-layout>.side>.side-por{
- display:block;width:400px;height:1000px;min-height:1000px;max-height:1000px;
+ display:block;width:240px;height:600px;min-height:600px;max-height:600px;
  aspect-ratio:2/5;position:relative;overflow:hidden;
 }
 .post>.post-layout>.side>.side-por>img,.thread-opening-post>.post-layout>.side>.side-por>img{
  width:100%;height:100%;object-fit:cover;object-position:center;
 }
-/* Scale down progressively on laptop/tablet sizes to preserve reading space. */
-@media(max-width:1200px) and (min-width:821px){
- .post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:302px minmax(0,1fr);gap:18px}
- .post>.post-layout>.side,.thread-opening-post>.post-layout>.side{width:302px;max-width:302px}
+/* 220 × 550 on mid-sized laptop displays. */
+@media(max-width:1200px) and (min-width:1001px){
+ .post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:222px minmax(0,1fr);gap:18px}
+ .post>.post-layout>.side,.thread-opening-post>.post-layout>.side{width:222px;max-width:222px}
  .post>.post-layout>.side>.side-por,.thread-opening-post>.post-layout>.side>.side-por{
-  width:300px;height:750px;min-height:750px;max-height:750px;aspect-ratio:2/5
+  width:220px;height:550px;min-height:550px;max-height:550px;aspect-ratio:2/5
  }
 }
+/* 200 × 500 on smaller laptop/tablet landscape displays. */
 @media(max-width:1000px) and (min-width:821px){
- .post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:242px minmax(0,1fr);gap:16px}
- .post>.post-layout>.side,.thread-opening-post>.post-layout>.side{width:242px;max-width:242px}
+ .post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:202px minmax(0,1fr);gap:16px}
+ .post>.post-layout>.side,.thread-opening-post>.post-layout>.side{width:202px;max-width:202px}
  .post>.post-layout>.side>.side-por,.thread-opening-post>.post-layout>.side>.side-por{
-  width:240px;height:600px;min-height:600px;max-height:600px;aspect-ratio:2/5
+  width:200px;height:500px;min-height:500px;max-height:500px;aspect-ratio:2/5
  }
 }
+/* On mobile, prioritize the post content and keep the portrait compact. */
 @media(max-width:820px){
  .post>.post-layout,.thread-opening-post>.post-layout{grid-template-columns:minmax(0,1fr);gap:16px}
  .post>.post-layout>.side,.thread-opening-post>.post-layout>.side{width:100%;max-width:340px;margin:0 auto}
