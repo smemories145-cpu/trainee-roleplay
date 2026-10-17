@@ -2044,7 +2044,7 @@ function sanitize(html){
    if(k==='src'){
     if(tag==='IFRAME'){if(!/^https:\/\/(www\.)?(youtube(-nocookie)?\.com\/embed\/|open\.spotify\.com\/embed\/)/i.test(v)){c.remove();return}continue}
     if(!/^(https?:|data:image\/)/i.test(v))c.removeAttribute(a.name);continue}
-   if(k==='style'){if(/expression|javascript:/i.test(v))c.removeAttribute(a.name);continue}
+   if(k==='style'){if(/expression|javascript:/i.test(v)){c.removeAttribute(a.name);continue}const fixed=v.replace(/font-family\\s*:\\s*([^;}]*)/gi,(m,f)=>/TH\\s*Sarabun|Sarabun\\s*New|Angsana\\s*New|Cordia\\s*New|Browallia/i.test(f)?\"font-family:'Sarabun','Noto Sans Thai','Prompt',sans-serif\":m);c.setAttribute('style',fixed);continue}
    if(k==='target'||k==='rel')continue;
    if(!OK_ATTR.includes(k))c.removeAttribute(a.name);
   }
