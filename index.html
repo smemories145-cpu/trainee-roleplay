@@ -3658,6 +3658,7 @@ function pageEditChar(id){
  app(`<div class="char-edit-page"><header class="char-edit-head"><a class="char-edit-back" href="#char/${id}">← กลับหน้าโปรไฟล์</a><div class="char-edit-heading-row"><div class="char-edit-heading-copy"><div class="char-edit-kicker">CHARACTER STUDIO · PROFILE SETTINGS</div><h1>แก้ไขตัวละคร</h1><p>ปรับข้อมูล รูปภาพ และหน้าตาของ <b>${esc(c.stageName||c.name)}</b></p></div><div class="char-edit-heading-character">${avatar(c,56)}<div><b>${esc(c.stageName||c.name)}</b><small>PROFILE EDITOR</small></div></div></div></header><form class="edit-grid char-edit-form" onsubmit="doEditChar(event,'${id}')" oninput="previewSide(this,'${id}')" onchange="previewSide(this,'${id}')"><div>
  <div class="card"><h2 style="margin-top:0">🎨 แก้ไขตัวละคร: ${esc(c.stageName||c.name)}</h2>
  ${full?`<div class="row"><div class="f1"><label>ชื่อ-นามสกุล</label><input name="name" required value="${esc(c.name)}"></div><div class="f1"><label>Stage Name</label><input name="stageName" value="${esc(c.stageName)}"></div></div>`:''}
+ <div class="row"><div class="f1"><label>🎂 อายุที่แสดงบนรูปข้าง (ปี)</label><input name="age" type="number" min="0" max="999" value="${esc(c.age??'')}" required><small class="field-help">ตัวเลขนี้จะแสดงในช่อง “อายุ” ของรูปข้างทุกโพสต์</small></div></div>
  <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (https://...)</label><input name="avatar" type="url" value="${esc(c.avatar)}"></div>
  <div class="f1"><label>ภาพปก Banner (https://...)</label><input name="banner" type="url" value="${esc(c.banner)}" placeholder="https://..."></div></div></div>
  <div class="card"><h3 style="margin-top:0">🖼 รูปข้าง (แสดงซ้ายมือทุกโพสต์)</h3>
@@ -3696,6 +3697,7 @@ function doEditChar(e,id){
  if(edOf(f,'personality')){pe=edGet(edOf(f,'personality')).content;bg=edGet(edOf(f,'background')).content;if(!pe||!bg)return toast('นิสัยและประวัติต้องไม่ว่าง','bad')}
  update('characters',id,o=>{Object.assign(o,side);
   if(E.name){o.name=E.name.value.trim();o.stageName=E.stageName.value.trim()}
+  if(E.age){const age=Number.parseInt(E.age.value,10);if(Number.isFinite(age))o.age=Math.max(0,Math.min(999,age))}
   if(pe!==undefined){o.personality=pe;o.background=bg;o.bioMode='rich'}
   if(E.profileHtml)o.profileHtml=E.profileHtml.value;
   if(E.summary)o.summary=E.summary.value.trim().slice(0,360);
