@@ -111,6 +111,8 @@ summary{cursor:pointer;font-weight:600}
 .profile-info{text-align:center;padding:0 20px 20px;border-bottom:1px solid var(--line)}
 .profile-info h2{margin:0 0 4px;font-size:1.8rem}
 .profile-main-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;padding:20px;align-items:start}
+.profile-custom-code-output{width:100%;min-width:0;margin:0 0 16px;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible}
+.profile-custom-code-output iframe{display:block;width:100%;max-width:100%;margin:0;border:0;background:transparent}
 @media(max-width:850px){.profile-main-layout{grid-template-columns:1fr}}
 
 /* ---------- ดีไซน์บอร์ดแบบ Pro (เหมือนในภาพตัวอย่าง) ---------- */
@@ -1760,13 +1762,76 @@ function previewCharacterBio(button){
 }
 function characterProfileTemplate(style,c){
  const name=esc(c?.stageName||c?.name||'CHARACTER NAME');
- const positions=esc((c?.positions||[]).join(' · ')||'POSITION / ROLE');
- const nation=esc(c?.nationality||'NATIONALITY');
+ const fullName=esc(c?.name||'FULL NAME');
+ const role=esc((c?.positions||[]).join(' · ')||'POSITION / ROLE');
  const age=esc(c?.age||'AGE');
- if(style==='midnight')return `<div style="padding:28px 24px;background:linear-gradient(140deg,#11101a,#2c2140);border:1px solid #7b5b9b;border-radius:18px;color:#f5eefc"><p style="font-size:10px;letter-spacing:4px;color:#caa6f2;margin:0 0 12px">STARLIGHT ARCHIVE / 001</p><h1 style="font-size:clamp(28px,5vw,42px);line-height:1.1;margin:0;color:#f5eefc">${name}</h1><p style="color:#cbb9dc;margin:10px 0 20px">${positions}</p><div style="padding:16px;border-left:3px solid #caa6f2;background:#ffffff08"><p style="font-size:10px;letter-spacing:2px;color:#caa6f2;margin:0 0 7px">SIGNATURE QUOTE</p><p style="margin:0;line-height:1.9">“เขียนคำโปรยหรือประโยคประจำตัวไว้ตรงนี้”</p></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px"><span style="padding:7px 12px;border:1px solid #5d496f;border-radius:99px;font-size:12px">AGE · ${age}</span><span style="padding:7px 12px;border:1px solid #5d496f;border-radius:99px;font-size:12px">${nation}</span></div><hr style="border:0;border-top:1px solid #584567;margin:22px 0"><h2 style="font-size:15px;color:#dfc5f8">✦ ABOUT</h2><p style="line-height:1.9;color:#e3d8ef">เขียนคำแนะนำตัวหรือรายละเอียดเพิ่มเติมที่อยากให้คนอ่านเห็นก่อน</p></div>`;
- if(style==='archive')return `<div style="padding:24px;border:1px solid #d0c5b5;border-radius:8px;background:#f6f0e5;color:#352f2a;font-family:Georgia,serif"><p style="font-family:Arial,sans-serif;font-size:10px;letter-spacing:3px;color:#88775d;margin:0 0 10px">CONFIDENTIAL · TRAINEE RECORD</p><h1 style="font-size:30px;line-height:1.15;font-weight:400;margin:0">${name}</h1><p style="font-family:Arial,sans-serif;font-size:12px;color:#786952;margin:8px 0 18px">${positions}</p><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px"><div style="padding:10px;border:1px solid #d6c8b5"><small style="font-family:Arial,sans-serif;color:#88775d">AGE</small><div>${age}</div></div><div style="padding:10px;border:1px solid #d6c8b5"><small style="font-family:Arial,sans-serif;color:#88775d">NATIONALITY</small><div>${nation}</div></div></div><hr style="border:0;border-top:1px solid #d0c5b5;margin:19px 0"><h2 style="font-size:15px;margin:0 0 8px">PERSONAL NOTE</h2><p style="line-height:1.9;margin:0">ใส่คำโปรย นิสัย หรือรายละเอียดพิเศษของตัวละคร</p><h2 style="font-size:15px;margin:19px 0 8px">STORY FILE</h2><p style="line-height:1.9;margin:0">เล่าเรื่องราวสั้น ๆ ที่อยากให้คนอ่านรู้จัก</p></div>`;
- if(style==='editorial')return `<div style="padding:25px 22px;border:1px solid #d6c6df;border-radius:4px;background:#fbf8fc;color:#33273d"><p style="font-size:10px;letter-spacing:4px;color:#9779a8;margin:0 0 18px">THE STARLIGHT EDIT · CHARACTER ISSUE</p><h1 style="font-family:Georgia,serif;font-weight:400;font-size:clamp(28px,5vw,40px);line-height:1.15;margin:0">${name}</h1><p style="color:#866e92;font-size:12px;margin:9px 0 22px">${positions}</p><div style="display:grid;grid-template-columns:100px 1fr;gap:14px;border-top:1px solid #dfd3e5;border-bottom:1px solid #dfd3e5;padding:13px 0"><div><small style="display:block;font-size:10px;letter-spacing:2px;color:#a18bab">AGE</small><b>${age}</b></div><div><small style="display:block;font-size:10px;letter-spacing:2px;color:#a18bab">ORIGIN</small><b>${nation}</b></div></div><p style="font-family:Georgia,serif;font-size:19px;line-height:1.6;color:#6b5277;margin:22px 0">“เพิ่มประโยคที่บอกความเป็นตัวละครได้ดีที่สุด”</p><h2 style="font-size:12px;letter-spacing:3px;color:#997aa7">PROFILE NOTE</h2><p style="font-size:13px;line-height:1.9;color:#62576a">ใช้พื้นที่นี้เขียนแนะนำตัวละคร จุดเด่น ความฝัน หรือรายละเอียดที่อยากให้คนอื่นจดจำ</p></div>`;
- return `<div style="padding:23px;border:1px solid #554661;border-radius:15px;background:linear-gradient(145deg,#211c2b,#17131f);color:#f3edf9"><p style="font-size:10px;letter-spacing:3px;color:#bca1d3;margin:0 0 10px">✦ ST★RLIGHT PROFILE</p><h1 style="font-size:clamp(26px,5vw,38px);margin:0;line-height:1.2;color:#f3edf9">${name}</h1><p style="font-size:12px;color:#bba9c9;margin:8px 0 18px">${positions}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><span style="font-size:11px;padding:6px 11px;border-radius:99px;background:#998ba526;color:#d9c4eb">AGE · ${age}</span><span style="font-size:11px;padding:6px 11px;border-radius:99px;background:#998ba526;color:#d9c4eb">${nation}</span></div><hr style="border:0;border-top:1px solid #43364d;margin:20px 0"><h2 style="font-size:14px;color:#dec6f3;margin:0 0 8px">ABOUT ME</h2><p style="font-size:13px;line-height:1.95;color:#e2d8ec">เขียนคำโปรย ประโยคประจำตัว หรือคำแนะนำสั้น ๆ ตรงนี้</p><h2 style="font-size:14px;color:#dec6f3;margin:18px 0 8px">A LITTLE MORE</h2><p style="font-size:13px;line-height:1.95;color:#e2d8ec">เพิ่มเรื่องราว ความฝัน หรือข้อมูลที่อยากเปิดเผยให้คนอื่นรู้จัก</p></div>`;
+ const nation=esc(c?.nationality||'NATIONALITY');
+ const about=esc(c?.summary||'เขียนคำแนะนำตัว ความฝัน หรือสิ่งที่อยากให้คนอ่านจดจำ');
+ const urlOf=u=>{const v=String(u||'').trim();return /^https?:\/\//i.test(v)?esc(v):''};
+ const banner=urlOf(c?.banner)||urlOf(c?.portrait)||urlOf(c?.avatar);
+ const avatarUrl=urlOf(c?.avatar)||urlOf(c?.portrait);
+ const portraitUrl=urlOf(c?.portrait)||urlOf(c?.banner)||urlOf(c?.avatar);
+ const photos=[];
+ [c?.portrait,c?.banner,c?.avatar,...(Array.isArray(c?.showcase)?c.showcase.map(x=>x?.img):[])].forEach(u=>{const v=urlOf(u);if(v&&!photos.includes(v))photos.push(v)});
+ const image=(url,cls,alt)=>url?'<img class="'+cls+'" src="'+url+'" alt="'+esc(alt)+'" loading="lazy">':'<div class="'+cls+' ph"><span>✦</span><small>ใส่ URL รูปภาพในโค้ดได้เลย</small></div>';
+ const cover=image(banner,'cover-img','Cover photo');
+ const avatar=image(avatarUrl,'avatar','Character photo');
+ const portrait=image(portraitUrl,'portrait','Character portrait');
+ let shots='';
+ for(let i=0;i<3;i++)shots+='<figure class="shot">'+(photos[i]?image(photos[i],'shot-img','Gallery photo '+(i+1)):'<div class="shot-img ph"><span>＋</span><small>เพิ่มรูปที่ '+(i+1)+'</small></div>')+'<figcaption>PHOTO / 0'+(i+1)+'</figcaption></figure>';
+ const base=[
+  '*{box-sizing:border-box}',
+  'html,body{margin:0;width:100%;max-width:100%;min-width:0}',
+  'body{padding:clamp(8px,2vw,22px);font-family:Prompt,sans-serif;line-height:1.75;overflow-wrap:anywhere}',
+  'img{display:block;max-width:100%}a{color:inherit;text-decoration:none}',
+  '.page{width:100%;max-width:960px;margin:0 auto;border-radius:18px;overflow:hidden}',
+  '.cover{position:relative;isolation:isolate;display:flex;align-items:flex-end;min-height:235px;overflow:hidden;background:linear-gradient(135deg,#463451,#15111e)}',
+  '.cover:after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(90deg,#09070dcc,transparent),linear-gradient(0deg,#09070d88,transparent 72%)}',
+  '.cover-img{position:absolute;z-index:-1;inset:0;width:100%;height:100%;object-fit:cover}',
+  '.cover-copy{position:relative;z-index:1;padding:clamp(20px,5vw,40px);max-width:100%}',
+  '.eyebrow{margin:0 0 9px;font:700 10px Prompt,sans-serif;letter-spacing:.2em}',
+  '.cover h1{margin:0;font-size:clamp(28px,5vw,46px);line-height:1.15;overflow-wrap:anywhere}',
+  '.role{margin:9px 0 0;font:12px Prompt,sans-serif;letter-spacing:.06em}',
+  '.pad{padding:clamp(17px,4vw,34px)}',
+  '.identity{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:15px}',
+  '.avatar{width:92px;height:92px;aspect-ratio:1;object-fit:cover;border-radius:50%;border:3px solid var(--edge,#4a3a56);background:var(--panel,#211a2a)}',
+  '.identity h2{margin:0;font-size:clamp(19px,3vw,27px);line-height:1.3}',
+  '.identity p{margin:4px 0 0;font:12px Prompt,sans-serif;opacity:.75}',
+  '.chips{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}',
+  '.chip{padding:6px 10px;border:1px solid var(--edge,#4a3a56);border-radius:99px;font:11px Prompt,sans-serif}',
+  '.quote{margin:22px 0;padding:14px 17px;background:var(--panel,#211a2a);border-left:3px solid var(--accent,#c9a7ee);font-size:15px;line-height:1.85}',
+  '.section{margin-top:26px}.section-head{display:flex;align-items:center;gap:10px;margin:0 0 12px;font:700 11px Prompt,sans-serif;letter-spacing:.14em}',
+  '.section-head:after{content:"";height:1px;flex:1;background:var(--edge,#4a3a56)}',
+  '.about{font-size:13px;line-height:1.95;white-space:pre-line}',
+  '.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}',
+  '.fact{min-width:0;padding:12px;border:1px solid var(--edge,#4a3a56);border-radius:10px;background:var(--panel,#211a2a)}',
+  '.fact small{display:block;margin-bottom:4px;font:9px Prompt,sans-serif;letter-spacing:.1em;opacity:.68}',
+  '.fact b{font-size:13px;overflow-wrap:anywhere}',
+  '.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}',
+  '.shot{min-width:0;margin:0;overflow:hidden;border-radius:10px}',
+  '.shot-img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--panel,#211a2a)}',
+  '.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:12px;text-align:center;background:repeating-linear-gradient(135deg,var(--panel,#211a2a),var(--panel,#211a2a) 12px,var(--edge,#4a3a56) 13px,var(--edge,#4a3a56) 14px)}',
+  '.ph span{font-size:23px;line-height:1}.ph small{font:10px/1.5 Prompt,sans-serif}',
+  '.shot figcaption{padding:6px 2px;font:9px Prompt,sans-serif;letter-spacing:.12em;opacity:.65}',
+  '.footer{margin-top:24px;padding-top:14px;border-top:1px solid var(--edge,#4a3a56);font:9px Prompt,sans-serif;letter-spacing:.16em;opacity:.62}',
+  '@media(max-width:680px){.cover{min-height:200px}.identity{grid-template-columns:auto minmax(0,1fr);gap:12px}.chips{grid-column:1/-1;justify-content:flex-start}.avatar{width:76px;height:76px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery{gap:7px}}',
+  '@media(max-width:420px){.cover{min-height:170px}.pad{padding:15px}.cover-copy{padding:19px}.gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.shot:last-child{display:none}.identity h2{font-size:19px}}'
+ ].join('\n');
+ let skin='',html='';
+ if(style==='midnight'){
+  skin=':root{--accent:#c9a7ff;--edge:#392e4b;--panel:#171321}body{background:#09080d;color:#f3eef8}.page{background:#100e16;border:1px solid #392e4b}.cover{min-height:200px}.cover:after{background:linear-gradient(0deg,#07060cea,transparent 85%)}.split{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,1.2fr)}.portrait-box{overflow:hidden;background:#1d1827}.portrait{width:100%;height:100%;min-height:430px;object-fit:cover}.detail{padding:clamp(16px,3vw,30px)}.detail .identity{grid-template-columns:auto minmax(0,1fr);margin-bottom:18px}.detail .avatar{width:68px;height:68px}.detail .chips{grid-column:1/-1;justify-content:flex-start}.detail .quote{margin-top:18px}@media(max-width:620px){.split{grid-template-columns:1fr}.portrait{height:280px;min-height:0;max-height:410px}.detail{padding:16px}}';
+  html='<section class="cover">'+cover+'<div class="cover-copy"><p class="eyebrow">STARLIGHT / PRIVATE FILE</p><h1>'+name+'</h1><p class="role">'+role+'</p></div></section><div class="split"><div class="portrait-box">'+portrait+'</div><section class="detail"><div class="identity">'+avatar+'<div><h2>'+name+'</h2><p>'+fullName+'</p></div><div class="chips"><span class="chip">AGE · '+age+'</span><span class="chip">'+nation+'</span></div></div><div class="quote">'+about+'</div><h3 class="section-head">CHARACTER DATA</h3><div class="facts"><div class="fact"><small>STAGE NAME</small><b>'+name+'</b></div><div class="fact"><small>AGE</small><b>'+age+'</b></div><div class="fact"><small>ROLE</small><b>'+role+'</b></div></div><section class="section"><h3 class="section-head">VISUAL ARCHIVE</h3><div class="gallery">'+shots+'</div></section><div class="footer">STARLIGHT ACADEMY · MIDNIGHT EDITION</div></section></div>';
+ }else if(style==='editorial'){
+  skin=':root{--accent:#94759f;--edge:#e5d9e8;--panel:#f0e8f1}body{background:#e9e1e9;color:#34283a;font-family:Georgia,serif}.page{background:#fcf9fc;border:1px solid #d8c8db;border-radius:4px}.cover{min-height:265px}.cover:after{background:linear-gradient(0deg,#26192bcf,transparent 80%)}.cover h1{font-family:Georgia,serif;font-weight:400;letter-spacing:-.035em}.eyebrow,.role,.section-head,.fact small,.shot figcaption,.footer{font-family:Prompt,sans-serif}.identity{padding-bottom:18px;border-bottom:1px solid var(--edge)}.avatar{border-radius:4px;border:0}.quote{background:transparent;border:0;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge);text-align:center;font:18px/1.7 Georgia,serif}.chip{border-radius:2px}.fact{border-radius:2px;background:#fff;border-color:var(--edge)}.shot{border-radius:2px}.ph{color:#6b596f}.cover-img{filter:saturate(.78)}';
+  html='<section class="cover">'+cover+'<div class="cover-copy"><p class="eyebrow">THE STARLIGHT EDIT · CHARACTER ISSUE</p><h1>'+name+'</h1><p class="role">'+role+'</p></div></section><div class="pad"><div class="identity">'+avatar+'<div><h2>'+name+'</h2><p>'+fullName+' · '+nation+'</p></div><div class="chips"><span class="chip">AGE / '+age+'</span></div></div><div class="quote">“'+about+'”</div><section class="section"><h3 class="section-head">AT A GLANCE</h3><div class="facts"><div class="fact"><small>STAGE NAME</small><b>'+name+'</b></div><div class="fact"><small>AGE</small><b>'+age+'</b></div><div class="fact"><small>NATIONALITY</small><b>'+nation+'</b></div></div></section><section class="section"><h3 class="section-head">PHOTO JOURNAL</h3><div class="gallery">'+shots+'</div></section><div class="footer">A CHARACTER PROFILE · STARLIGHT ACADEMY</div></div>';
+ }else if(style==='archive'){
+  skin=':root{--accent:#a47f3c;--edge:#d7c6a5;--panel:#e9dcc4}body{background:#17130e;color:#382e20;font-family:Georgia,serif}.page{background:#f4ead7;border:1px solid #b79a63;border-radius:6px}.cover{min-height:205px}.cover:after{background:linear-gradient(90deg,#20170dd1,transparent)}.cover h1{font-family:Georgia,serif;font-weight:400}.eyebrow,.role,.section-head,.fact small,.shot figcaption,.footer{font-family:Prompt,sans-serif}.identity{padding-bottom:16px;border-bottom:1px solid var(--edge)}.avatar{border-radius:3px;border:2px solid #b79a63}.chip{border-radius:3px;background:#eadbc0}.quote{background:#eadbc0;border-color:#a47f3c}.fact{background:#f8f1e4;border-radius:3px}.shot{border:1px solid #d7c6a5;border-radius:3px;padding:5px}.shot-img{border-radius:1px}.ph{color:#6c5a3e}.cover-img{filter:sepia(.16)}';
+  html='<section class="cover">'+cover+'<div class="cover-copy"><p class="eyebrow">CONFIDENTIAL · TRAINEE RECORD</p><h1>'+name+'</h1><p class="role">'+role+'</p></div></section><div class="pad"><div class="identity">'+avatar+'<div><h2>'+name+'</h2><p>'+fullName+'</p><p>'+nation+'</p></div><div class="chips"><span class="chip">AGE · '+age+'</span></div></div><section class="section"><h3 class="section-head">PERSONAL DOSSIER</h3><div class="facts"><div class="fact"><small>FULL NAME</small><b>'+fullName+'</b></div><div class="fact"><small>STAGE NAME</small><b>'+name+'</b></div><div class="fact"><small>POSITION</small><b>'+role+'</b></div></div></section><div class="quote">'+about+'</div><section class="section"><h3 class="section-head">ATTACHED PHOTOGRAPHS</h3><div class="gallery">'+shots+'</div></section><div class="footer">FILE NO. 001 · STARLIGHT ACADEMY</div></div>';
+ }else{
+  skin=':root{--accent:#bea0df;--edge:#40324f;--panel:#211a2a}body{background:#0d0a12;color:#f3eef8}.page{background:#15111d;border:1px solid #40324f;box-shadow:0 18px 50px #0006}.cover{min-height:255px}.cover:after{background:linear-gradient(90deg,#0a070fd9,transparent),linear-gradient(0deg,#0a070f80,transparent 70%)}.avatar{border:3px solid #574267}.chip{background:#211a2a}.fact{background:#1c1725}.quote{background:#211a2a}.shot{border:1px solid #40324f;padding:5px;background:#171320}';
+  html='<section class="cover">'+cover+'<div class="cover-copy"><p class="eyebrow">✦ STARLIGHT PROFILE</p><h1>'+name+'</h1><p class="role">'+role+'</p></div></section><div class="pad"><div class="identity">'+avatar+'<div><h2>'+name+'</h2><p>'+fullName+'</p></div><div class="chips"><span class="chip">AGE · '+age+'</span><span class="chip">'+nation+'</span></div></div><div class="quote">'+about+'</div><section class="section"><h3 class="section-head">PROFILE DETAILS</h3><div class="facts"><div class="fact"><small>STAGE NAME</small><b>'+name+'</b></div><div class="fact"><small>FULL NAME</small><b>'+fullName+'</b></div><div class="fact"><small>POSITION</small><b>'+role+'</b></div></div></section><section class="section"><h3 class="section-head">GALLERY / MOODBOARD</h3><div class="gallery">'+shots+'</div></section><div class="footer">✦ YOUR STORY, YOUR STYLE</div></div>';
+ }
+ return '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+name+' · Character Profile</title><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>'+base+'\n'+skin+'</style></head><body><main class="page">'+html+'</main></body></html>';
 }
 function applyCharacterProfileTemplate(button){
  const form=button?.form,field=form?.elements?.profileHtml,pick=form?.querySelector('.profile-template-choice');
@@ -2975,7 +3040,7 @@ function pageChar(id){
   <div class="profile-main-layout">
    <div>${sideCard(c,owner,posts.length)}</div>
    <div style="min-width:0">
-    ${c.profileHtml?`<div class="card" style="margin-bottom:16px">${codeFrame(c.profileHtml)}</div>`:''}
+    ${c.profileHtml?`<div class="profile-custom-code-output">${codeFrame(c.profileHtml)}</div>`:''}
     <div class="card character-profile-about"><h3 style="margin-top:0">🎯 ตำแหน่งที่ถนัด</h3><div class="row">${(c.positions||[]).map(p=>`<span class="badge" style="--c:var(--sec)">${esc(p)}</span>`).join('')}</div>
      ${c.summary?`<div class="character-short-bio"><h3>✦ เกี่ยวกับตัวละคร</h3><p>${esc(c.summary).replace(/\r?\n/g,'<br>')}</p></div>`:''}
      ${bioThread?`<div class="character-archive-link"><div><div class="bio-thread-eyebrow">CHARACTER ARCHIVE</div><h3>📖 ประวัติฉบับเต็ม</h3><p>อ่านเรื่องราวของ ${esc(c.stageName||c.name)} ในกระทู้ประวัติ แยกจากหน้าโปรไฟล์หลัก</p></div><a class="btn" href="#thread/${bioThread.id}">อ่านประวัติ ↗</a></div>`:''}
@@ -3092,8 +3157,8 @@ function pageEditChar(id){
  <button type="button" class="btn sm ghost" onclick="window.open(location.origin+location.pathname+'#forum/${CHARACTER_BIO_FORUM_ID}','_blank','noopener')">📚 เปิดคลังประวัติในแท็บใหม่ ↗</button>
  </div>
   ${canCode()?`<div class="card profile-code-panel"><div class="row between"><label>💻 ตกแต่งหน้าโปรไฟล์ด้วย HTML (ไม่บังคับ)</label></div>
- <p class="field-help" style="margin:4px 0 10px">เลือกเทมเพลตสำเร็จรูปหรือวางโค้ดเองได้ ใช้สำหรับการ์ดตกแต่งที่จะแสดงบนหน้าโปรไฟล์ตัวละคร</p>
- <div class="profile-template-tools"><div><label>เทมเพลต</label><select class="profile-template-choice"><option value="lilac">Lavender · Starlight</option><option value="midnight">Midnight · Dark card</option><option value="editorial">Editorial · Magazine</option><option value="archive">Archive · Character file</option></select></div><button type="button" class="btn sm" onclick="applyCharacterProfileTemplate(this)">＋ ใช้เทมเพลตนี้</button></div>
+ <p class="field-help" style="margin:4px 0 10px">เลือกเทมเพลตที่ดึงรูปของตัวละครมาให้โดยอัตโนมัติ หรือวาง HTML ฉบับเต็มของตัวเองได้ โดย HTML ฉบับเต็มจะใช้ CSS/เลย์เอาต์ของคุณเอง</p>
+ <div class="profile-template-tools"><div><label>เทมเพลต</label><select class="profile-template-choice"><option value="lilac">Lavender · Photo Profile</option><option value="midnight">Midnight · Cinematic</option><option value="editorial">Editorial · Magazine</option><option value="archive">Archive · Dossier</option></select></div><button type="button" class="btn sm" onclick="applyCharacterProfileTemplate(this)">＋ ใช้เทมเพลตนี้</button></div>
  <textarea name="profileHtml" rows="14" spellcheck="false" autocapitalize="off" autocomplete="off" class="code" placeholder="<div class=&quot;profile-container&quot;> ... </div>">${esc(c.profileHtml||'')}</textarea>
  <div class="row between"><span class="mut" style="font-size:.78rem">รองรับ HTML · กดพรีวิวเพื่อตรวจดูก่อนบันทึก</span><button type="button" class="btn sm" onclick="pvField(this.form,'profileHtml')">👁 แสดงตัวอย่าง</button></div><div class="preview profile-code-preview" hidden></div></div>`:''}
  <button class="btn">💾 บันทึก</button></div>
