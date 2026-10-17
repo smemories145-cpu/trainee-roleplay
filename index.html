@@ -2026,7 +2026,7 @@ async function hash(s){
  return 'f'+(h2>>>0).toString(16)+(h1>>>0).toString(16);
 }
 function me(){const id=store.getItem('sa_session');return DB.get('users').find(u=>u.id===id)}
-const isAdmin=()=>cloudProfile?cloudProfile.role==='admin':me()?.role==='admin';
+const isAdmin=()=>cloudProfile?cloudProfile.role==='admin':(me()?.role==='admin'&&!(Array.isArray(me()?.permissions)&&me().permissions.length>0));
 const ADMIN_PERMISSION_OPTIONS=[
  {key:'manage_character_review',label:'อนุมัติ / ปฏิเสธตัวละคร',desc:'ตรวจตัวละครใหม่และเปลี่ยนสถานะอนุมัติ'},
  {key:'manage_characters',label:'จัดการตัวละครและความก้าวหน้า',desc:'แก้ไขข้อมูลตัวละคร เลื่อนขั้น และปรับ EXP'},
