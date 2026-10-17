@@ -1211,6 +1211,44 @@ main:has(.thread-opening-post) {
 }
 </style>
 
+
+<style id="starlightFixedInputWidths2026">
+/* Keep every editable field and code panel inside its parent; long code scrolls inside its own box. */
+:where(#app,main,.card,form,.row,.f1,.topic-field-row,.topic-field-value,.topic-editor-wrap,.ed,.preview,.char-edit-form,.profile-code-panel,.char-bio-editor,.qu-modal,.qu-forum-form-grid>div){min-width:0;max-width:100%}
+input,select,textarea,.code,.ed-area,.ed-src,.ed-code,.char-bio-code{
+ box-sizing:border-box;min-width:0;max-width:100%
+}
+input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),
+select,textarea{
+ width:100%;max-width:100%;min-width:0
+}
+textarea{
+ display:block;resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal
+}
+textarea.code,.code,textarea.char-bio-code,textarea[name="profileHtml"],
+textarea[name="html"],textarea[name="css"],textarea[name="tpl"],
+textarea[name="homeHtml"],textarea[name="customCss"]{
+ display:block;width:100%!important;max-width:100%!important;min-width:0!important;
+ box-sizing:border-box;resize:vertical;white-space:pre;overflow:auto;
+ overflow-wrap:normal;word-break:normal;tab-size:2
+}
+.ed textarea,.char-bio-editor textarea,.topic-field-value textarea,
+.topic-editor-wrap,.ed-area,.ed-src,.ed-code{
+ width:100%;max-width:100%;min-width:0;box-sizing:border-box
+}
+.topic-field-row>* ,.topic-field-value>* ,.topic-editor-wrap>*{min-width:0;max-width:100%}
+.ed.html-source-mode .ed-area{
+ display:block;width:100%;max-width:100%;min-width:0;overflow:auto;
+ white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal
+}
+@media(max-width:600px){
+ .card,form{min-width:0;max-width:100%}
+ textarea.code,.code,textarea.char-bio-code,textarea[name="profileHtml"],
+ textarea[name="html"],textarea[name="css"],textarea[name="tpl"],
+ textarea[name="homeHtml"],textarea[name="customCss"]{font-size:12px}
+}
+</style>
+
 </head>
 <body>
 <nav id="nav"></nav>
@@ -2608,6 +2646,13 @@ function pageNewBioThread(){
   </form>
  </div>`);
 }
+function characterBioRpcError(action,error){
+ const message=String(error?.message||error||'');
+ if(/PGRST202|schema cache|could not find the function|function .* does not exist/i.test(message)){
+  return 'Supabase ยังไม่ติดตั้ง RPC ของคลังประวัติตัวละคร กรุณารันไฟล์ supabase/character_bio_threads.sql ใน Supabase Dashboard → SQL Editor แล้วรีโหลดเว็บ';
+ }
+ return action+'ไม่สำเร็จ: '+message;
+}
 async function doCreateCharacterBioThread(e){
  e.preventDefault();const u=me(),f=e.target,E=f.elements;if(!u)return go('login');
  const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
@@ -2619,7 +2664,7 @@ async function doCreateCharacterBioThread(e){
   css:'',tpl:'',deadline:'',pinned:false,status:'open',createdAt:Date.now(),characterBio:true};
  if(cloudReady){
   const {error}=await supaClient.rpc('site_create_character_bio_thread',{p_thread:th});
-  if(error)return toast('บันทึกกระทู้ไม่สำเร็จ: '+error.message+' · ผู้ดูแลอาจต้องอัปเดตฐานข้อมูลประวัติตัวละคร','bad');
+  if(error)return toast(characterBioRpcError('บันทึกกระทู้ประวัติ',error),'bad');
   await cloudRefresh(false);
  }else{
   const threads=DB.get('threads');threads.push(th);DB.set('threads',threads);
@@ -2659,7 +2704,7 @@ async function doUpdateCharacterBioThread(e,id){
  if(!bio.content||textLen(bio.content,'rich')<80)return toast('กรุณาเขียนประวัติอย่างน้อย 80 ตัวอักษร','bad');
  if(cloudReady){
   const {error}=await supaClient.rpc('site_update_character_bio_thread',{p_thread:{id,title,plot:bio.content,plotMode:'rich'}});
-  if(error)return toast('แก้ไขประวัติไม่สำเร็จ: '+error.message+' · ผู้ดูแลอาจต้องอัปเดตฐานข้อมูลประวัติตัวละคร','bad');
+  if(error)return toast(characterBioRpcError('แก้ไขกระทู้ประวัติ',error),'bad');
   await cloudRefresh(false);
  }else{
   update('threads',id,x=>{x.title=title;x.plot=bio.content;x.plotMode='rich';x.updatedAt=Date.now()});
