@@ -118,7 +118,7 @@ begin
         or (v_new -> 'ledger') is distinct from (v_old -> 'ledger')
         or (v_new -> 'lastPractice') is distinct from (v_old -> 'lastPractice')
         or (v_new -> 'lastSalary') is distinct from (v_old -> 'lastSalary'))
-       and not (v_manage_economy or v_manage_characters) then
+       and not v_manage_economy then
       raise exception 'Economy permission required';
     end if;
   elsif not v_admin and v_authorized then
