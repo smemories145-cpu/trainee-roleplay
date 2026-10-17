@@ -4241,7 +4241,7 @@ function pageAgency(id){
  app(`<a href="#agencies">← ค่ายทั้งหมด</a><br><br>
  <div class="card" style="border-top:4px solid ${esc(a.color)}"><div class="row" style="gap:20px">${avatar(a,100)}<div class="f1"><h2 style="margin:0">${esc(a.name)}</h2><div class="mut">👥 ${cs.length} คน · 🎤 ${gs.length} วง</div>${a.recruiting?'<span class="badge" style="--c:var(--ok)">เปิดรับเด็กฝึก</span>':''}</div></div>
   ${a.desc?`<br>${renderBody(a.desc,a.descMode)}`:''}
-  ${isAdmin()?`<div class="row"><a class="btn sm ghost" href="#editagency/${a.id}">✏️ แก้ไข</a><button class="btn sm bad" onclick="deleteAgency('${a.id}')">ลบค่าย</button></div>`:''}</div>
+  ${hasAdminPermission('manage_agencies')?`<div class="row"><a class="btn sm ghost" href="#editagency/${a.id}">✏️ แก้ไข</a><button class="btn sm bad" onclick="deleteAgency('${a.id}')">ลบค่าย</button></div>`:''}</div>
  ${a.html?`<div class="card">${codeFrame(a.html)}</div>`:''}
  ${gs.length?`<h3>🎤 ศิลปินในสังกัด</h3><div class="grid">${gs.map(groupCard).join('')}</div><br>`:''}
  <h3>👥 สมาชิกในค่าย</h3>${cs.length?`<div class="grid">${cs.map(charCard).join('')}</div>`:'<div class="card mut">ยังไม่มีสมาชิก</div>'}`);
@@ -4307,7 +4307,7 @@ function pageGroup(id){
   <div class="mut">${esc(g.type)} · ${mem.length} คน${g.fandom?` · แฟนด้อม: ${esc(g.fandom)}`:''}</div>
   <div class="row" style="margin:8px 0"><span class="badge" style="--c:${s[1]}">${s[0]}</span>${agencyBadge(g.agencyId)}${g.debutAt?`<span class="mut">เดบิวต์ ${fmt(g.debutAt)}</span>`:''}</div></div></div>
   ${g.concept?`<h3>💡 คอนเซปต์</h3>${renderBody(g.concept,g.conceptMode)}`:''}
-  ${isAdmin()?`<br><div class="row"><a class="btn sm ghost" href="#editgroup/${g.id}">✏️ แก้ไข</a>${g.status==='planning'?`<button class="btn sm ok" onclick="debutGroup('${g.id}')">🎉 เดบิวต์!</button>`:''}${g.status==='debuted'?`<button class="btn sm ghost" onclick="disbandGroup('${g.id}')">💤 ยุบวง</button>`:''}<button class="btn sm bad" onclick="deleteGroup('${g.id}')">ลบ</button></div>`:''}</div>
+  ${hasAdminPermission('manage_groups')?`<br><div class="row"><a class="btn sm ghost" href="#editgroup/${g.id}">✏️ แก้ไข</a>${g.status==='planning'?`<button class="btn sm ok" onclick="debutGroup('${g.id}')">🎉 เดบิวต์!</button>`:''}${g.status==='debuted'?`<button class="btn sm ghost" onclick="disbandGroup('${g.id}')">💤 ยุบวง</button>`:''}<button class="btn sm bad" onclick="deleteGroup('${g.id}')">ลบ</button></div>`:''}</div>
  ${g.html?`<div class="card">${codeFrame(g.html)}</div>`:''}
  <div class="card"><h3 style="margin-top:0">👥 สมาชิก</h3><div class="grid">${mem.map(m=>`<a class="card item" href="#char/${m.c.id}" style="text-align:center;margin:0"><div style="display:flex;justify-content:center">${avatar(m.c,70)}</div><b>${esc(m.c.stageName||m.c.name)}</b><div class="mut">${esc(m.role)}</div>${stageBadge(m.c.stage)}</a>`).join('')}</div></div>
  <div class="card"><h3 style="margin-top:0">📊 ค่าสถานะเฉลี่ยของวง</h3><div class="row" style="gap:24px"><div>${radar(avg)}</div><div class="f1">${statBars(avg)}<p class="mut">พลังวงเฉลี่ย ⚡${sum(avg)}</p></div></div></div>`);
