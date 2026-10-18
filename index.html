@@ -4231,7 +4231,6 @@ function pageChar(id){
  const posts=DB.get('posts').filter(p=>p.charId===id).sort((a,b)=>b.createdAt-a.createdAt);
  const cd=(c.lastPractice||0)+PRACTICE_CD-Date.now(),sl=(c.lastSalary||0)+SALARY_CD-Date.now();
  const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
- const others=DB.get('characters').filter(x=>x.status==='approved'&&x.id!==c.id).map(x=>`<option value="${x.id}">${esc(x.stageName||x.name)}</option>`).join('');
  
  app(`<div class="profile-wrap">
   <div class="profile-banner">${/^https?:\/\//.test(c.banner||'')?`<img src="${esc(c.banner)}">`:''}</div>
@@ -4259,7 +4258,7 @@ function pageChar(id){
     </div>
     <div class="card"><div class="row between"><h3 style="margin:0">💰 กระเป๋าเงิน</h3><span class="won" style="font-size:1.4rem">${wonFmt(c.won)}</span></div>
      ${isOwner&&c.status==='approved'?`<br><div class="row"><button class="btn sm ${sl>0?'ghost':''}" ${sl>0?'disabled':''} onclick="claimSalary('${c.id}')">💵 รับเงินเดือน ${wonFmt(salaryOf(c.stage))}</button><span class="mut">${sl>0?'รับได้อีกใน '+fmtLeft(sl):'พร้อมรับแล้ว!'}</span><a class="btn sm ghost" href="#shop">🛍 ไปร้านค้า</a></div>
-     <form class="row" style="margin-top:12px" onsubmit="doTransfer(event,'${c.id}')"><select name="to" style="margin:0;flex:2;min-width:150px"><option value="">💸 โอนเงินให้...</option>${others}</select><input name="amt" type="number" min="1" placeholder="จำนวน ₩" style="margin:0;flex:1;min-width:100px"><input name="note" placeholder="บันทึก (ไม่บังคับ)" maxlength="60" style="margin:0;flex:2;min-width:130px"><button class="btn sm">โอน</button></form>`:''}
+     <p class="mut" style="margin:12px 0 0">ปิดการโอนเงินสดข้ามตัวละครจากหน้านี้แล้ว การโอนระหว่างตัวละครจะทำผ่านแอปธนาคารเท่านั้น</p>`:''}
      ${(isOwner||isAdmin())&&(c.ledger||[]).length?`<details><summary>📒 สมุดบัญชี (${c.ledger.length} รายการล่าสุด)</summary>${c.ledger.map(l=>`<div class="row between" style="padding:5px 0;border-bottom:1px solid var(--line);font-size:.85rem"><span>${esc(l.note)} <span class="mut">· ${fmt(l.at)}</span></span><b style="color:${l.amt<0?'var(--bad)':'var(--ok)'}">${l.amt>0?'+':''}${wonFmt(l.amt)}</b></div>`).join('')}</details>`:''}</div>
     <div class="card"><h3 style="margin-top:0">🎒 ของสะสม (${inv.length})</h3>${inv.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${inv.map(x=>`<div class="side-box" style="text-align:center">${x.it.img?`<img src="${esc(x.it.img)}" loading="lazy">`:'<div style="font-size:2rem">🎁</div>'}<b>${esc(x.it.name)}</b><div class="mut" style="font-size:.75rem">${esc(x.it.cat)}</div></div>`).join('')}</div>`:`<p class="mut">ยังไม่มีของ${isOwner?' · <a href="#shop">ไปร้านค้า</a>':''}</p>`}</div>
     <div class="card"><div class="row between"><h3 style="margin:0">📊 ค่าสถานะ</h3><span class="mut">เพดานขั้นนี้ ${cap} · พลังรวม ⚡${sum(c.stats)}</span></div>
@@ -4313,22 +4312,6 @@ async function claimSalary(id){
  }
  const amt=salaryOf(c.stage);addWon(id,amt,'เงินเดือนประจำวัน');update('characters',id,o=>o.lastSalary=Date.now());
  toast(`💵 ได้รับเงินเดือน ${wonFmt(amt)}`);render();
-}
-async function doTransfer(e,id){
- e.preventDefault();const E=e.target.elements,u=me(),cs=DB.get('characters'),c=cs.find(x=>x.id===id),to=cs.find(x=>x.id===E.to.value),amt=Math.floor(+E.amt.value);
- if(!c||c.ownerId!==u?.id)return;
- if(!to)return toast('กรุณาเลือกผู้รับ','bad');
- if(!(amt>0))return toast('จำนวนเงินไม่ถูกต้อง','bad');
- if(amt>(c.won||0))return toast('เงินไม่พอ','bad');
- const note=E.note.value.trim();
- if(cloudReady){
-  const {error}=await supaClient.rpc('site_transfer',{p_sender_id:c.id,p_recipient_id:to.id,p_amount:amt,p_note:note});
-  if(error)return toast('โอนเงินไม่สำเร็จ: '+error.message,'bad');
-  await cloudRefresh(false);toast(`โอน ${wonFmt(amt)} ให้ ${to.stageName||to.name} แล้ว`);render();return;
- }
- addWon(c.id,-amt,`โอนให้ ${to.stageName||to.name}${note?' · '+note:''}`);
- addWon(to.id,amt,`รับโอนจาก ${c.stageName||c.name}${note?' · '+note:''}`);
- toast(`โอน ${wonFmt(amt)} ให้ ${to.stageName||to.name} แล้ว`);render();
 }
 function scRow(l='',i=''){
  return `<div class="row sc-row" style="margin-bottom:6px"><input name="sl" placeholder="หัวข้อ เช่น ชุดตัวละคร" value="${esc(l)}" style="margin:0;flex:1;min-width:120px"><input name="si" placeholder="ลิงก์รูป https://..." value="${esc(i)}" style="margin:0;flex:2;min-width:160px"><button type="button" class="btn sm bad" onclick="const f=this.form;this.parentNode.remove();f.dispatchEvent(new Event('input'))">✕</button></div>`;
