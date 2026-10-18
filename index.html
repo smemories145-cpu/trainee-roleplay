@@ -568,6 +568,9 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 /* Compact single-area composer: the dark region is the typing surface, not a separate code panel. */
 .topic-composer .ed-area{min-height:110px!important;max-height:35vh!important;overflow:auto}
 @media(max-width:600px){.topic-composer .ed-area{min-height:100px!important;max-height:35vh!important}}
+
+/* Never show the legacy source textarea; all editing happens in the single rich editor above. */
+.ed .ed-source-area,.ed .ed-source-area[hidden],#reply-composer .ed-source-area,.reply-composer .ed-source-area{display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;max-height:0!important;resize:none!important;padding:0!important;border:0!important;overflow:hidden!important}
 </style>
 <style id="postReadability">
 /* ---------- อ่านโพสต์โรลเพลย์ได้สบายขึ้น ---------- */
@@ -3378,7 +3381,7 @@ function richEditor(name,val='',o={}){
  <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><span class="ed-count"></span></div></div>
  <div class="ed-bar">${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML / BBCode ในช่องเดียวกัน ✨')}">${initialVisual}</div>
- <textarea class="ed-source-area" hidden wrap="soft" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="ข้อมูลสำรองตัวแก้ไข" tabindex="-1">${htmlMode?esc(initial):''}</textarea>
+ <textarea class="ed-source-area" hidden style="display:none!important" wrap="soft" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="ข้อมูลสำรองตัวแก้ไข" tabindex="-1">${htmlMode?esc(initial):''}</textarea>
  <div class="ed-foot"><span class="ed-hint">💡 เขียนและแก้ไขในกล่องนี้ได้เลย รวมถึงโค้ด HTML / BBCode จากนั้นกด “ดูตัวอย่างโพสต์” เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function editorIcon(name){
