@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trainee Roleplay</title>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>STARLIGHT RP — Trainee &amp; Idol Roleplay</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#050506;--card:#111113;--card2:#19191d;--line:#303036;--pri:#d6d6dc;--sec:#85858f;--txt:#ededf0;--mut:#a0a0aa;--ok:#66d6a4;--warn:#e5c879;--bad:#ff7272}
 *{box-sizing:border-box}
-body{margin:0;font-family:'Prompt',sans-serif;background:radial-gradient(circle at 20% 0,color-mix(in srgb,var(--sec) 22%,var(--bg)) 0,var(--bg) 55%) fixed;background-color:var(--bg);color:var(--txt);line-height:1.6;min-height:100vh}
+body{margin:0;font-family:'Noto Sans Thai','Prompt','Sarabun','Leelawadee UI',Tahoma,sans-serif;background:radial-gradient(circle at 20% 0,color-mix(in srgb,var(--sec) 17%,var(--bg)) 0,var(--bg) 58%) fixed;background-color:var(--bg);color:var(--txt);line-height:1.75;min-height:100vh;font-synthesis:none;text-rendering:optimizeLegibility}
 a{color:var(--pri);text-decoration:none;cursor:pointer}
 nav{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:10px 24px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .logo{font-weight:600;font-size:1.3rem;background:linear-gradient(90deg,var(--pri),var(--sec));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -107,10 +107,10 @@ summary{cursor:pointer;font-weight:600}
 .profile-banner{position:relative;height:240px;background:linear-gradient(135deg,var(--sec),var(--pri));overflow:hidden}
 .profile-banner img{width:100%;height:100%;object-fit:cover}
 .profile-avatar-row{position:relative;display:flex;justify-content:center;margin-top:-60px;margin-bottom:12px}
-.profile-avatar-row .av{width:120px;height:120px;border:4px solid var(--card);box-shadow:0 8px 24px #0008;font-size:42px}
+.profile-avatar-row .av{display:block;width:120px;height:120px;margin-inline:auto;border:4px solid var(--card);box-shadow:0 8px 24px #0008;font-size:42px}
 .profile-info{text-align:center;padding:0 20px 20px;border-bottom:1px solid var(--line)}
 .profile-info h2{margin:0 0 4px;font-size:1.8rem}
-.profile-main-layout{display:grid;grid-template-columns:260px 1fr;gap:20px;padding:20px;align-items:start}
+.profile-main-layout{display:grid;grid-template-columns:minmax(220px,260px) minmax(0,1fr);gap:22px;padding:clamp(14px,2.5vw,28px);align-items:start}
 .profile-custom-code-output{width:100%;min-width:0;margin:0 0 16px;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible}
 .profile-custom-code-output iframe{display:block;width:100%;max-width:100%;margin:0;border:0;background:transparent}
 @media(max-width:850px){.profile-main-layout{grid-template-columns:1fr}}
@@ -1848,7 +1848,94 @@ nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
 @media(max-width:900px){.presence-counters{justify-content:flex-start}}
 @media(max-width:560px){#communityPresence{padding-left:10px;padding-right:10px;padding-bottom:18px}.presence-top{gap:12px}.presence-counters{gap:6px}.presence-counter{padding:6px 8px;font-size:.72rem}.presence-rank-strip{gap:5px}.presence-rank-tag{padding:4px 6px;font-size:.7rem}.presence-footnote{text-align:left}}
 </style>
-</head>
+<style id="starlightDesignRefresh2026">
+:root{--starlight-lavender:#d8b6f4;--starlight-border:rgba(190,169,216,.16);--starlight-border-strong:rgba(208,183,235,.3)}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans Thai','Prompt','Sarabun','Leelawadee UI',Tahoma,sans-serif;line-height:1.76;font-size:15px;letter-spacing:0;overflow-wrap:anywhere}
+button,input,select,textarea{font-family:inherit}
+h1,h2,h3,h4{font-family:'Noto Sans Thai','Prompt','Sarabun',Tahoma,sans-serif;line-height:1.4;letter-spacing:-.015em}
+nav{padding:10px clamp(12px,2.8vw,34px);gap:14px;background:rgba(12,10,16,.88);border-bottom:1px solid var(--starlight-border);box-shadow:0 8px 28px rgba(0,0,0,.14)}
+.starlight-brand{display:inline-flex;align-items:center;gap:10px;flex:0 0 auto;max-width:100%;background:none!important;color:var(--txt)!important;-webkit-text-fill-color:initial;text-decoration:none;line-height:1.15}
+.brand-emblem{width:42px;height:42px;display:grid;place-items:center;flex:0 0 42px;border:1px solid rgba(216,182,244,.26);border-radius:14px;background:linear-gradient(145deg,rgba(216,182,244,.16),rgba(255,255,255,.025));color:#d8b6f4;box-shadow:inset 0 1px rgba(255,255,255,.1)}
+.brand-emblem svg{display:block;width:32px;height:32px;overflow:visible}
+.brand-copy{display:flex;flex-direction:column;min-width:0;gap:4px}
+.brand-title{display:block;max-width:min(34vw,280px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f5f0fb;font-family:'Prompt','Noto Sans Thai',sans-serif;font-size:.94rem;font-weight:700;letter-spacing:.1em}
+.brand-caption{display:block;color:#b9abc9;font-size:.57rem;font-weight:600;letter-spacing:.13em;white-space:nowrap}
+.links{gap:4px;min-width:0}
+nav .links>a:not(.btn):not(.row),nav .links>button.nav-forum-switch{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 10px;border:1px solid transparent;border-radius:10px;background:transparent;color:var(--mut);font:inherit;font-size:.83rem;line-height:1.35;white-space:nowrap;transition:background .18s,border-color .18s,color .18s}
+nav .links>a:not(.btn):not(.row):hover,nav .links>button.nav-forum-switch:hover{background:rgba(216,182,244,.07);border-color:var(--starlight-border);color:var(--txt)}
+nav .links .me-pill{flex:0 0 auto;max-width:240px;padding:4px 10px 4px 4px;border-color:var(--starlight-border);background:rgba(255,255,255,.025)}
+nav .links .me-pill select{max-width:168px;overflow:hidden;text-overflow:ellipsis;font-family:inherit}
+nav .links>a.row{flex:0 0 auto;padding:5px 8px;border-radius:10px}
+nav .links>a.row:hover{background:rgba(216,182,244,.07)}
+nav .links .btn{font-size:.82rem;padding:7px 11px;border-radius:10px}
+.card{border-color:var(--starlight-border);border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.card:hover{border-color:rgba(198,165,230,.24)}
+.btn{border-radius:11px;font-weight:600;transition:transform .16s ease,filter .16s ease,background .16s ease}
+.btn:not(:disabled):hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn.ghost{border-color:var(--starlight-border-strong)}
+input,select,textarea{border-radius:11px;line-height:1.55}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(216,182,244,.24);outline-offset:1px}
+.badge{padding:3px 9px;line-height:1.5}
+.hero{padding:clamp(28px,4vw,54px) 20px 22px}
+.hero h1{font-size:clamp(2rem,4.5vw,3.25rem);letter-spacing:-.045em;line-height:1.2}
+.profile-wrap{border-color:var(--starlight-border);border-radius:20px;background:linear-gradient(160deg,var(--card),color-mix(in srgb,var(--card) 90%,var(--sec) 10%));box-shadow:0 18px 48px rgba(0,0,0,.18)}
+.profile-banner{height:clamp(155px,22vw,250px);background:linear-gradient(135deg,color-mix(in srgb,var(--sec) 65%,#17111f),var(--bg))}
+.profile-banner img{display:block;object-position:center 34%}
+.profile-avatar-row{width:100%;justify-content:center;align-items:center;margin-top:-58px}
+.profile-avatar-row .av{display:block;margin:0 auto;width:clamp(92px,10vw,122px);height:clamp(92px,10vw,122px);border:4px solid var(--card);box-shadow:0 8px 26px rgba(0,0,0,.35);object-position:center}
+.profile-info{text-align:center;padding:0 18px 24px;border-color:var(--starlight-border)}
+.profile-info h2{font-size:clamp(1.35rem,2.5vw,1.8rem);letter-spacing:-.035em}
+.profile-info .mut{line-height:1.75}
+.profile-main-layout{grid-template-columns:minmax(220px,260px) minmax(0,1fr);gap:clamp(14px,2vw,24px);padding:clamp(14px,2.5vw,28px)}
+.profile-main-layout>.card,.profile-main-layout>div>.card{min-width:0}
+.profile-custom-code-output{min-width:0}
+.profile-custom-code-output iframe{display:block;width:100%;max-width:100%;margin-inline:auto}
+.profile-account-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;max-width:680px;margin:clamp(18px,4vw,38px) auto 26px;padding:clamp(20px,4vw,34px);text-align:center;background:linear-gradient(145deg,color-mix(in srgb,var(--card) 92%,var(--sec) 8%),var(--card))}
+.profile-account-avatar{display:grid;place-items:center;width:112px;height:112px}
+.profile-account-avatar .av{width:100%;height:100%;display:grid;place-items:center;border:3px solid var(--starlight-border-strong);box-shadow:0 10px 28px rgba(0,0,0,.22);object-position:center}
+.profile-account-copy h2{margin:0;font-size:clamp(1.35rem,3vw,1.8rem);overflow-wrap:anywhere}
+.profile-account-copy .mut{margin-top:7px;line-height:1.75}
+.profile-roster-heading{display:flex;align-items:center;gap:10px;margin:28px 0 14px;font-size:1.1rem}
+.profile-roster-heading span{display:inline-grid;place-items:center;min-width:26px;height:26px;padding:0 7px;border-radius:99px;border:1px solid var(--starlight-border);font-size:.75rem;color:var(--mut)}
+.profile-avatar-row .av{align-self:center}
+.thread-list-card{transition:transform .16s ease,border-color .16s ease}
+.thread-list-title{line-height:1.48;overflow-wrap:anywhere}
+.side-por>img{object-position:center 18%}
+.post .rich,.thread-opening-post .rich{font-family:'Noto Sans Thai','Prompt','Sarabun',Tahoma,sans-serif;line-height:1.92}
+@media(max-width:900px){
+ nav{gap:10px}
+ .links{flex:1 1 100%;width:100%;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;padding:2px 0 5px;scrollbar-width:thin;overscroll-behavior-x:contain}
+ .links>*{flex:0 0 auto}
+ .brand-title{max-width:72vw}
+ .profile-main-layout{grid-template-columns:minmax(0,1fr)}
+ .profile-main-layout>.card:first-child,.profile-main-layout>div:first-child .side{max-width:340px;width:100%;margin-inline:auto}
+}
+@media(max-width:560px){
+ body{font-size:14px}
+ nav{padding:9px 11px;gap:9px}
+ .brand-emblem{width:37px;height:37px;flex-basis:37px;border-radius:12px}
+ .brand-emblem svg{width:29px;height:29px}
+ .brand-caption{font-size:.52rem;letter-spacing:.1em}
+ .brand-title{font-size:.86rem;max-width:75vw}
+ main{padding-left:10px;padding-right:10px}
+ .card{padding:15px;border-radius:14px}
+ .profile-wrap{border-radius:15px}
+ .profile-main-layout{padding:12px;gap:12px}
+ .profile-account-hero.card{padding:22px 16px}
+ .profile-account-avatar{width:88px;height:88px}
+ .profile-banner{height:155px}
+ .profile-avatar-row{margin-top:-48px}
+ .profile-info{padding:0 12px 18px}
+ .profile-info h2{font-size:1.35rem}
+ .links{gap:3px}
+ nav .links>a:not(.btn):not(.row),nav .links>button.nav-forum-switch{padding:7px 8px;font-size:.78rem}
+ .hero{padding-top:28px}
+ .hero h1{font-size:2rem}
+ table{display:block;max-width:100%;overflow-x:auto}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.thread-list-card{transition:none!important}}
+</style></head>
 <body>
 <nav id="nav"></nav>
 <main id="app"></main>
@@ -2464,22 +2551,22 @@ function codeFrame(html,css='',isolated=false){
   body=bm?bm[1]:source.replace(/<!doctype[^>]*>/ig,'').replace(/<\/?html[^>]*>/ig,'').replace(/<head[^>]*>[\s\S]*?<\/head>/ig,'');
  }
  const doc=`<!DOCTYPE html><html${fullDoc?htmlAttrs:'' }><head><meta charset="utf-8">${hasFullDoc?'':`<base target="_blank">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--pri:${S.pri};--sec:${S.sec};--profile-accent:#998BA5}
-html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Prompt',sans-serif;line-height:1.6;overflow-wrap:anywhere}
+html{min-height:100%;}body{margin:0;min-height:1px;background:transparent;color:#ece9f7;font-family:'Noto Sans Thai','Prompt','Sarabun','Leelawadee UI',Tahoma,sans-serif;line-height:1.8;overflow-wrap:anywhere}
 img,video,iframe{max-width:100%}a{color:${S.pri}}*,*::before,*::after{box-sizing:border-box}
 .profile-container{width:100%;max-width:min(1400px,100%);margin:0 auto;background:#17151d;color:#eeeaf2;border:1px solid #3b3542;border-radius:14px;overflow:hidden;font-family:'Prompt',sans-serif}
 .profile-container .banner{height:230px;overflow:hidden;background:#292330}
 .profile-container .banner img{display:block;width:100%;height:100%;object-fit:cover}
 .profile-header-section{padding:0 24px 20px;background:linear-gradient(180deg,#211c28,#17151d)}
-.profile-header-section .avatar-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-top:-55px;position:relative}
+.profile-container .profile-header-section .avatar-row{display:flex;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;gap:12px;margin-top:-55px;position:relative}
 .profile-header-section .avatar{width:116px;height:116px;flex:0 0 116px;padding:5px;border-radius:50%;background:#17151d;border:1px solid #665a70;overflow:hidden}
 .profile-header-section .avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
-.profile-header-section .action-buttons{display:flex;gap:8px;padding-bottom:8px;color:#eee}
+.profile-container .profile-header-section .action-buttons{display:flex;align-items:center;justify-content:center!important;flex-wrap:wrap;gap:8px;padding:4px 0 8px;color:#eee}
 .profile-header-section .action-buttons{font-size:12px}
 .profile-header-section .action-buttons>*{border:1px solid #998ba5;border-radius:20px;padding:5px 13px}
-.profile-header-section .user-names{padding-top:12px}
+.profile-container .profile-header-section .user-names{padding-top:12px;text-align:center!important}
 .profile-header-section h1{font-size:clamp(23px,4vw,32px);line-height:1.25;margin:0;color:#f4eff8}
 .profile-header-section .handle{margin:4px 0 0;color:#bcb0c7;font-size:13px}
 .profile-container .nav-tabs{display:flex;gap:0;overflow-x:auto;padding:0 20px;background:#17151d;border-top:1px solid #39313f;border-bottom:1px solid #39313f}
@@ -2598,8 +2685,8 @@ function characterBioTemplate(style,name,imageUrl=''){
   const photoUrl=/^https?:\/\//i.test(String(imageUrl||'').trim())?esc(String(imageUrl).trim()):'';
   const photo=photoUrl?'<img src="'+photoUrl+'" alt="Character portrait" style="display:block;width:100%;max-width:180px;aspect-ratio:3/4;object-fit:cover;border:1px solid #d4c8b5;border-radius:5px">':'<div style="width:100%;max-width:180px;min-height:155px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#e9e1d4;border:1px dashed #b9aa93;border-radius:5px;color:#82745f;padding:14px;text-align:center"><b style="font-size:26px;font-weight:400">＋</b><span style="font-size:10px;letter-spacing:1px">PORTRAIT / PHOTO</span><small style="font-size:10px">เพิ่ม URL รูปด้านบน</small></div>';
   const profilePhoto=photoUrl?'<img src="'+photoUrl+'" alt="Character portrait" style="display:block;width:100%;max-width:180px;aspect-ratio:3/4;object-fit:cover;border:1px solid #51445f;border-radius:10px">':'<div style="width:100%;max-width:180px;min-height:165px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#211a2b;border:1px dashed #5d4d6c;border-radius:10px;color:#b5a2c6;padding:14px;text-align:center"><b style="font-size:26px;font-weight:400">＋</b><span style="font:10px Prompt,sans-serif;letter-spacing:1px">PORTRAIT / PHOTO</span><small style="font:10px Prompt,sans-serif">เพิ่ม URL รูปด้านบน</small></div>';
-  if(style==='profile')return '<div style="width:100%;max-width:980px;margin:0 auto;padding:clamp(18px,4vw,40px);box-sizing:border-box;background:#17131f;color:#f5effa;border:1px solid #493a59;border-radius:14px;box-shadow:0 14px 36px #0004;font-family:Prompt,sans-serif"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #403349;padding-bottom:14px;margin-bottom:22px"><div><div style="font:600 9px Prompt,sans-serif;letter-spacing:2.4px;color:#c6a5ec">ST★RLIGHT ACADEMY</div><div style="font:9px Prompt,sans-serif;letter-spacing:1.5px;color:#8e7b9f;margin-top:4px">CHARACTER PROFILE STUDIO</div></div><div style="font:9px Prompt,sans-serif;letter-spacing:1.4px;text-align:right;color:#aa98ba">CHARACTER FILE<br>NO. 001</div></div><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(115px,180px);gap:clamp(14px,3vw,28px);align-items:start"><div><div style="font:600 10px Prompt,sans-serif;letter-spacing:2px;color:#aa8fca;margin-bottom:9px">PROFILE / '+(personality?'PERSONALITY':'BACKGROUND')+'</div><h2 style="font-size:clamp(25px,4vw,40px);line-height:1.15;font-weight:600;margin:0 0 12px;color:#f5effa">'+heading+'</h2><p style="font:12px/1.9 Prompt,sans-serif;color:#bfb1ca;margin:0">'+intro+'</p></div><div>'+profilePhoto+'</div></div><div style="margin:24px 0 17px;border-top:1px solid #403349;padding-top:13px;font:600 9px Prompt,sans-serif;letter-spacing:1.8px;color:#c6a5ec">THE STORY / ARCHIVE</div>'+sections.map((x,i)=>'<div style="padding:14px 15px;margin:10px 0;background:#211a2b;border:1px solid #403349;border-radius:10px"><div style="font:600 9px Prompt,sans-serif;letter-spacing:1.3px;color:#9e83bd">0'+(i+1)+' / ST★RLIGHT NOTE</div><h3 style="font:600 14px Prompt,sans-serif;color:#e0caf6;margin:7px 0 6px">'+x[0]+'</h3><p style="font:12px/1.9 Prompt,sans-serif;color:#e6ddeb;margin:0">'+x[1]+'</p></div>').join('')+'<div style="margin-top:22px;padding-top:13px;border-top:1px solid #403349;text-align:right;font:9px Prompt,sans-serif;letter-spacing:1.5px;color:#8e7b9f">YOUR STORY, YOUR STYLE · ST★RLIGHT</div></div>';
-  if(style==='application')return '<div style="width:100%;max-width:980px;margin:0 auto;padding:clamp(18px,4vw,40px);box-sizing:border-box;background:#f2ede3;color:#38322a;border:1px solid #d6cbb8;box-shadow:0 8px 28px #241b111c;font-family:Georgia,serif"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #cfc2ac;padding-bottom:14px;margin-bottom:20px"><div><div style="font:700 9px Prompt,sans-serif;letter-spacing:2px;color:#87775e">STARLIGHT ACADEMY</div><div style="font:10px Prompt,sans-serif;letter-spacing:1.4px;color:#9d8c72;margin-top:4px">ARTIST DEVELOPMENT DIVISION</div></div><div style="font:9px Prompt,sans-serif;letter-spacing:1.3px;color:#8b7a62;text-align:right">CONFIDENTIAL<br>CHARACTER RECORD</div></div><div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(115px,180px);gap:clamp(14px,3vw,26px);align-items:start"><div><div style="font:10px Prompt,sans-serif;letter-spacing:2px;color:#9a815a;margin-bottom:8px">TRAINEE APPLICATION / FILE 001</div><h2 style="font-size:clamp(24px,4vw,38px);font-weight:400;line-height:1.15;margin:0 0 10px;color:#30291f">'+heading+'</h2><p style="font:12px/1.85 Prompt,sans-serif;color:#746956;margin:0">'+intro+'</p></div><div>'+photo+'</div></div><div style="margin:24px 0 18px;padding:11px 0;border-top:1px solid #cfc2ac;border-bottom:1px solid #cfc2ac;font:10px Prompt,sans-serif;letter-spacing:1.4px;color:#8b785d">SECTION A — '+heading+'</div>'+sections.map((x,i)=>'<div style="display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;padding:14px 0;border-bottom:1px solid #ded5c7"><div style="font:11px Prompt,sans-serif;color:#a28a60;letter-spacing:1px">0'+(i+1)+'</div><div><h3 style="font:600 14px Prompt,sans-serif;color:#44392a;margin:0 0 7px">'+x[0]+'</h3><p style="font:12px/1.95 Prompt,sans-serif;color:#5f5649;margin:0">'+x[1]+'</p></div></div>').join('')+'<div style="margin-top:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px"><div><div style="font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#9a896f">APPLICANT / CHARACTER</div><div style="height:27px;border-bottom:1px solid #bdb09a"></div></div><div><div style="font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#9a896f">RECORD DATE</div><div style="height:27px;border-bottom:1px solid #bdb09a"></div></div></div><div style="margin-top:20px;text-align:center;font:9px Prompt,sans-serif;letter-spacing:2px;color:#a39681">STARLIGHT ACADEMY · INTERNAL CHARACTER ARCHIVE</div></div>';
+  if(style==='profile')return '<div style="width:100%;max-width:980px;margin:0 auto;padding:clamp(18px,4vw,40px);box-sizing:border-box;background:#17131f;color:#f5effa;border:1px solid #493a59;border-radius:14px;box-shadow:0 14px 36px #0004;font-family:Prompt,sans-serif"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #403349;padding-bottom:14px;margin-bottom:22px"><div><div style="font:600 9px Prompt,sans-serif;letter-spacing:2.4px;color:#c6a5ec">ST★RLIGHT ACADEMY</div><div style="font:9px Prompt,sans-serif;letter-spacing:1.5px;color:#8e7b9f;margin-top:4px">CHARACTER PROFILE STUDIO</div></div><div style="font:9px Prompt,sans-serif;letter-spacing:1.4px;text-align:right;color:#aa98ba">CHARACTER FILE<br>NO. 001</div></div><div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:clamp(14px,3vw,28px)"><div><div style="font:600 10px Prompt,sans-serif;letter-spacing:2px;color:#aa8fca;margin-bottom:9px">PROFILE / '+(personality?'PERSONALITY':'BACKGROUND')+'</div><h2 style="font-size:clamp(25px,4vw,40px);line-height:1.15;font-weight:600;margin:0 0 12px;color:#f5effa">'+heading+'</h2><p style="font:12px/1.9 Prompt,sans-serif;color:#bfb1ca;margin:0">'+intro+'</p></div><div>'+profilePhoto+'</div></div><div style="margin:24px 0 17px;border-top:1px solid #403349;padding-top:13px;font:600 9px Prompt,sans-serif;letter-spacing:1.8px;color:#c6a5ec">THE STORY / ARCHIVE</div>'+sections.map((x,i)=>'<div style="padding:14px 15px;margin:10px 0;background:#211a2b;border:1px solid #403349;border-radius:10px"><div style="font:600 9px Prompt,sans-serif;letter-spacing:1.3px;color:#9e83bd">0'+(i+1)+' / ST★RLIGHT NOTE</div><h3 style="font:600 14px Prompt,sans-serif;color:#e0caf6;margin:7px 0 6px">'+x[0]+'</h3><p style="font:12px/1.9 Prompt,sans-serif;color:#e6ddeb;margin:0">'+x[1]+'</p></div>').join('')+'<div style="margin-top:22px;padding-top:13px;border-top:1px solid #403349;text-align:right;font:9px Prompt,sans-serif;letter-spacing:1.5px;color:#8e7b9f">YOUR STORY, YOUR STYLE · ST★RLIGHT</div></div>';
+  if(style==='application')return '<div style="width:100%;max-width:980px;margin:0 auto;padding:clamp(18px,4vw,40px);box-sizing:border-box;background:#f2ede3;color:#38322a;border:1px solid #d6cbb8;box-shadow:0 8px 28px #241b111c;font-family:Georgia,serif"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #cfc2ac;padding-bottom:14px;margin-bottom:20px"><div><div style="font:700 9px Prompt,sans-serif;letter-spacing:2px;color:#87775e">STARLIGHT ACADEMY</div><div style="font:10px Prompt,sans-serif;letter-spacing:1.4px;color:#9d8c72;margin-top:4px">ARTIST DEVELOPMENT DIVISION</div></div><div style="font:9px Prompt,sans-serif;letter-spacing:1.3px;color:#8b7a62;text-align:right">CONFIDENTIAL<br>CHARACTER RECORD</div></div><div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:clamp(14px,3vw,26px)"><div><div style="font:10px Prompt,sans-serif;letter-spacing:2px;color:#9a815a;margin-bottom:8px">TRAINEE APPLICATION / FILE 001</div><h2 style="font-size:clamp(24px,4vw,38px);font-weight:400;line-height:1.15;margin:0 0 10px;color:#30291f">'+heading+'</h2><p style="font:12px/1.85 Prompt,sans-serif;color:#746956;margin:0">'+intro+'</p></div><div>'+photo+'</div></div><div style="margin:24px 0 18px;padding:11px 0;border-top:1px solid #cfc2ac;border-bottom:1px solid #cfc2ac;font:10px Prompt,sans-serif;letter-spacing:1.4px;color:#8b785d">SECTION A — '+heading+'</div>'+sections.map((x,i)=>'<div style="display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;padding:14px 0;border-bottom:1px solid #ded5c7"><div style="font:11px Prompt,sans-serif;color:#a28a60;letter-spacing:1px">0'+(i+1)+'</div><div><h3 style="font:600 14px Prompt,sans-serif;color:#44392a;margin:0 0 7px">'+x[0]+'</h3><p style="font:12px/1.95 Prompt,sans-serif;color:#5f5649;margin:0">'+x[1]+'</p></div></div>').join('')+'<div style="margin-top:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px"><div><div style="font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#9a896f">APPLICANT / CHARACTER</div><div style="height:27px;border-bottom:1px solid #bdb09a"></div></div><div><div style="font:9px Prompt,sans-serif;letter-spacing:1.2px;color:#9a896f">RECORD DATE</div><div style="height:27px;border-bottom:1px solid #bdb09a"></div></div></div><div style="margin-top:20px;text-align:center;font:9px Prompt,sans-serif;letter-spacing:2px;color:#a39681">STARLIGHT ACADEMY · INTERNAL CHARACTER ARCHIVE</div></div>';
  if(style==='midnight')return `<div style="padding:22px;background:linear-gradient(145deg,#12101c,#292039);border:1px solid #5c4778;border-radius:14px;color:#f4eff9"><p style="letter-spacing:4px;color:#c5a8ed;font-size:11px;margin:0 0 8px">✦ STARLIGHT FILE</p><h2 style="margin:0 0 10px;color:#f4eff9;font-size:24px">${heading}</h2><p style="color:#b9adc9;font-size:13px">${intro}</p><hr style="border:0;border-top:1px solid #594765;margin:18px 0">${sections.map((x,i)=>`<h3 style="font-size:14px;color:#d9baff;margin:16px 0 5px">${String(i+1).padStart(2,'0')} / ${x[0]}</h3><p style="color:#e3dbea;line-height:1.9;margin:0">${x[1]}</p>`).join('')}</div>`;
  if(style==='editorial')return `<div style="padding:24px 22px;border:1px solid #c9becd;border-radius:4px;background:#f8f4f7;color:#31283a"><p style="font-size:10px;letter-spacing:3px;color:#887495;margin:0 0 14px">THE CHARACTER JOURNAL · VOL. 01</p><h2 style="font-family:Georgia,serif;font-weight:400;font-size:28px;line-height:1.2;margin:0;color:#34273e">${heading}</h2><p style="font-size:13px;line-height:1.8;color:#796b80;margin:9px 0 22px">${intro}</p>${sections.map((x,i)=>`<div style="display:flex;gap:13px;padding:14px 0;border-top:1px solid #ded4e2"><b style="font-size:12px;color:#9d82ad">0${i+1}</b><div><h3 style="margin:0 0 5px;font-size:14px;color:#45324f">${x[0]}</h3><p style="margin:0;font-size:13px;line-height:1.8;color:#5d5263">${x[1]}</p></div></div>`).join('')}</div>`;
  if(style==='rose')return `<div style="padding:22px;border-radius:18px;background:#fff7fb;border:1px solid #efd9e8;color:#4d3748"><div style="text-align:center;margin:0 auto 17px"><div style="font-size:18px;color:#b278a0">✧ ───────── ✧</div><p style="font-size:10px;letter-spacing:3px;color:#b278a0;margin:7px 0">${heading}</p><h2 style="font-size:22px;color:#704f69;margin:0">${personality?'A Little About Me':'Once Upon a Time'}</h2><p style="font-size:12px;color:#9c7a91;margin:7px 0">${intro}</p></div>${sections.map(x=>`<div style="padding:13px 15px;margin:10px 0;border-radius:10px;background:#fff;border:1px solid #f0dfeb"><h3 style="font-size:14px;color:#97698a;margin:0 0 6px">♡ ${x[0]}</h3><p style="font-size:13px;line-height:1.9;color:#624d5d;margin:0">${x[1]}</p></div>`).join('')}</div>`;
@@ -2721,7 +2808,7 @@ function characterStudioHTML(data,images){
   '.fact strong,.story h3{color:var(--st-ink)!important}'+
   '.story p,.soft-panel p,.real-name{color:color-mix(in srgb,var(--st-ink) 82%,var(--st-paper))!important}'+
   '.masthead,.identity,.section-head,.story,.foot,.signature{border-color:var(--st-border)!important}';
- return '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+e(data.stageName||'Trainee')+' — STARLIGHT Profile</title><!--STARLIGHT_PROFILE_STUDIO_DATA:'+marker+'--><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Cinzel:wght@500;600&display=swap" rel="stylesheet"><style>'+css+themeCss+'</style></head><body><article class="application-sheet"><header class="masthead"><div><div class="brand">STARLIGHT ACADEMY</div><div class="department">ARTIST DEVELOPMENT DIVISION</div></div><div class="file-code">CONFIDENTIAL<br>CHARACTER RECORD / 001</div></header><div class="cover-area">'+cover+'</div><main class="main"><section class="identity"><div class="avatar">'+avatar+'</div><div><div class="kicker">TRAINEE APPLICATION / CHARACTER FILE</div><h1>'+e(data.stageName||'UNNAMED TRAINEE')+'</h1><div class="real-name">'+e(data.realName||'ชื่อ-นามสกุล')+'</div><div class="positions">'+e(pos)+'</div></div><div class="status-stamp">APPLICATION STATUS<b>'+e(data.level||'TRAINEE')+'</b></div></section>'+
+ return '<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+e(data.stageName||'Trainee')+' — STARLIGHT Profile</title><!--STARLIGHT_PROFILE_STUDIO_DATA:'+marker+'--><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=Cinzel:wght@500;600&display=swap" rel="stylesheet"><style>'+css+themeCss+'</style></head><body><article class="application-sheet"><header class="masthead"><div><div class="brand">STARLIGHT ACADEMY</div><div class="department">ARTIST DEVELOPMENT DIVISION</div></div><div class="file-code">CONFIDENTIAL<br>CHARACTER RECORD / 001</div></header><div class="cover-area">'+cover+'</div><main class="main"><section class="identity"><div class="avatar">'+avatar+'</div><div><div class="kicker">TRAINEE APPLICATION / CHARACTER FILE</div><h1>'+e(data.stageName||'UNNAMED TRAINEE')+'</h1><div class="real-name">'+e(data.realName||'ชื่อ-นามสกุล')+'</div><div class="positions">'+e(pos)+'</div></div><div class="status-stamp">APPLICATION STATUS<b>'+e(data.level||'TRAINEE')+'</b></div></section>'+
  '<section class="section"><div class="section-head">SECTION A — PERSONAL INFORMATION</div><div class="facts">'+detail('DATE OF BIRTH',data.birth)+detail('AGE',data.age?data.age+' ปี':'—')+detail('NATIONALITY',data.nationality)+detail('PRONOUNS',data.pronouns)+detail('AGENCY / COMPANY',data.agency)+detail('MBTI',data.mbti)+detail('SPECIALTY',data.specialty)+detail('POSITIONS',pos)+'</div></section>'+
  '<section class="section"><div class="section-head">SECTION B — PERSONALITY & STORY</div><div class="story"><div class="story-num">01</div><div><h3>PERSONALITY / บุคลิกภาพ</h3><p>'+e(data.personality||'ยังไม่ได้กรอกข้อมูล')+'</p></div></div><div class="story"><div class="story-num">02</div><div><h3>BIOGRAPHY / ประวัติตัวละคร</h3><p>'+e(data.biography||'ยังไม่ได้กรอกข้อมูล')+'</p></div></div></section>'+
  '<section class="section"><div class="section-head">SECTION C — PERSONAL NOTES</div><div class="soft-panels"><div class="soft-panel"><h3>LIKES / สิ่งที่ชอบ</h3><p>'+e(data.likes||'—')+'</p></div><div class="soft-panel"><h3>DISLIKES / สิ่งที่ไม่ชอบ</h3><p>'+e(data.dislikes||'—')+'</p></div></div></section>'+
@@ -2836,11 +2923,11 @@ function characterProfileTemplate(style,c){
   '.cover h1{margin:0;font-size:clamp(28px,5vw,46px);line-height:1.15;overflow-wrap:anywhere}',
   '.role{margin:9px 0 0;font:12px Prompt,sans-serif;letter-spacing:.06em}',
   '.pad{padding:clamp(17px,4vw,34px)}',
-  '.identity{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:15px}',
+  '.identity{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:13px}',
   '.avatar{width:92px;height:92px;aspect-ratio:1;object-fit:cover;border-radius:50%;border:3px solid var(--edge,#4a3a56);background:var(--panel,#211a2a)}',
   '.identity h2{margin:0;font-size:clamp(19px,3vw,27px);line-height:1.3}',
   '.identity p{margin:4px 0 0;font:12px Prompt,sans-serif;opacity:.75}',
-  '.chips{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}',
+  '.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}',
   '.chip{padding:6px 10px;border:1px solid var(--edge,#4a3a56);border-radius:99px;font:11px Prompt,sans-serif}',
   '.quote{margin:22px 0;padding:14px 17px;background:var(--panel,#211a2a);border-left:3px solid var(--accent,#c9a7ee);font-size:15px;line-height:1.85}',
   '.section{margin-top:26px}.section-head{display:flex;align-items:center;gap:10px;margin:0 0 12px;font:700 11px Prompt,sans-serif;letter-spacing:.14em}',
@@ -2862,7 +2949,7 @@ function characterProfileTemplate(style,c){
  ].join('\n');
  let skin='',html='';
  if(style==='midnight'){
-  skin=':root{--accent:#c9a7ff;--edge:#392e4b;--panel:#171321}body{background:#09080d;color:#f3eef8}.page{background:#100e16;border:1px solid #392e4b}.cover{min-height:200px}.cover:after{background:linear-gradient(0deg,#07060cea,transparent 85%)}.split{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,1.2fr)}.portrait-box{overflow:hidden;background:#1d1827}.portrait{width:100%;height:100%;min-height:430px;object-fit:cover}.detail{padding:clamp(16px,3vw,30px)}.detail .identity{grid-template-columns:auto minmax(0,1fr);margin-bottom:18px}.detail .avatar{width:68px;height:68px}.detail .chips{grid-column:1/-1;justify-content:flex-start}.detail .quote{margin-top:18px}@media(max-width:620px){.split{grid-template-columns:1fr}.portrait{height:280px;min-height:0;max-height:410px}.detail{padding:16px}}';
+  skin=':root{--accent:#c9a7ff;--edge:#392e4b;--panel:#171321}body{background:#09080d;color:#f3eef8}.page{background:#100e16;border:1px solid #392e4b}.cover{min-height:200px}.cover:after{background:linear-gradient(0deg,#07060cea,transparent 85%)}.split{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,1.2fr)}.portrait-box{overflow:hidden;background:#1d1827}.portrait{width:100%;height:100%;min-height:430px;object-fit:cover}.detail{padding:clamp(16px,3vw,30px)}.detail .identity{grid-template-columns:auto minmax(0,1fr);margin-bottom:18px}.detail .avatar{width:68px;height:68px}.detail .chips{justify-content:center}.detail .quote{margin-top:18px}@media(max-width:620px){.split{grid-template-columns:1fr}.portrait{height:280px;min-height:0;max-height:410px}.detail{padding:16px}}';
   html='<section class="cover">'+cover+'<div class="cover-copy"><p class="eyebrow">STARLIGHT / PRIVATE FILE</p><h1>'+name+'</h1><p class="role">'+role+'</p></div></section><div class="split"><div class="portrait-box">'+portrait+'</div><section class="detail"><div class="identity">'+avatar+'<div><h2>'+name+'</h2><p>'+fullName+'</p></div><div class="chips"><span class="chip">AGE · '+age+'</span><span class="chip">'+nation+'</span></div></div><div class="quote">'+about+'</div><h3 class="section-head">CHARACTER DATA</h3><div class="facts"><div class="fact"><small>STAGE NAME</small><b>'+name+'</b></div><div class="fact"><small>AGE</small><b>'+age+'</b></div><div class="fact"><small>ROLE</small><b>'+role+'</b></div></div><section class="section"><h3 class="section-head">VISUAL ARCHIVE</h3><div class="gallery">'+shots+'</div></section><div class="footer">STARLIGHT ACADEMY · MIDNIGHT EDITION</div></section></div>';
  }else if(style==='editorial'){
   skin=':root{--accent:#94759f;--edge:#e5d9e8;--panel:#f0e8f1}body{background:#e9e1e9;color:#34283a;font-family:Georgia,serif}.page{background:#fcf9fc;border:1px solid #d8c8db;border-radius:4px}.cover{min-height:265px}.cover:after{background:linear-gradient(0deg,#26192bcf,transparent 80%)}.cover h1{font-family:Georgia,serif;font-weight:400;letter-spacing:-.035em}.eyebrow,.role,.section-head,.fact small,.shot figcaption,.footer{font-family:Prompt,sans-serif}.identity{padding-bottom:18px;border-bottom:1px solid var(--edge)}.avatar{border-radius:4px;border:0}.quote{background:transparent;border:0;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge);text-align:center;font:18px/1.7 Georgia,serif}.chip{border-radius:2px}.fact{border-radius:2px;background:#fff;border-color:var(--edge)}.shot{border-radius:2px}.ph{color:#6b596f}.cover-img{filter:saturate(.78)}';
@@ -2874,7 +2961,7 @@ function characterProfileTemplate(style,c){
   skin=':root{--accent:#bea0df;--edge:#40324f;--panel:#211a2a}body{background:#0d0a12;color:#f3eef8}.page{background:#15111d;border:1px solid #40324f;box-shadow:0 18px 50px #0006}.cover{min-height:255px}.cover:after{background:linear-gradient(90deg,#0a070fd9,transparent),linear-gradient(0deg,#0a070f80,transparent 70%)}.avatar{border:3px solid #574267}.chip{background:#211a2a}.fact{background:#1c1725}.quote{background:#211a2a}.shot{border:1px solid #40324f;padding:5px;background:#171320}';
   html='<section class="cover">'+cover+'<div class="cover-copy"><p class="eyebrow">✦ STARLIGHT PROFILE</p><h1>'+name+'</h1><p class="role">'+role+'</p></div></section><div class="pad"><div class="identity">'+avatar+'<div><h2>'+name+'</h2><p>'+fullName+'</p></div><div class="chips"><span class="chip">AGE · '+age+'</span><span class="chip">'+nation+'</span></div></div><div class="quote">'+about+'</div><section class="section"><h3 class="section-head">PROFILE DETAILS</h3><div class="facts"><div class="fact"><small>STAGE NAME</small><b>'+name+'</b></div><div class="fact"><small>FULL NAME</small><b>'+fullName+'</b></div><div class="fact"><small>POSITION</small><b>'+role+'</b></div></div></section><section class="section"><h3 class="section-head">GALLERY / MOODBOARD</h3><div class="gallery">'+shots+'</div></section><div class="footer">✦ YOUR STORY, YOUR STYLE</div></div>';
  }
- return '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+name+' · Character Profile</title><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>'+base+'\n'+skin+'</style></head><body><main class="page">'+html+'</main></body></html>';
+ return '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>'+name+' · Character Profile</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>'+base+'\n'+skin+'</style></head><body><main class="page">'+html+'</main></body></html>';
 }
 function applyCharacterProfileTemplate(button){
  const form=button?.form,field=form?.elements?.profileHtml,pick=form?.querySelector('.profile-template-choice');
@@ -4784,7 +4871,7 @@ function renderNav(){
    :`<a href="#newchar" class="badge" style="--c:var(--warn)">+ สร้างตัวละคร</a>`;
  }
  const navEl=document.getElementById('nav');
- if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
+ if(navEl)navEl.innerHTML=`<a href="#home" class="logo starlight-brand" aria-label="STARLIGHT RP — หน้าแรก"><span class="brand-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" focusable="false"><circle cx="24" cy="24" r="19" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="1"/><ellipse cx="24" cy="24" rx="20" ry="9" transform="rotate(-32 24 24)" fill="none" stroke="currentColor" stroke-opacity=".72" stroke-width="1.2"/><path d="M24 9.5 28.2 19.8 38.5 24 28.2 28.2 24 38.5 19.8 28.2 9.5 24 19.8 19.8Z" fill="currentColor"/><circle cx="37.2" cy="10.8" r="2.1" fill="#e8d7ff"/><path d="M9.1 36.1v4.2M7 38.2h4.2" stroke="#e5cf9b" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="brand-copy"><span class="brand-title">${esc(S.siteName||'STARLIGHT RP')}</span><span class="brand-caption">ROLEPLAY · IDOL ACADEMY</span></span></a>
  <div class="links">
 
   <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a><button type="button" class="btn sm ghost theme-open-btn" onclick="openThemePicker()">🎨 สีธีม</button>
@@ -5047,9 +5134,9 @@ async function doUpdateCharacterBioThread(e,id){
 function pageProfile(uidVal){
  const users=DB.get('users'),target=users.find(x=>x.id===uidVal);if(!target)return app('<div class="card">ไม่พบผู้ใช้นี้</div>');
  const chars=DB.get('characters').filter(c=>c.ownerId===target.id);
- app(`<div class="card row" style="gap:20px">${avatar(target,100)}<div><h2 style="margin:0">${esc(target.username)}</h2>
-  <div class="mut">บทบาท: ${target.role==='admin'?'👑 แอดมิน':'ผู้เล่น'} · สมัครเมื่อ: ${fmt(target.createdAt)} · ตัวละครทั้งหมด: ${chars.length} ตัว</div></div></div>
-  <h3>🎭 ตัวละครในสังกัด</h3>${chars.length?`<div class="grid">${chars.map(charCard).join('')}</div>`:'<div class="card mut">ยังไม่มีตัวละคร</div>'}`);
+ app(`<section class="profile-account-hero card"><div class="profile-account-avatar">${avatar(target,100)}</div><div class="profile-account-copy"><h2>${esc(target.username)}</h2>
+  <div class="mut">บทบาท: ${target.role==='admin'?'👑 แอดมิน':'ผู้เล่น'} · สมัครเมื่อ: ${fmt(target.createdAt)} · ตัวละครทั้งหมด: ${chars.length} ตัว</div></div></section>
+  <h3 class="profile-roster-heading">ตัวละครในสังกัด <span>${chars.length}</span></h3>${chars.length?`<div class="grid">${chars.map(charCard).join('')}</div>`:'<div class="card mut">ยังไม่มีตัวละคร</div>'}`);
 }
 function pageSettings(){
  const u=me();if(!u)return go('login');const prefs=u.prefs||{};
