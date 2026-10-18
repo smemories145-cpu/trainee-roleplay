@@ -1982,6 +1982,45 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(216,182,244,.24);
 @media(prefers-reduced-motion:reduce){.phone-profile-progress-track span{transition:none!important}}
 
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.thread-list-card{transition:none!important}}
+</style>
+<style id="starlightAccountPillRefresh">
+/* STARLIGHT RP · polished active-character/account chip */
+nav .links .me-pill.starlight-account-pill{
+  position:relative;display:flex;align-items:center;gap:9px;
+  flex:0 0 auto;min-width:178px;max-width:222px;margin:0;
+  padding:5px 12px 5px 5px;border:1px solid rgba(216,182,244,.24);
+  border-radius:16px;overflow:hidden;
+  background:linear-gradient(145deg,rgba(216,182,244,.105),rgba(255,255,255,.012) 55%),#101015;
+  box-shadow:inset 0 1px rgba(255,255,255,.055),0 5px 16px rgba(0,0,0,.18);
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+nav .links .me-pill.starlight-account-pill:hover{
+  border-color:rgba(216,182,244,.43);
+  background:linear-gradient(145deg,rgba(216,182,244,.14),rgba(255,255,255,.02) 55%),#111015;
+  box-shadow:inset 0 1px rgba(255,255,255,.07),0 7px 19px rgba(0,0,0,.24);
+  transform:translateY(-1px);
+}
+.starlight-account-avatar{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;padding:2px;overflow:hidden;border:1px solid rgba(216,182,244,.24);border-radius:13px;background:linear-gradient(145deg,#2a2135,#17151c)}
+.starlight-account-avatar .av{display:block!important;width:100%!important;height:100%!important;min-width:0;margin:0!important;padding:0!important;border:0!important;border-radius:10px!important;object-fit:cover;object-position:center;box-shadow:none!important}
+.starlight-account-details{display:flex;flex:1 1 auto;flex-direction:column;justify-content:center;gap:5px;min-width:0}
+.starlight-account-name-line{display:flex;align-items:center;gap:5px;min-width:0}
+nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{display:block;flex:1 1 auto;width:100%;min-width:0;max-width:100%;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;outline:none!important;box-shadow:none!important;background:transparent!important;color:#f5f0fa!important;font-family:'Noto Sans Thai','Prompt',sans-serif;font-size:.82rem;font-weight:650;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;appearance:none;-webkit-appearance:none;cursor:pointer}
+nav .links .me-pill.starlight-account-pill .starlight-account-name-line select:focus-visible{outline:2px solid rgba(216,182,244,.6)!important;outline-offset:3px!important;border-radius:4px!important}
+nav .links .me-pill.starlight-account-pill .starlight-account-name-line option{background:#17131e;color:#f5f0fa}
+.starlight-account-chevron{display:block;flex:0 0 13px;width:13px;height:13px;color:#b9a7ce;pointer-events:none}
+.starlight-account-balance{display:flex;align-items:center;gap:6px;min-width:0;line-height:1}
+.starlight-account-coin{display:grid;place-items:center;flex:0 0 16px;width:16px;height:16px;border:1px solid #eccb84;border-radius:50%;background:linear-gradient(145deg,#f3d994,#b78b3b);color:#39270d;font-family:Arial,sans-serif;font-size:.52rem;font-weight:800;line-height:1}
+.starlight-account-amount{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e9ca83;font-family:'Prompt','Noto Sans Thai',sans-serif;font-size:.68rem;font-weight:650;line-height:1.25;letter-spacing:.015em;font-variant-numeric:tabular-nums}
+@media(max-width:560px){
+ nav .links .me-pill.starlight-account-pill{min-width:164px;max-width:194px;gap:7px;padding:4px 9px 4px 4px;border-radius:14px}
+ .starlight-account-avatar{flex-basis:36px;width:36px;height:36px;border-radius:11px}
+ .starlight-account-avatar .av{border-radius:8px!important}
+ .starlight-account-details{gap:4px}
+ nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{font-size:.78rem}
+ .starlight-account-amount{font-size:.64rem}
+ .starlight-account-coin{flex-basis:15px;width:15px;height:15px}
+}
+@media(prefers-reduced-motion:reduce){nav .links .me-pill.starlight-account-pill{transition:none}}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -4937,7 +4976,7 @@ function renderNav(){
  let pill='';
  if(u){
   const mine=DB.get('characters').filter(c=>(c.ownerId===u.id||admin)&&c.status==='approved'),cur=getActiveChar(u);
-  pill=mine.length?`<div class="me-pill" title="ตัวละครที่กำลังใช้">${avatar(cur,30)}<div><select onchange="setActiveChar(this.value)">${mine.map(c=>`<option value="${c.id}" ${c.id===cur?.id?'selected':''}>${esc(c.stageName||c.name)}</option>`).join('')}</select><div class="won" style="font-size:.72rem;line-height:1">💰 ${wonFmt(cur.won)}</div></div></div>`
+  pill=mine.length?`<div class="me-pill starlight-account-pill" title="ตัวละครที่กำลังใช้งาน"><span class="starlight-account-avatar">${avatar(cur,36)}</span><span class="starlight-account-details"><span class="starlight-account-name-line"><select aria-label="เลือกตัวละครที่ใช้งาน" onchange="setActiveChar(this.value)">${mine.map(c=>`<option value="${c.id}" ${c.id===cur?.id?'selected':''}>${esc(c.stageName||c.name)}</option>`).join('')}</select><svg class="starlight-account-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="starlight-account-balance"><span class="starlight-account-coin" aria-hidden="true">₩</span><span class="starlight-account-amount">${wonFmt(cur.won)}</span></span></span></div>`
    :`<a href="#newchar" class="badge" style="--c:var(--warn)">+ สร้างตัวละคร</a>`;
  }
  const navEl=document.getElementById('nav');
