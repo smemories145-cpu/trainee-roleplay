@@ -2256,6 +2256,25 @@ nav{
 }
 #reply-composer .ed-area .html-source-block,
 .reply-composer .ed-area .html-source-block{background:var(--bg)!important;background-image:none!important;color:var(--txt)!important}
+</style><style id="starlightEditorCodeWidthAndPreviewFix2026">
+/* Raw-code mode always stays within the editor width and wraps long lines. */
+.ed .ed-source-area,
+#reply-composer .ed-source-area,.reply-composer .ed-source-area{
+ display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+ box-sizing:border-box!important;white-space:pre-wrap!important;
+ overflow-wrap:anywhere!important;word-break:break-word!important;
+ overflow-x:hidden!important;overflow-y:auto!important;tab-size:2;
+}
+/* The regular editor keeps source blocks readable without letting them widen the form. */
+.ed .ed-area{width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow-x:hidden}
+.ed .ed-area .html-source-block{
+ display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+ white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;overflow-x:hidden;
+}
+.ed .ed-area .html-source-block code{
+ display:block;width:100%;max-width:100%;min-width:0;white-space:inherit;
+ overflow-wrap:inherit;word-break:inherit;
+}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -3337,7 +3356,7 @@ function richEditor(name,val='',o={}){
  <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML / BBCode">${htmlMode?'👁 กลับไปหน้าเขียน':'📄 โค้ดดิบ'}</button><span class="ed-count"></span></div></div>
  <div class="ed-bar" ${htmlMode?'hidden':''}>${edBar(id)}</div>
  <div class="ed-area rich" contenteditable="true" ${htmlMode?'hidden':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML / BBCode ในช่องเดียวกัน ✨')}">${htmlMode?'':initialVisual}</div>
- <textarea class="ed-source-area" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="โค้ด HTML ดิบ" placeholder="วางหรือแก้ไข HTML / BBCode / CSS ได้ที่นี่..." ${htmlMode?'':'hidden'}>${htmlMode?esc(initial):''}</textarea>
+ <textarea class="ed-source-area" wrap="soft" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="โค้ด HTML ดิบ" placeholder="วางหรือแก้ไข HTML / BBCode / CSS ได้ที่นี่..." ${htmlMode?'':'hidden'}>${htmlMode?esc(initial):''}</textarea>
  <div class="ed-foot"><span class="ed-hint">💡 เขียนข้อความตามปกติได้ หรือวาง HTML / BBCode เพื่อแก้ไขเป็นโค้ด จากนั้นกด “ดูตัวอย่างโพสต์” เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function editorIcon(name){
@@ -3807,7 +3826,10 @@ function edGet(ed){
   const extraMedia=remainder.querySelector('img,iframe,video,table,hr,svg');
   if(!extraText&&!extraMedia){
    if(block.classList.contains('bbcode-source-block'))return{mode:'bbcode',content:sourceText.trim()};
-   if(looksLikeHtmlSource(sourceText))return{mode:'html',content:sourceText.trim()};
+   /* An HTML source block is explicitly created for code pasted into the visual editor.
+      Always render that block as HTML during preview; don't require a heuristic that
+      can misclassify short fragments such as <div class="card">...</div>. */
+   return{mode:'html',content:sourceText.trim()};
   }
  }
  let raw='',hasBBCodeSource=false;
