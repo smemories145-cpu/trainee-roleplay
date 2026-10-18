@@ -1934,6 +1934,53 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(216,182,244,.24);
  .hero h1{font-size:2rem}
  table{display:block;max-width:100%;overflow-x:auto}
 }
+
+/* STARLIGHT PHONE · character profile app */
+.phone-profile-card{position:relative;isolation:isolate;overflow:hidden;min-width:0;margin:2px 0 12px;border:1px solid color-mix(in srgb,var(--pri) 28%,var(--line));border-radius:23px;background:linear-gradient(160deg,color-mix(in srgb,var(--card) 92%,var(--sec) 8%),var(--card) 68%);box-shadow:0 18px 42px rgba(0,0,0,.2)}
+.phone-profile-cover{position:relative;isolation:isolate;display:flex;align-items:flex-end;justify-content:center;height:124px;overflow:hidden;background:radial-gradient(ellipse at 50% 5%,color-mix(in srgb,var(--sec) 43%,var(--card)),transparent 72%),linear-gradient(135deg,color-mix(in srgb,var(--pri) 25%,var(--bg)),var(--card) 70%)}
+.phone-profile-cover:after{content:"";position:absolute;z-index:0;inset:0;background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--card) 78%,transparent));pointer-events:none}
+.phone-profile-cover img{position:absolute;z-index:-1;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 34%;opacity:.72}
+.phone-profile-cover-label{position:relative;z-index:1;margin:0 0 15px;color:color-mix(in srgb,var(--txt) 78%,transparent);font-size:.58rem;font-weight:700;letter-spacing:.18em}
+.phone-profile-cover-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:color-mix(in srgb,var(--pri) 76%,white)}
+.phone-profile-cover-fallback>span{font-size:2rem;line-height:1;text-shadow:0 0 26px color-mix(in srgb,var(--pri) 48%,transparent)}
+.phone-profile-cover-fallback small{font-size:.57rem;letter-spacing:.18em}
+.phone-profile-identity{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0;margin-top:-49px;padding:0 15px 18px;text-align:center}
+.phone-profile-portrait{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;flex:0 0 112px;width:112px;height:112px;margin:0 auto 13px;padding:4px;overflow:hidden;border:1px solid color-mix(in srgb,var(--pri) 42%,var(--line));border-radius:50%;background:var(--card);box-shadow:0 8px 25px rgba(0,0,0,.28)}
+.phone-profile-portrait .av{display:grid!important;place-items:center;width:100%!important;height:100%!important;min-width:0;margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;box-shadow:none!important;object-fit:cover;object-position:center;font-size:2.5rem}
+.phone-profile-portrait img.av{display:block!important}
+.phone-profile-kicker{margin:0 0 5px;color:var(--pri);font-size:.59rem;font-weight:700;letter-spacing:.18em}
+.phone-profile-identity h2{max-width:100%;margin:0;color:var(--txt);font-size:1.36rem;font-weight:750;line-height:1.35;letter-spacing:-.03em;overflow-wrap:anywhere}
+.phone-profile-realname{margin-top:4px;color:var(--mut);font-size:.76rem;line-height:1.6;overflow-wrap:anywhere}
+.phone-profile-stage{display:inline-flex;align-items:center;justify-content:center;max-width:100%;margin-top:10px;padding:5px 12px;border:1px solid color-mix(in srgb,var(--pri) 36%,var(--line));border-radius:999px;background:color-mix(in srgb,var(--pri) 10%,transparent);color:var(--txt);font-size:.7rem;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+.phone-profile-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:11px}
+.phone-profile-tags span{display:inline-flex;max-width:100%;padding:4px 9px;border:1px solid var(--line);border-radius:8px;background:var(--card2);color:var(--mut);font-size:.66rem;line-height:1.4;overflow-wrap:anywhere}
+.phone-profile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0 13px;padding:12px;border:1px solid var(--line);border-radius:15px;background:color-mix(in srgb,var(--card2) 76%,transparent)}
+.phone-profile-stats>div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;padding:4px 2px;text-align:center}
+.phone-profile-stats>div+div{border-left:1px solid var(--line)}
+.phone-profile-stats small{color:var(--mut);font-size:.5rem;font-weight:700;letter-spacing:.06em;white-space:nowrap}
+.phone-profile-stats b{max-width:100%;color:var(--txt);font-size:.91rem;font-weight:750;line-height:1.3;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.phone-profile-stats span{color:var(--mut);font-size:.63rem;line-height:1.35}
+.phone-profile-progress{margin:15px 16px 0;padding:0 0 15px;border-bottom:1px solid var(--line)}
+.phone-profile-progress-label{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:9px;color:var(--txt);font-size:.72rem}
+.phone-profile-progress-label b{color:var(--mut);font-size:.65rem;font-weight:600;text-align:right}
+.phone-profile-progress-track{height:6px;overflow:hidden;border-radius:99px;background:color-mix(in srgb,var(--pri) 13%,var(--card2))}
+.phone-profile-progress-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--pri),color-mix(in srgb,var(--sec) 45%,var(--pri)));box-shadow:0 0 14px color-mix(in srgb,var(--pri) 28%,transparent);transition:width .35s ease}
+.phone-profile-progress>small{display:block;margin-top:6px;color:var(--mut);font-size:.62rem;text-align:right}
+.phone-profile-about{margin:14px 14px 0;padding:13px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--card) 86%,var(--sec) 14%)}
+.phone-profile-about-title{display:flex;align-items:center;gap:9px}
+.phone-profile-about-title>span{display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border:1px solid color-mix(in srgb,var(--pri) 27%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--pri) 10%,transparent);color:var(--pri)}
+.phone-profile-about-title>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.phone-profile-about-title b{font-size:.66rem;letter-spacing:.08em}
+.phone-profile-about-title small{color:var(--mut);font-size:.68rem}
+.phone-profile-about p{margin:10px 0 0;color:var(--txt);font-size:.78rem;line-height:1.85;overflow-wrap:anywhere}
+.phone-profile-actions{padding:14px 14px 0}
+.phone-profile-open{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:43px;border:1px solid color-mix(in srgb,var(--pri) 40%,var(--line));background:linear-gradient(115deg,color-mix(in srgb,var(--pri) 16%,var(--card)),color-mix(in srgb,var(--sec) 10%,var(--card)));color:var(--txt)}
+.phone-profile-open span{color:var(--pri);font-size:1rem}
+.phone-profile-footer{display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 8px 16px;color:var(--mut);font-size:.53rem;letter-spacing:.18em}
+.phone-profile-footer span{color:var(--pri)}
+@media(max-width:420px){.phone-profile-cover{height:108px}.phone-profile-portrait{flex-basis:104px;width:104px;height:104px}.phone-profile-identity{margin-top:-45px;padding-left:12px;padding-right:12px}.phone-profile-stats{margin-left:10px;margin-right:10px;padding:9px 6px;gap:3px}.phone-profile-stats small{font-size:.46rem}.phone-profile-about{margin-left:10px;margin-right:10px;padding:11px}.phone-profile-actions{padding-left:10px;padding-right:10px}}
+@media(prefers-reduced-motion:reduce){.phone-profile-progress-track span{transition:none!important}}
+
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.thread-list-card{transition:none!important}}
 </style></head>
 <body>
@@ -4712,8 +4759,27 @@ async function phoneBuyItem(itemId){
 }
 function phoneProfileMarkup(c){
  if(!c)return '<div class="phone-not-ready">ยังไม่มีตัวละครที่อนุมัติ</div>';
+ const name=esc(c.stageName||c.name||'ตัวละคร');
+ const realName=esc(c.name||'');
+ const stageName=esc(STAGES[c.stage]?.n||'ผู้สมัครออดิชั่น');
+ const coverUrl=/^https?:\/\//i.test(String(c.banner||'').trim())?esc(String(c.banner).trim()):'';
+ const next=STAGES[c.stage+1];
+ const exp=Math.max(0,Number(c.exp)||0);
+ const nextExp=next?Math.max(1,Number(next.exp)||1):0;
+ const progress=next?Math.max(0,Math.min(100,exp/nextExp*100)):100;
+ const intro=String(c.summary||c.personality||c.bio||'ยังไม่ได้เพิ่มคำแนะนำตัวให้ตัวละครนี้').trim();
+ const positions=Array.isArray(c.positions)?c.positions.filter(Boolean).slice(0,4):[];
  let html=phoneAppBack('โปรไฟล์ตัวละคร');
- html+='<div class="phone-msg-card" style="text-align:center;padding:20px">'+avatar(c,82)+'<h2 style="margin:10px 0 2px">'+esc(c.stageName||c.name)+'</h2><div class="phone-msg-muted">'+esc(c.name)+' · '+esc(STAGES[c.stage]?.n||'')+'</div><div class="row" style="justify-content:center;margin-top:13px;gap:7px"><span class="badge">EXP '+esc(c.exp||0)+'</span><span class="badge">เงินสด '+bankMoney(c.won)+'</span></div><div class="phone-msg-muted" style="margin-top:13px;white-space:pre-wrap">'+esc(c.personality||c.bio||'')+'</div><button class="btn ghost" style="width:100%;margin-top:14px" onclick="go(\'char/'+c.id+'\')">เปิดโปรไฟล์เต็ม</button></div>';
+ html+='<article class="phone-profile-card">';
+ html+='<div class="phone-profile-cover">'+(coverUrl?'<img src="'+coverUrl+'" alt="" loading="lazy"><span class="phone-profile-cover-label">STARLIGHT · CHARACTER FILE</span>':'<div class="phone-profile-cover-fallback"><span>✦</span><small>STARLIGHT · CHARACTER FILE</small></div>')+'</div>';
+ html+='<section class="phone-profile-identity"><div class="phone-profile-portrait">'+avatar(c,112)+'</div><div class="phone-profile-kicker">CHARACTER PROFILE</div><h2>'+name+'</h2><div class="phone-profile-realname">'+realName+'</div><span class="phone-profile-stage">'+stageName+'</span>';
+ if(positions.length)html+='<div class="phone-profile-tags">'+positions.map(p=>'<span>'+esc(p)+'</span>').join('')+'</div>';
+ html+='</section>';
+ html+='<div class="phone-profile-stats"><div><small>EXPERIENCE</small><b>'+esc(exp.toLocaleString('en-US'))+'</b><span>EXP</span></div><div><small>WALLET</small><b>'+bankMoney(c.won)+'</b><span>เงินสด</span></div><div><small>AGE</small><b>'+(c.age?esc(c.age):'—')+'</b><span>ปี</span></div></div>';
+ html+='<section class="phone-profile-progress"><div class="phone-profile-progress-label"><span>ความก้าวหน้า</span><b>'+(next?'ระดับถัดไป · '+esc(next.n):'ถึงระดับสูงสุดแล้ว')+'</b></div><div class="phone-profile-progress-track" role="progressbar" aria-label="ความก้าวหน้าของตัวละคร" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(progress)+'"><span style="width:'+progress.toFixed(1)+'%"></span></div><small>'+(next?esc(exp.toLocaleString('en-US'))+' / '+esc(nextExp.toLocaleString('en-US'))+' EXP':'MAX LEVEL · STARLIGHT')+'</small></section>';
+ html+='<section class="phone-profile-about"><div class="phone-profile-about-title"><span>✦</span><div><b>ABOUT THE CHARACTER</b><small>เรื่องราวและคำแนะนำตัว</small></div></div><p>'+esc(intro).replace(/\r?\n/g,'<br>')+'</p></section>';
+ html+='<div class="phone-profile-actions"><button type="button" class="btn phone-profile-open" onclick="go(\'char/'+esc(c.id)+'\')">เปิดโปรไฟล์เต็ม <span aria-hidden="true">↗</span></button></div>';
+ html+='<div class="phone-profile-footer">YOUR STORY, YOUR STAGE <span>✦</span></div></article>';
  return html;
 }
 function phoneJobsMarkup(c){
