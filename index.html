@@ -4575,13 +4575,30 @@ async function saveAdminPermissions(id){
  const target=DB.get('users').find(x=>x.id===id),owner=me();
  if(!target||target.id===owner?.id)return toast('ไม่สามารถแก้สิทธิ์ของบัญชีนี้ได้','bad');
  const permissions=[...wrap.querySelectorAll('input[name="adminPermission"]:checked')].map(x=>x.value);
- if(!await ask('บันทึกสิทธิ์ของ '+target.username+' ใช่ไหม?'+(permissions.length?'':'\nเมื่อไม่เลือกสิทธิ์เลย บัญชีนี้จะกลับเป็นผู้เล่น')))return;
- const users=DB.get('users'),index=users.findIndex(x=>x.id===id);if(index<0)return toast('ไม่พบบัญชีสมาชิก','bad');
- if(supaClient&&cloudReady){const {error}=await supaClient.rpc('site_set_admin_permissions',{p_app_user_id:id,p_permissions:permissions});if(error)return toast('บันทึกสิทธิ์บนฐานข้อมูลไม่สำเร็จ: '+error.message,'bad');}
- users[index]={...users[index],role:permissions.length?'admin':'player',permissions};
- DB.set('users',users);
- if(cloudReady)await cloudQueue;
- wrap.remove();toast(permissions.length?'บันทึกสิทธิ์แอดมินแล้ว':'ถอดสิทธิ์แอดมินแล้ว');render();
+ const users=DB.get('users'),index=users.findIndex(x=>x.id===id);
+ if(index<0)return toast('ไม่พบบัญชีสมาชิก','bad');
+ const saveBtn=wrap.querySelector('#adminPermissionsSave');
+ if(saveBtn?.disabled)return;
+ if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='กำลังบันทึก…';}
+ try{
+  if(!supaClient||!cloudReady)throw new Error('ระบบ Cloud ยังเชื่อมต่อไม่พร้อม กรุณารีเฟรชเว็บแล้วลองอีกครั้ง');
+  const {error:permissionError}=await supaClient.rpc('site_set_admin_permissions',{p_app_user_id:id,p_permissions:permissions});
+  if(permissionError)throw permissionError;
+  const updatedUser={...users[index],role:permissions.length?'admin':'player',permissions};
+  const {error:recordError}=await supaClient.rpc('site_record_write',{
+   p_collection:'users',p_record_id:id,p_payload:updatedUser,p_delete:false
+  });
+  if(recordError)throw recordError;
+  users[index]=updatedUser;
+  store.setItem('sa_users',JSON.stringify(users));
+  wrap.remove();
+  toast(permissions.length?'บันทึกสิทธิ์แอดมินแล้ว':'ถอดสิทธิ์แอดมินแล้ว');
+  render();
+ }catch(error){
+  console.error('Admin permission save failed:',error);
+  if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='บันทึกสิทธิ์';}
+  toast('บันทึกสิทธิ์ไม่สำเร็จ: '+(error?.message||'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'),'bad');
+ }
 }
 
 /* ================= ADMIN PANEL ================= */
