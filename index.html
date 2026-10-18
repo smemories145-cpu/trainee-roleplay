@@ -2202,6 +2202,44 @@ nav{
  backdrop-filter:none!important;
  background-color:rgba(12,10,16,.96)!important;
 }
+</style><style id="starlightReplyComposerCodeGuard2026">
+/* Reply composer: pasted HTML/BBCode stays inside its fixed editor column. */
+#reply-composer,.reply-composer,
+#reply-composer .topic-field-row,#reply-composer .topic-field-value,
+#reply-composer .topic-editor-wrap,#reply-composer .ed,
+.reply-composer .topic-field-row,.reply-composer .topic-field-value,
+.reply-composer .topic-editor-wrap,.reply-composer .ed{
+ width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+}
+#reply-composer .topic-field-row,
+.reply-composer .topic-field-row{grid-template-columns:minmax(0,22%) minmax(0,1fr);gap:clamp(8px,1.6vw,18px)}
+#reply-composer .ed,.reply-composer .ed{overflow:hidden}
+#reply-composer .ed-area,.reply-composer .ed-area{
+ display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+ overflow-x:hidden;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
+}
+#reply-composer .ed-area *,.reply-composer .ed-area *{max-width:100%;min-width:0;box-sizing:border-box}
+#reply-composer .ed-area img,#reply-composer .ed-area iframe,#reply-composer .ed-area video,
+.reply-composer .ed-area img,.reply-composer .ed-area iframe,.reply-composer .ed-area video{
+ max-width:100%!important;height:auto;
+}
+#reply-composer .ed-area table,.reply-composer .ed-area table{display:block;max-width:100%;overflow-x:auto}
+#reply-composer .ed-area .html-source-block,.reply-composer .ed-area .html-source-block{
+ display:block;width:100%;max-width:100%;min-width:0;white-space:pre-wrap;
+ overflow-wrap:anywhere;word-break:break-word;overflow-x:hidden;
+}
+#reply-composer .ed-area .html-source-block code,.reply-composer .ed-area .html-source-block code{
+ display:block;width:100%;max-width:100%;min-width:0;white-space:inherit;overflow-wrap:inherit;word-break:inherit;
+}
+#reply-composer .ed-source-area,.reply-composer .ed-source-area{
+ display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+ white-space:pre;overflow-x:auto;overflow-y:auto;overflow-wrap:normal;
+}
+#reply-composer .ed-bar,.reply-composer .ed-bar{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+#reply-composer .topic-field-value,.reply-composer .topic-field-value{overflow-wrap:anywhere}
+@media(max-width:760px){
+ #reply-composer .topic-field-row,.reply-composer .topic-field-row{grid-template-columns:minmax(0,1fr);gap:5px}
+}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -2783,17 +2821,30 @@ function sanitize(html){
 }
 function legacyHtml(s){
  let h=String(s??'');
- [[/\[b\]([\s\S]*?)\[\/b\]/gi,'<b>$1</b>'],[/\[i\]([\s\S]*?)\[\/i\]/gi,'<i>$1</i>'],[/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>'],[/\[s\]([\s\S]*?)\[\/s\]/gi,'<s>$1</s>'],
+ [
+  [/\[br\]/gi,'<br>'],
+  [/\[hr\]/gi,'<hr>'],
+  [/\[p\]([\s\S]*?)\[\/p\]/gi,'<p>$1</p>'],
+  [/\[h2\]([\s\S]*?)\[\/h2\]/gi,'<h2>$1</h2>'],
+  [/\[h3\]([\s\S]*?)\[\/h3\]/gi,'<h3>$1</h3>'],
+  [/\[left\]([\s\S]*?)\[\/left\]/gi,'<div style="text-align:left">$1</div>'],
+  [/\[b\]([\s\S]*?)\[\/b\]/gi,'<b>$1</b>'],
+  [/\[i\]([\s\S]*?)\[\/i\]/gi,'<i>$1</i>'],
+  [/\[u\]([\s\S]*?)\[\/u\]/gi,'<u>$1</u>'],
+  [/\[s\]([\s\S]*?)\[\/s\]/gi,'<s>$1</s>'],
   [/\[(center|right|justify)\]([\s\S]*?)\[\/\1\]/gi,'<div style="text-align:$1">$2</div>'],
   [/\[color=([#\w]+)\]([\s\S]*?)\[\/color\]/gi,'<span style="color:$1">$2</span>'],
+  [/\[highlight=([#\w]+)\]([\s\S]*?)\[\/highlight\]/gi,'<span style="background-color:$1">$2</span>'],
   [/\[size=(\d+)\]([\s\S]*?)\[\/size\]/gi,'<span style="font-size:$1px">$2</span>'],
   [/\[url=(https?:[^\]]+)\]([\s\S]*?)\[\/url\]/gi,'<a href="$1">$2</a>'],
+  [/\[url\](https?:[\s\S]*?)\[\/url\]/gi,'<a href="$1">$1</a>'],
   [/\[img\](https?:[^\[]+)\[\/img\]/gi,'<img src="$1">'],
   [/\[youtube\]([\w-]{11})\[\/youtube\]/gi,'<iframe src="https://www.youtube-nocookie.com/embed/$1" width="100%" height="315" allowfullscreen frameborder="0"></iframe>'],
   [/\[quote\]([\s\S]*?)\[\/quote\]/gi,'<blockquote>$1</blockquote>'],
-  [/\[code\]([\s\S]*?)\[\/code\]/gi,'<pre>$1</pre>'],
+  [/\[code\]([\s\S]*?)\[\/code\]/gi,(_,code)=>'<pre><code>'+esc(code)+'</code></pre>'],
   [/\[spoiler\]([\s\S]*?)\[\/spoiler\]/gi,'<details><summary>คลิกเพื่อเปิดสปอยล์</summary>$1</details>'],
-  [/\[details=([^\]]*)\]([\s\S]*?)\[\/details\]/gi,'<details><summary>$1</summary>$2</details>']
+  [/\[details=([^\]]*)\]([\s\S]*?)\[\/details\]/gi,'<details><summary>$1</summary>$2</details>'],
+  [/\[list(?:=(1|a|A|i|I))?\]([\s\S]*?)\[\/list\]/gi,(_,kind,body)=>{const items=String(body||'').split(/\[\*\]/i).map(x=>x.trim()).filter(Boolean);const tag=kind?'ol':'ul';return '<'+tag+'>'+items.map(x=>'<li>'+x+'</li>').join('')+'</'+tag+'>'; }]
  ].forEach(([r,x])=>h=h.replace(r,x));
  return h.replace(/\*([^*\n]+)\*/g,'<i>$1</i>').replace(/\r?\n/g,'<br>');
 }
@@ -3249,11 +3300,11 @@ function applyCharacterProfileTemplate(button){
 function richEditor(name,val='',o={}){
  const id='ed'+(++EDN),htmlMode=o.mode==='html',initial=String(val??'');
  return `<div class="ed${htmlMode?' html-source-mode':''}" id="${id}" data-name="${name}" data-mode="rich" data-html-source="${htmlMode?'1':'0'}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
- <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML ดิบ">${htmlMode?'👁 กลับไปหน้าเขียน':'📄 HTML ดิบ'}</button><span class="ed-count"></span></div></div>
+ <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML / BBCode">${htmlMode?'👁 กลับไปหน้าเขียน':'📄 โค้ดดิบ'}</button><span class="ed-count"></span></div></div>
  <div class="ed-bar" ${htmlMode?'hidden':''}>${edBar(id)}</div>
- <div class="ed-area rich" contenteditable="true" ${htmlMode?'hidden':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML ในช่องเดียวกัน ✨')}">${htmlMode?'':sanitize(val)}</div>
- <textarea class="ed-source-area" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="โค้ด HTML ดิบ" placeholder="วางหรือแก้ไข HTML / CSS ได้ที่นี่..." ${htmlMode?'':'hidden'}>${htmlMode?esc(initial):''}</textarea>
- <div class="ed-foot"><span class="ed-hint">💡 เขียนข้อความตามปกติได้ หรือกด 📄 HTML ดิบ เพื่อวางและแก้โค้ดเต็มชุด จากนั้นใช้ Preview เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
+ <div class="ed-area rich" contenteditable="true" ${htmlMode?'hidden':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML / BBCode ในช่องเดียวกัน ✨')}">${htmlMode?'':sanitize(val)}</div>
+ <textarea class="ed-source-area" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="โค้ด HTML ดิบ" placeholder="วางหรือแก้ไข HTML / BBCode / CSS ได้ที่นี่..." ${htmlMode?'':'hidden'}>${htmlMode?esc(initial):''}</textarea>
+ <div class="ed-foot"><span class="ed-hint">💡 เขียนข้อความตามปกติได้ หรือวาง HTML / BBCode เพื่อแก้ไขเป็นโค้ด จากนั้นกด “ดูตัวอย่างโพสต์” เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function editorIcon(name){
  const p={
@@ -3324,37 +3375,52 @@ function setHtmlSourceSelection(pre,text,start,end){
 function applyHtmlSourceCommand(ed,cmd,val){
  const source=htmlSourceSelection(ed);if(!source)return false;
  const pre=source.pre,text=source.text,start=source.start,end=source.end,selected=text.slice(start,end);
+ const bb=pre.classList.contains('bbcode-source-block');
  let replacement='',innerStart=0,innerEnd=0;
  const wrap=(open,close,fallback)=>{
   const inner=selected||fallback||'';
   replacement=open+inner+close;
   innerStart=start+open.length;innerEnd=innerStart+inner.length;
  };
- if(cmd==='bold')wrap('<strong>','</strong>','ข้อความ');
- else if(cmd==='italic')wrap('<em>','</em>','ข้อความ');
- else if(cmd==='underline')wrap('<u>','</u>','ข้อความ');
- else if(cmd==='strikeThrough')wrap('<s>','</s>','ข้อความ');
+ if(cmd==='bold')wrap(bb?'[b]':'<strong>',bb?'[/b]':'</strong>','ข้อความ');
+ else if(cmd==='italic')wrap(bb?'[i]':'<em>',bb?'[/i]':'</em>','ข้อความ');
+ else if(cmd==='underline')wrap(bb?'[u]':'<u>',bb?'[/u]':'</u>','ข้อความ');
+ else if(cmd==='strikeThrough')wrap(bb?'[s]':'<s>',bb?'[/s]':'</s>','ข้อความ');
  else if(cmd==='fontSize'){
-  const px=({'2':12,'3':16,'5':24,'6':30,'7':36})[String(val)]||16;
-  wrap('<span style="font-size:'+px+'px">','</span>','ข้อความ');
- }else if(cmd==='foreColor')wrap('<span style="color:'+esc(val)+'">','</span>','ข้อความ');
- else if(cmd==='hiliteColor')wrap('<span style="background-color:'+esc(val)+'">','</span>','ข้อความ');
- else if(cmd==='formatBlock'){
+  const px=Math.max(8,Math.min(96,Number(val)||16));
+  wrap(bb?'[size='+px+']':'<span style="font-size:'+px+'px">',bb?'[/size]':'</span>','ข้อความ');
+ }else if(cmd==='foreColor'){
+  wrap(bb?'[color='+esc(val)+']':'<span style="color:'+esc(val)+'">',bb?'[/color]':'</span>','ข้อความ');
+ }else if(cmd==='hiliteColor'){
+  wrap(bb?'[highlight='+esc(val)+']':'<span style="background-color:'+esc(val)+'">',bb?'[/highlight]':'</span>','ข้อความ');
+ }else if(cmd==='formatBlock'){
   const tag=String(val||'p').replace(/[<>/]/g,'').toLowerCase();
   if(!/^(p|h2|h3|blockquote|div)$/.test(tag))return false;
-  wrap('<'+tag+'>','</'+tag+'>',tag==='h2'?'หัวข้อใหญ่':tag==='h3'?'หัวข้อย่อย':'ข้อความ');
+  const open=bb?(tag==='blockquote'?'[quote]':'['+(tag==='div'?'center':tag)+']'):'<'+tag+'>';
+  const close=bb?(tag==='blockquote'?'[/quote]':'[/' +(tag==='div'?'center':tag)+']'):'</'+tag+'>';
+  wrap(open,close,tag==='h2'?'หัวข้อใหญ่':tag==='h3'?'หัวข้อย่อย':'ข้อความ');
  }else if(cmd==='justifyLeft'||cmd==='justifyCenter'||cmd==='justifyRight'||cmd==='justifyFull'){
   const align=cmd==='justifyCenter'?'center':cmd==='justifyRight'?'right':cmd==='justifyFull'?'justify':'left';
-  wrap('<div style="text-align:'+align+'">','</div>','ข้อความ');
+  wrap(bb?'['+align+']':'<div style="text-align:'+align+'">',bb?'[/'+align+']':'</div>','ข้อความ');
  }else if(cmd==='insertUnorderedList'||cmd==='insertOrderedList'){
-  const tag=cmd==='insertOrderedList'?'ol':'ul';
-  const rows=(selected||'รายการ').split(/\r?\n/).map(x=>'<li>'+x+'</li>').join('');
-  replacement='<'+tag+'>'+rows+'</'+tag+'>';innerStart=start;innerEnd=start+replacement.length;
- }else if(cmd==='insertHorizontalRule'){replacement='<hr>';innerStart=innerEnd=start+replacement.length}
- else if(cmd==='insertHTML'){replacement=String(val||'');innerStart=innerEnd=start+replacement.length}
- else if(cmd==='createLink'){
+  if(bb){
+   const tag=cmd==='insertOrderedList'?'list=1':'list';
+   const rows=(selected||'รายการ').split(/\r?\n/).map(x=>'[*]'+x).join('');
+   replacement='['+tag+']'+rows+'[/list]';
+  }else{
+   const tag=cmd==='insertOrderedList'?'ol':'ul';
+   const rows=(selected||'รายการ').split(/\r?\n/).map(x=>'<li>'+x+'</li>').join('');
+   replacement='<'+tag+'>'+rows+'</'+tag+'>';
+  }
+  innerStart=start;innerEnd=start+replacement.length;
+ }else if(cmd==='insertHorizontalRule'){
+  replacement=bb?'[hr]':'<hr>';innerStart=innerEnd=start+replacement.length;
+ }else if(cmd==='insertHTML'){
+  replacement=bb?editorHtmlFragmentToBBCode(String(val||'')):String(val||'');
+  innerStart=innerEnd=start+replacement.length;
+ }else if(cmd==='createLink'){
   const url=String(val||'');if(!/^https?:\/\//i.test(url))return false;
-  wrap('<a href="'+esc(url)+'">','</a>',esc(url));
+  wrap(bb?'[url='+esc(url)+']':'<a href="'+esc(url)+'">',bb?'[/url]':'</a>',esc(url));
  }else return false;
  const updated=text.slice(0,start)+replacement+text.slice(end);
  setHtmlSourceSelection(pre,updated,innerStart,innerEnd);
@@ -3373,7 +3439,9 @@ function edSetHexColor(id,input,cmd){
 }
 function edFontSize(id,value){
  const px=Math.max(8,Math.min(96,Number(value)||16)),ed=document.getElementById(id),area=ed?.querySelector('.ed-area');if(!area)return;
- edFocus(id);const sel=window.getSelection();
+ edFocus(id);
+ if(applyHtmlSourceCommand(ed,'fontSize',px)){saveSel();return}
+ const sel=window.getSelection();
  if(sel?.rangeCount&&area.contains(sel.anchorNode)&&!sel.isCollapsed){
   const range=sel.getRangeAt(0),span=document.createElement('span');span.style.fontSize=px+'px';
   try{range.surroundContents(span)}catch(e){document.execCommand('insertHTML',false,'<span style="font-size:'+px+'px">'+esc(sel.toString())+'</span>')}
@@ -3396,26 +3464,43 @@ function setEditorSourceMode(ed,sourceMode){
  if(sourceMode){
   if(ed.dataset.htmlSource!=='1'){
    const savedCode=area.querySelector('pre.html-source-block');
+   const isBBCode=!!savedCode?.classList.contains('bbcode-source-block');
    let html=savedCode?(savedCode.textContent||''):(area.innerHTML||'');
    const css=ed.dataset.sourceCss||'';
-   if(css&&!/<style\b/i.test(html))html=editorCssDocument(html,css);
+   if(css&&!isBBCode&&!/<style\b/i.test(html))html=editorCssDocument(html,css);
    source.value=html;
   }
+  ed.dataset.sourceOriginal=String(source.value||'');
   ed.dataset.htmlSource='1';
   ed.classList.add('html-source-mode');
   area.hidden=true;source.hidden=false;
   if(bar)bar.hidden=true;
-  if(toggle){toggle.textContent='👁 กลับไปหน้าเขียน';toggle.title='กลับไปแก้ไขแบบแสดงผล';}
+  if(toggle){toggle.textContent='✎ กลับไปหน้าเขียน';toggle.title='กลับไปแก้ไขข้อความและจัดรูปแบบ';}
  }else{
   const raw=String(source.value||'');
-  const parsed=extractEditorHtmlSource(raw);
-  area.innerHTML=parsed.html;
-  setEditorSourceCss(ed,parsed.css);
+  if(raw!==String(ed.dataset.sourceOriginal??'__no_source_snapshot__')){
+   const found=getEditorHtmlSource(raw);
+   let visible=raw,type='html',css='';
+   if(found){
+    const parts=extractEditorHtmlSource(found);visible=parts.html;css=parts.css;
+   }else if(isForumMarkupSource(raw)){
+    type='bbcode';
+   }else if(!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw)){
+    area.textContent=raw;
+    setEditorSourceCss(ed,'');
+    visible=null;
+   }
+   if(visible!==null){
+    area.innerHTML=editorSourceBlockHtml(visible,type);
+    setEditorSourceCss(ed,css);
+   }
+  }
+  delete ed.dataset.sourceOriginal;
   delete ed.dataset.htmlSource;
   area.hidden=false;source.hidden=true;
   ed.classList.remove('html-source-mode');
   if(bar)bar.hidden=false;
-  if(toggle){toggle.textContent='📄 HTML ดิบ';toggle.title='ดูหรือแก้ไขโค้ด HTML ดิบ';}
+  if(toggle){toggle.textContent='📄 โค้ดดิบ';toggle.title='ดูหรือแก้ไขโค้ด HTML / BBCode';}
  }
  area.dispatchEvent(new Event('input',{bubbles:true}));
  edCount(ed);
@@ -3425,11 +3510,12 @@ function toggleEditorSource(button){
  setEditorSourceMode(ed,ed.dataset.htmlSource!=='1');
 }
 async function edInsertHTML(id){
- const ed=document.getElementById(id),area=ed?.querySelector('.ed-area');if(!area)return;
- const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรก (เช่น <div>, <b>, <img>)\\nระบบจะแสดงผลในช่องเขียนทันที และยังปรับแต่งข้อความต่อได้');
+ const ed=document.getElementById(id);if(!ed?.querySelector('.ed-area'))return;
+ const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรก (เช่น <div>, <b>, <img>)\nโค้ดจะคงเป็นข้อความให้แก้ไขได้ และดูผลจริงจากปุ่มพรีวิว');
  if(!snippet)return;
- const clean=sanitize(snippet);if(!clean.trim()){toast('ไม่พบ HTML ที่รองรับ','bad');return}
- edFocus(id);document.execCommand('insertHTML',false,clean);saveSel();edCount(ed);area.dispatchEvent(new Event('input',{bubbles:true}));
+ const found=getEditorHtmlSource(snippet);
+ if(found){const parts=extractEditorHtmlSource(found);insertEditorSourceBlock(ed,parts.html,parts.css,'html');return}
+ insertEditorSourceBlock(ed,snippet,'','html');
 }
 async function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
 let EDITOR_IMAGE_FILE=null;
@@ -3536,7 +3622,7 @@ function edUI(ed){
  if(area)area.hidden=sourceMode;
  if(source)source.hidden=!sourceMode;
  ed.classList.toggle('html-source-mode',sourceMode);
- if(toggle){toggle.textContent=sourceMode?'👁 กลับไปหน้าเขียน':'📄 HTML ดิบ';toggle.title=sourceMode?'กลับไปแก้ไขแบบแสดงผล':'ดูหรือแก้ไขโค้ด HTML ดิบ'}
+ if(toggle){toggle.textContent=sourceMode?'👁 กลับไปหน้าเขียน':'📄 โค้ดดิบ';toggle.title=sourceMode?'กลับไปแก้ไขแบบแสดงผล':'ดูหรือแก้ไขโค้ด HTML / BBCode'}
  edCount(ed);
 }
 function edParseInlineHTML(area){
@@ -3571,9 +3657,9 @@ function getEditorHtmlSource(value){
  let source=String(value||'').replace(/^\uFEFF/,'').trim();
  source=source.replace(/^\x60{3,}(?:html|xml|xhtml)?\s*/i,'').replace(/\s*\x60{3,}$/,'').trim();
  const candidates=[source];
- if(/&lt;\s*\/?\s*(?:html|head|body|div|section|article|main|header|footer|table|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|details)\b/i.test(source))candidates.push(decodeEditorHtmlEntities(source));
- const starts=/^\s*(?:(?:<!--[\s\S]*?-->)\s*)*(?:<!doctype\s+html\b|<(?:html|head|body|div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|figcaption|details|summary|svg|iframe)\b)/i;
- for(const candidate of candidates){const v=candidate.trim();if(starts.test(v)&&/<\/?(?:html|head|body|div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|figcaption|details|summary|svg|iframe)\b/i.test(v))return v;}
+ if(/&lt;\s*\/?\s*(?:html|head|body|div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|details|b|strong|i|em|u|s|del|small|mark|pre|code)\b/i.test(source))candidates.push(decodeEditorHtmlEntities(source));
+ const starts=/^\s*(?:(?:<!--[\s\S]*?-->)\s*)*(?:<!doctype\s+html\b|<(?:html|head|body|div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|figcaption|details|summary|svg|iframe|b|strong|i|em|u|s|del|small|mark|pre|code)\b)/i;
+ for(const candidate of candidates){const v=candidate.trim();if(starts.test(v)&&/<\/?(?:html|head|body|div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|style|center|blockquote|font|figure|figcaption|details|summary|svg|iframe|b|strong|i|em|u|s|del|small|mark|pre|code)\b/i.test(v))return v;}
  return '';
 }
 function extractEditorHtmlSource(source){
@@ -3631,6 +3717,32 @@ function saveEditorDraft(ed,area,key){
  const source=ed.querySelector('.ed-source-area');
  store.setItem(key,EDITOR_VISUAL_DRAFT_PREFIX+JSON.stringify({html:area.innerHTML,css:ed.dataset.sourceCss||'',source:source?.value||'',sourceMode:ed.dataset.htmlSource==='1'}));
 }
+function isForumMarkupSource(value){
+ return /\[(?:\/?(?:b|i|u|s|strike|center|left|right|justify|quote|code|spoiler|br|hr|p|h[1-6]|list)|(?:color|size|url|img|youtube|details|highlight)(?:=[^\]]*)?)\]/i.test(String(value||''));
+}
+function editorSourceBlockHtml(value,type='html'){
+ const cls=type==='bbcode'?'html-source-block bbcode-source-block':'html-source-block';
+ return '<pre class="'+cls+'" spellcheck="false"><code>'+esc(String(value??''))+'</code></pre><p><br></p>';
+}
+function insertEditorSourceBlock(ed,value,css='',type='html'){
+ const area=ed?.querySelector('.ed-area');if(!area)return;
+ if(css)setEditorSourceCss(ed,css);
+ area.focus();
+ document.execCommand('insertHTML',false,editorSourceBlockHtml(value,type));
+ area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);saveSel();
+}
+function editorHtmlFragmentToBBCode(value){
+ return String(value||'')
+  .replace(/<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi,'[img]$1[/img]')
+  .replace(/<br\s*\/?>/gi,'[br]')
+  .replace(/<hr\s*\/?>/gi,'[hr]')
+  .replace(/<\/?strong\b[^>]*>/gi,m=>/^<\//.test(m)?'[/b]':'[b]')
+  .replace(/<\/?b\b[^>]*>/gi,m=>/^<\//.test(m)?'[/b]':'[b]')
+  .replace(/<\/?em\b[^>]*>/gi,m=>/^<\//.test(m)?'[/i]':'[i]')
+  .replace(/<\/?i\b[^>]*>/gi,m=>/^<\//.test(m)?'[/i]':'[i]')
+  .replace(/<\/?u\b[^>]*>/gi,m=>/^<\//.test(m)?'[/u]':'[u]')
+  .replace(/<\/?p\b[^>]*>/gi,m=>/^<\//.test(m)?'[/p]':'[p]');
+}
 function insertEditorPaste(ed,html,css=''){
  const area=ed?.querySelector('.ed-area');if(!area)return;
  if(css)setEditorSourceCss(ed,css);
@@ -3650,14 +3762,22 @@ function edGet(ed){
  if(!area)return{mode:'rich',content:''};
  if(ed.dataset.htmlSource==='1')return{mode:'html',content:String(source?.value||'').trim()};
  if(!area.children.length){
-  const pasted=getEditorHtmlSource(area.textContent||'');
-  if(pasted){const parts=extractEditorHtmlSource(pasted);if(parts.html){area.innerHTML=parts.html;setEditorSourceCss(ed,parts.css);}}
+  const text=area.textContent||'',pasted=getEditorHtmlSource(text);
+  if(pasted){
+   const parts=extractEditorHtmlSource(pasted);
+   area.innerHTML=editorSourceBlockHtml(parts.html,'html');
+   setEditorSourceCss(ed,parts.css);
+  }else if(isForumMarkupSource(text))area.innerHTML=editorSourceBlockHtml(text,'bbcode');
  }
  let raw='';
  {
   const copy=area.cloneNode(true);
   copy.querySelectorAll('pre.html-source-block').forEach(block=>{
-   const rendered=document.createElement('div');rendered.innerHTML=sanitize(block.textContent||'');block.replaceWith(...rendered.childNodes);
+   const rendered=document.createElement('div');
+   const sourceText=block.textContent||'';
+   const compiled=block.classList.contains('bbcode-source-block')?legacyHtml(sourceText):sanitize(sourceText);
+   rendered.innerHTML=sanitize(compiled);
+   block.replaceWith(...rendered.childNodes);
   });
   raw=copy.innerHTML||copy.textContent||'';
  }
@@ -3704,7 +3824,8 @@ function initEditors(){
     if(code)found=getEditorHtmlSource(code.textContent||'');
     if(!found)found=getEditorHtmlSource(tmp.content.textContent||'');
    }
-   if(found){const parts=extractEditorHtmlSource(found);insertEditorPaste(ed,parts.html,parts.css);return}
+   if(found){const parts=extractEditorHtmlSource(found);insertEditorSourceBlock(ed,parts.html,parts.css,'html');return}
+   if(isForumMarkupSource(tx)){insertEditorSourceBlock(ed,tx,'','bbcode');return}
    if(h){insertEditorPaste(ed,sanitize(h));return}
    document.execCommand('insertText',false,tx);a.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);
   });
