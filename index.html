@@ -500,7 +500,7 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 .phone-float-window-hint{height:5px;min-height:5px;width:74px;border-radius:99px;background:color-mix(in srgb,var(--mut) 55%,transparent);margin:5px auto 7px;flex-shrink:0}
 @media(max-width:560px){
  .phone-float-launcher{width:51px;height:61px;border-radius:19px 0 0 19px}
- .phone-float-window{left:8px!important;right:8px!important;top:8px!important;bottom:8px!important;width:auto;height:auto;min-height:0;border-radius:22px}
+ .phone-float-window{left:auto;right:8px;top:auto;bottom:8px;width:min(430px,calc(100vw - 16px));height:min(740px,calc(100dvh - 16px));min-height:0;border-radius:22px}
  .phone-float-window-body .phone-content{padding:15px 13px 22px}
  .phone-float-window-body .phone-frame{border-radius:0}
 }
