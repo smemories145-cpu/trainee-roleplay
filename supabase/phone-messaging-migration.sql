@@ -1175,6 +1175,7 @@ begin
 end;
 $$;
 
+alter table public.site_mail add column if not exists sender_character_id text;
 -- Add email thread IDs so replies remain in one thread in each mailbox.
 alter table public.site_mail add column if not exists thread_id text;
 update public.site_mail set thread_id=id where thread_id is null or trim(thread_id)='';
@@ -1224,8 +1225,8 @@ begin
    ))
   ) then raise exception 'This character is blocked for mail'; end if;
  end if;
- insert into public.site_mail(id,thread_id,sender_app_user_id,recipient_app_user_id,subject,body)
- values(v_id,v_thread_id,v_profile.app_user_id,v_recipient_id,v_subject,v_body);
+ insert into public.site_mail(id,thread_id,sender_character_id,sender_app_user_id,recipient_app_user_id,subject,body)
+ values(v_id,v_thread_id,nullif(v_sender_character_id,''),v_profile.app_user_id,v_recipient_id,v_subject,v_body);
  return jsonb_build_object('ok',true,'id',v_id,'threadId',v_thread_id);
 end;
 $$;
@@ -1251,6 +1252,7 @@ begin
    jsonb_build_object(
     'id',m.id,
     'threadId',coalesce(m.thread_id,m.id),
+    'senderCharacterId',m.sender_character_id,
     'senderId',m.sender_app_user_id,
     'senderUsername',s.username,
     'recipientId',m.recipient_app_user_id,
@@ -1269,6 +1271,81 @@ begin
  return v_messages;
 end;
 $$;
+
+
+
+-- Bank and email events create notification metadata only; no private message body is exposed.
+create or replace function public.site_phone_notify_bank_transaction()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $$
+declare
+ v_sender_account text;
+ v_recipient_account text;
+begin
+ if new.kind='deposit' and new.recipient_character_id is not null then
+  insert into public.site_phone_notifications(character_id,kind,actor_character_id,transfer_id,payload)
+  values(new.recipient_character_id,'bank_deposit',null,new.id,
+   jsonb_build_object('amount',new.amount,'fee',new.fee,'account_number',(select account_number from public.site_bank_accounts where id=new.destination_account_id)));
+ elsif new.kind='withdraw' and new.sender_character_id is not null then
+  insert into public.site_phone_notifications(character_id,kind,actor_character_id,transfer_id,payload)
+  values(new.sender_character_id,'bank_withdraw',null,new.id,
+   jsonb_build_object('amount',new.amount,'fee',new.fee,'account_number',(select account_number from public.site_bank_accounts where id=new.source_account_id)));
+ elsif new.kind='transfer' then
+  select account_number into v_sender_account from public.site_bank_accounts where id=new.source_account_id;
+  select account_number into v_recipient_account from public.site_bank_accounts where id=new.destination_account_id;
+  if new.sender_character_id is not null then
+   insert into public.site_phone_notifications(character_id,kind,actor_character_id,transfer_id,payload)
+   values(new.sender_character_id,'bank_transfer_sent',new.recipient_character_id,new.id,
+    jsonb_build_object('amount',new.amount,'fee',new.fee,'account_number',v_recipient_account));
+  end if;
+  if new.recipient_character_id is not null then
+   insert into public.site_phone_notifications(character_id,kind,actor_character_id,transfer_id,payload)
+   values(new.recipient_character_id,'bank_transfer_received',new.sender_character_id,new.id,
+    jsonb_build_object('amount',new.amount,'fee',new.fee,'account_number',v_sender_account));
+  end if;
+ end if;
+ return new;
+end;
+$$;
+
+drop trigger if exists site_phone_bank_transaction_notify on public.site_bank_transactions;
+create trigger site_phone_bank_transaction_notify
+ after insert on public.site_bank_transactions
+ for each row execute function public.site_phone_notify_bank_transaction();
+
+create or replace function public.site_phone_notify_new_mail()
+returns trigger
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $$
+declare v_char record;
+begin
+ for v_char in
+  select r.record_id
+  from public.site_records r
+  where r.collection='characters'
+    and r.payload->>'ownerId'=new.recipient_app_user_id
+    and r.payload->>'status'='approved'
+ loop
+  insert into public.site_phone_notifications(character_id,kind,actor_character_id,payload)
+  values(v_char.record_id,'mail_received',new.sender_character_id,
+   jsonb_build_object('subject',new.subject,'thread_id',coalesce(new.thread_id,new.id)));
+ end loop;
+ return new;
+end;
+$$;
+
+drop trigger if exists site_phone_mail_notify on public.site_mail;
+create trigger site_phone_mail_notify
+ after insert on public.site_mail
+ for each row execute function public.site_phone_notify_new_mail();
+
+revoke all on function public.site_phone_notify_bank_transaction() from public,anon,authenticated;
+revoke all on function public.site_phone_notify_new_mail() from public,anon,authenticated;
 
 -- Explicit RPC grants: users cannot read or edit communication tables directly.
 revoke all on function public.site_phone_character_owned(text,text) from public,anon,authenticated;
