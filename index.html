@@ -3509,7 +3509,7 @@ function setEditorSourceMode(ed,sourceMode){
   if(raw!==String(ed.dataset.sourceOriginal??'__no_source_snapshot__')){
    let visible=raw,type='html';
    if(isForumMarkupSource(raw))type='bbcode';
-   else if(!shouldKeepAsHtmlSource(raw,'html')&&!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw)){
+   else if(!looksLikeHtmlSource(raw)&&!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw)){
     area.textContent=raw;
     setEditorSourceCss(ed,'');
     visible=null;
@@ -3838,14 +3838,26 @@ function initEditors(){
    if(d){
     try{
      if(d.startsWith(EDITOR_VISUAL_DRAFT_PREFIX)){
-      const saved=JSON.parse(d.slice(EDITOR_VISUAL_DRAFT_PREFIX.length));a.innerHTML=sanitize(saved.html||'');setEditorSourceCss(ed,saved.css||'');
-      if(source&&saved.sourceMode){source.value=saved.source||'';ed.dataset.htmlSource='1'}
+      const saved=JSON.parse(d.slice(EDITOR_VISUAL_DRAFT_PREFIX.length));
+      const savedHtml=String(saved.html||''),savedCss=String(saved.css||'');
+      if(/class=["'][^"']*html-source-block/i.test(savedHtml)){
+       a.innerHTML=sanitize(savedHtml);setEditorSourceCss(ed,'');
+      }else if(saved.sourceMode&&source){
+       a.innerHTML=sanitize(savedHtml);source.value=saved.source||'';ed.dataset.htmlSource='1';setEditorSourceCss(ed,'');
+      }else if(savedCss||looksLikeHtmlSource(savedHtml)){
+       const rawSource=savedCss&&!/<style\b/i.test(savedHtml)?editorCssDocument(savedHtml,savedCss):savedHtml;
+       a.innerHTML=editorSourceBlockHtml(rawSource,'html');setEditorSourceCss(ed,'');
+      }else{
+       a.innerHTML=sanitize(savedHtml);setEditorSourceCss(ed,'');
+      }
      }else{
       const oldPrefix='__STARLIGHT_HTML_SOURCE__'+'\\'+'n';
       const oldNewlinePrefix='__STARLIGHT_HTML_SOURCE__'+'\n';
       const legacySource=d.startsWith(oldPrefix)?d.slice(oldPrefix.length):d.startsWith(oldNewlinePrefix)?d.slice(oldNewlinePrefix.length):d;
       const pasted=getEditorHtmlSource(legacySource);
-      if(pasted){const parts=extractEditorHtmlSource(pasted);a.innerHTML=parts.html;setEditorSourceCss(ed,parts.css)}else a.innerHTML=sanitize(d);
+      if(pasted){a.innerHTML=editorSourceBlockHtml(legacySource,'html');setEditorSourceCss(ed,'')}
+      else if(isForumMarkupSource(legacySource)){a.innerHTML=editorSourceBlockHtml(legacySource,'bbcode');setEditorSourceCss(ed,'')}
+      else a.innerHTML=sanitize(d);
      }
     }catch(err){a.innerHTML=sanitize(d)}
     const sourceMode=ed.dataset.htmlSource==='1';a.hidden=sourceMode;if(source)source.hidden=!sourceMode;ed.classList.toggle('html-source-mode',sourceMode);
