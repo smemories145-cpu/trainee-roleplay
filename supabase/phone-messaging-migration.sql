@@ -22,6 +22,7 @@ create table if not exists public.site_phone_conversations (
   description text not null default '',
   image_url text not null default '',
   owner_character_id text,
+  pinned_message_id text,
   is_closed boolean not null default false,
   created_by_app_user_id text not null,
   created_at timestamptz not null default now(),
@@ -35,6 +36,7 @@ create table if not exists public.site_phone_conversations (
       and group_name is not null and owner_character_id is not null)
   )
 );
+alter table public.site_phone_conversations add column if not exists pinned_message_id text;
 create unique index if not exists site_phone_dm_pair_unique
  on public.site_phone_conversations(dm_char_a,dm_char_b) where kind='dm';
 create index if not exists site_phone_conversations_updated_idx
@@ -373,9 +375,9 @@ begin
    'description',c.description,'owner_character_id',c.owner_character_id,
    'is_owner',coalesce(m.is_owner,false),'is_closed',c.is_closed,'is_muted',m.is_muted,'mentions_enabled',m.mentions_enabled,
    'member_count',(select count(*) from public.site_phone_members mm where mm.conversation_id=c.id and mm.left_at is null),
-   'unread_count',(select count(*) from public.site_phone_messages msg where msg.conversation_id=c.id and msg.sender_character_id<>p_character_id and msg.created_at>=m.joined_at and (m.last_read_at is null or msg.created_at>m.last_read_at) and not exists(select 1 from public.site_phone_hidden_messages h where h.message_id=msg.id and h.character_id=p_character_id)),
+   'unread_count',(select count(*) from public.site_phone_messages msg where msg.conversation_id=c.id and msg.sender_character_id<>p_character_id and msg.created_at>=m.joined_at and (m.left_at is null or msg.created_at<m.left_at) and (m.last_read_at is null or msg.created_at>m.last_read_at) and not exists(select 1 from public.site_phone_hidden_messages h where h.message_id=msg.id and h.character_id=p_character_id)),
    'last_message',case when lm.revoked_at is not null then 'ข้อความถูกยกเลิก' else left(lm.body,180) end,
-   'last_message_at',lm.created_at,
+   'last_message_at',lm.created_at,'pinned_message_id',c.pinned_message_id,
    'left_at',m.left_at,
    'created_at',c.created_at
   ) as data,coalesce(lm.created_at,c.updated_at) as last_at
@@ -731,16 +733,19 @@ begin
  if auth.uid() is null then raise exception 'Sign in is required'; end if;
  select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
  if not found or not public.site_phone_character_owned(p_character_id,v_profile.app_user_id) then raise exception 'Character is not available'; end if;
- select coalesce(jsonb_agg(jsonb_build_object(
-  'id',n.id,'kind',n.kind,'actor_character_id',n.actor_character_id,
-  'actor_name',coalesce(nullif(a.payload->>'stageName',''),nullif(a.payload->>'name',''),'STARLIGHT'),
-  'conversation_id',n.conversation_id,'message_id',n.message_id,'transfer_id',n.transfer_id,
-  'payload',n.payload,'is_read',n.is_read,'created_at',n.created_at
- ) order by n.created_at desc),'[]'::jsonb)
- into v_result from public.site_phone_notifications n
- left join public.site_records a on a.collection='characters' and a.record_id=n.actor_character_id
- where n.character_id=p_character_id
- order by n.created_at desc limit 80;
+ select coalesce(jsonb_agg(q.data order by q.created_at desc),'[]'::jsonb)
+ into v_result from (
+  select n.created_at,jsonb_build_object(
+   'id',n.id,'kind',n.kind,'actor_character_id',n.actor_character_id,
+   'actor_name',coalesce(nullif(a.payload->>'stageName',''),nullif(a.payload->>'name',''),'STARLIGHT'),
+   'conversation_id',n.conversation_id,'message_id',n.message_id,'transfer_id',n.transfer_id,
+   'payload',n.payload,'is_read',n.is_read,'created_at',n.created_at
+  ) as data
+  from public.site_phone_notifications n
+  left join public.site_records a on a.collection='characters' and a.record_id=n.actor_character_id
+  where n.character_id=p_character_id
+  order by n.created_at desc limit 80
+ ) q;
  return v_result;
 end;
 $$;
@@ -1028,23 +1033,13 @@ begin
  v_sender_inv:=coalesce(v_sender->'inv','[]'::jsonb); v_recipient_inv:=coalesce(v_recipient->'inv','[]'::jsonb); v_remaining:=p_quantity;
  for v_entry in select value from jsonb_array_elements(v_sender_inv) loop
   if v_remaining>0 and v_entry->>'iid'=p_item_id then
-   v_moved:=v_moved||jsonb_build_array(v_entry); v_remaining:=v_remaining-1;
-  else
-   -- Store entries that are not selected; selected entries are rebuilt in the recipient inventory below.
-   null;
+   v_moved:=v_moved||jsonb_build_array(v_entry);
+   v_remaining:=v_remaining-1;
   end if;
  end loop;
  if v_remaining>0 then raise exception 'Not enough of this item in the sender inventory'; end if;
- v_remaining:=p_quantity;
- for v_entry in select value from jsonb_array_elements(v_sender_inv) loop
-  if v_remaining>0 and v_entry->>'iid'=p_item_id then
-   v_remaining:=v_remaining-1;
-  else
-   v_sender_inv:=v_sender_inv; -- sender inventory is rebuilt in the next statement using ids selected below.
-  end if;
- end loop;
  -- Rebuild sender inventory after selecting the first requested matching instances.
- v_sender_inv:='[]'::jsonb; v_remaining:=p_quantity;
+ v_remaining:=p_quantity;
  for v_entry in select value from jsonb_array_elements(coalesce(v_sender->'inv','[]'::jsonb)) loop
   if v_remaining>0 and v_entry->>'iid'=p_item_id then
    v_remaining:=v_remaining-1;
@@ -1300,5 +1295,57 @@ grant execute on function public.site_phone_admin_report_action(bigint,text,text
 revoke all on function public.site_mail_send(jsonb) from public,anon;
 grant execute on function public.site_mail_send(jsonb) to authenticated;
 
+
+revoke all on function public.site_phone_group_members(text,text) from public,anon;
+grant execute on function public.site_phone_group_members(text,text) to authenticated;
+revoke all on function public.site_phone_group_pin_message(text,text,text) from public,anon;
+grant execute on function public.site_phone_group_pin_message(text,text,text) to authenticated;
 notify pgrst,'reload schema';
+
 commit;
+
+
+create or replace function public.site_phone_group_members(p_character_id text,p_conversation_id text)
+returns jsonb language plpgsql security definer
+set search_path=public,pg_temp
+as $$
+declare v_profile public.site_profiles%rowtype; v_result jsonb;
+begin
+ if auth.uid() is null then raise exception 'Sign in is required'; end if;
+ select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
+ if not found or not public.site_phone_character_owned(p_character_id,v_profile.app_user_id) then raise exception 'Character is not available'; end if;
+ if not exists(select 1 from public.site_phone_members where conversation_id=p_conversation_id and character_id=p_character_id) then raise exception 'Conversation is not available'; end if;
+ select coalesce(jsonb_agg(jsonb_build_object(
+  'character_id',m.character_id,
+  'name',coalesce(nullif(r.payload->>'stageName',''),nullif(r.payload->>'name',''),'ตัวละคร'),
+  'avatar',coalesce(r.payload->>'avatar',''),
+  'is_owner',m.is_owner,'joined_at',m.joined_at,'left_at',m.left_at,
+  'is_me',m.character_id=p_character_id
+ ) order by m.is_owner desc,m.left_at nulls first,m.joined_at),'[]'::jsonb)
+ into v_result from public.site_phone_members m
+ left join public.site_records r on r.collection='characters' and r.record_id=m.character_id
+ where m.conversation_id=p_conversation_id;
+ return v_result;
+end;
+$$;
+
+create or replace function public.site_phone_group_pin_message(p_character_id text,p_conversation_id text,p_message_id text default null)
+returns jsonb language plpgsql security definer
+set search_path=public,pg_temp
+as $$
+declare v_profile public.site_profiles%rowtype; v_conv public.site_phone_conversations%rowtype;
+begin
+ if auth.uid() is null then raise exception 'Sign in is required'; end if;
+ select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
+ if not found or not public.site_phone_character_owned(p_character_id,v_profile.app_user_id) then raise exception 'Character is not available'; end if;
+ select * into v_conv from public.site_phone_conversations where id=p_conversation_id and kind='group' for update;
+ if not found or v_conv.owner_character_id<>p_character_id or v_conv.is_closed then raise exception 'Only the active group owner can pin messages'; end if;
+ if p_message_id is not null and not exists(select 1 from public.site_phone_messages where id=p_message_id and conversation_id=p_conversation_id) then raise exception 'Message does not belong to this group'; end if;
+ update public.site_phone_conversations set pinned_message_id=p_message_id,updated_at=now() where id=p_conversation_id;
+ if p_message_id is not null then
+  insert into public.site_phone_audit(actor_app_user_id,actor_character_id,action,target_type,target_id,detail)
+  values(v_profile.app_user_id,p_character_id,'pin_message','phone_message',p_message_id,jsonb_build_object('conversation_id',p_conversation_id));
+ end if;
+ return jsonb_build_object('ok',true,'pinned_message_id',p_message_id);
+end;
+$$;
