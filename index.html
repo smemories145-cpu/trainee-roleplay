@@ -2321,6 +2321,15 @@ nav{
  font-weight:700;opacity:.98;text-transform:uppercase;
 }
 </style>
+<style id="starlightSideBottomRankFix">
+/* Rank label in the bottom hover strip; the editable label at the top remains untouched. */
+#app .post>.post-layout>.side .side-hover .side-rank-hover,
+#app .thread-opening-post>.post-layout>.side .side-hover .side-rank-hover{
+ display:inline-block;font-family:'Prompt','Noto Sans Thai',sans-serif;
+ font-size:.78rem;font-weight:700;letter-spacing:.08em;color:var(--ac);
+ text-shadow:0 2px 12px #000;overflow-wrap:anywhere;
+}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
@@ -2341,6 +2350,7 @@ const CLOUD_AUTH_DOMAIN='starlight.invalid';
 let supaClient=null, cloudProfile=null, cloudReady=false, cloudApplying=false, cloudQueue=Promise.resolve(), cloudChannel=null;
 let cloudFirstAdminUsername=null;
 let forumOrderSyncInProgress=false, cloudSyncErrorVersion=0;
+let cloudRefreshTimer=null, cloudRefreshPromise=null, cloudRefreshPending=false, cloudRefreshPendingRender=false;
 let MAIL_CACHE={ownerId:'',inbox:[],sent:[],loaded:{},loading:{},error:{}};
 try{
  if(window.supabase&&typeof window.supabase.createClient==='function'){
@@ -2477,20 +2487,52 @@ function cloudHasActiveEditingWork(){
  if(active&&appRoot&&appRoot.contains(active)&&active.matches('input,textarea,select,[contenteditable="true"]'))return true;
  return false;
 }
+function cloudDataSignature(){
+ return CLOUD_COLLECTIONS.map(collection=>{
+  const raw=store.getItem('sa_'+collection);
+  if(collection==='settings')return raw||'{}';
+  const value=cloudParse(raw,[]);
+  if(!Array.isArray(value))return raw||'[]';
+  return JSON.stringify(value.slice().sort((a,b)=>String(a?.id??'').localeCompare(String(b?.id??''))));
+ }).join(String.fromCharCode(30));
+}
 async function cloudRefresh(renderAfter=true){
- // A forum reorder updates several records; do not let realtime refresh restore a half-written order.
+ // Realtime can emit several events for one reply. Coalesce overlapping reads and redraw only on real changes.
  if(!supaClient||!cloudReady||cloudApplying||forumOrderSyncInProgress)return;
- try{
-  const rows=await cloudFetchRows();
-  if(!rows.length)return;
-  cloudApplyRows(rows,true);
-  if(renderAfter&&!cloudHasActiveEditingWork())render();
- }catch(e){console.warn('Cloud refresh failed',e)}
+ if(cloudRefreshPromise){
+  cloudRefreshPending=true;
+  cloudRefreshPendingRender=cloudRefreshPendingRender||renderAfter;
+  await cloudRefreshPromise;
+  return;
+ }
+ cloudRefreshPromise=(async()=>{
+  try{
+   const before=cloudDataSignature();
+   const rows=await cloudFetchRows();
+   if(!rows.length)return;
+   cloudApplyRows(rows,true);
+   const changed=before!==cloudDataSignature();
+   if(renderAfter&&changed&&!cloudHasActiveEditingWork())render();
+  }catch(e){console.warn('Cloud refresh failed',e)}
+ })();
+ try{await cloudRefreshPromise}
+ finally{
+  cloudRefreshPromise=null;
+  if(cloudRefreshPending){
+   const shouldRender=cloudRefreshPendingRender;
+   cloudRefreshPending=false;cloudRefreshPendingRender=false;
+   await cloudRefresh(shouldRender);
+  }
+ }
+}
+function scheduleCloudRefresh(){
+ if(cloudRefreshTimer!==null)clearTimeout(cloudRefreshTimer);
+ cloudRefreshTimer=setTimeout(()=>{cloudRefreshTimer=null;cloudRefresh(true)},350);
 }
 function cloudSubscribe(){
  if(!supaClient||cloudChannel)return;
  cloudChannel=supaClient.channel('starlight-site-records')
-  .on('postgres_changes',{event:'*',schema:'public',table:'site_records'},()=>cloudRefresh())
+  .on('postgres_changes',{event:'*',schema:'public',table:'site_records'},scheduleCloudRefresh)
   .subscribe();
 }
 async function cloudBootstrap(){
@@ -4064,11 +4106,11 @@ function sideCard(c,owner,count){
  const ownerName=owner?.username||'สมาชิก';
  const stage=STAGES[c.stage]||STAGES[0];
  const stageColor=stage?.c||S.pri;
- return `<aside class="side" style="--ac:${esc(stageColor)}" ${c.hoverOwner!==false?`title="โพสต์โดย ${esc(ownerName)}"`:''}>
+ return `<aside class="side" style="--ac:${esc(stageColor)}" ${c.hoverOwner!==false?`title="ระดับ ${esc(stage?.n||'ผู้สมัครออดิชั่น')}"`:''}>
   <div class="side-por"><div class="ini">${esc((c.stageName||c.name||'?')[0])}</div>
    ${/^https?:\/\//.test(img||'')?`<img src="${esc(img)}" loading="lazy" onerror="this.remove()">`:''}
-   <div class="side-name"><small class="side-rank">${esc(stage?.en||stage?.n||'TRAINEE')}</small><b><a href="#char/${c.id}" style="color:inherit">${esc(c.stageName||c.name)}</a></b><span>${esc(c.name)}</span></div>
-   ${c.hoverOwner!==false?`<div class="side-hover">✍️ <a href="#profile/${owner?.id}" style="color:#fff"><b>${esc(ownerName)}</b></a></div>`:''}
+   <div class="side-name">${c.sideTag?`<small>${esc(c.sideTag)}</small>`:''}<b><a href="#char/${c.id}" style="color:inherit">${esc(c.stageName||c.name)}</a></b><span>${esc(c.name)}</span></div>
+   ${c.hoverOwner!==false?`<div class="side-hover">✦ <span class="side-rank-hover">${esc(stage?.en||stage?.n||'TRAINEE')}</span></div>`:''}
   </div>
   <div class="side-body">
    <a class="side-btn" href="#char/${c.id}">ดูหน้าโปรไฟล์</a>
