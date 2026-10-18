@@ -1987,31 +1987,37 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(216,182,244,.24);
 /* STARLIGHT RP · balanced compact character selector */
 nav .links .me-pill.starlight-account-pill{
   position:relative;display:flex;align-items:center;gap:7px;
-  flex:0 1 154px;width:154px;min-width:146px;max-width:164px;margin:0;
-  padding:2px 8px 2px 5px;border:1px solid rgba(216,182,244,.22);
-  border-radius:13px;overflow:hidden;box-sizing:border-box;
-  background:linear-gradient(145deg,rgba(216,182,244,.08),rgba(255,255,255,.01) 58%),#101015;
-  box-shadow:inset 0 1px rgba(255,255,255,.045),0 3px 10px rgba(0,0,0,.14);
-  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
+  flex:0 1 154px;width:154px;min-width:146px;max-width:164px;height:36px;min-height:36px;margin:0;
+  padding:2px 8px 2px 5px;border:1px solid rgba(216,182,244,.28);
+  border-radius:12px;overflow:hidden;box-sizing:border-box;
+  background:
+    radial-gradient(circle at 82% 0%,rgba(216,182,244,.12),transparent 42%),
+    linear-gradient(145deg,rgba(216,182,244,.08),rgba(255,255,255,.01) 58%),#101015;
+  box-shadow:inset 0 1px rgba(255,255,255,.055),0 3px 10px rgba(0,0,0,.14);
+  transition:border-color .2s ease,background .2s ease,box-shadow .2s ease,transform .2s ease;
 }
 nav .links .me-pill.starlight-account-pill:hover{
-  border-color:rgba(216,182,244,.38);
-  background:linear-gradient(145deg,rgba(216,182,244,.12),rgba(255,255,255,.02) 58%),#111015;
-  box-shadow:inset 0 1px rgba(255,255,255,.06),0 4px 12px rgba(0,0,0,.18);
+  border-color:rgba(216,182,244,.55);
+  background:
+    radial-gradient(circle at 82% 0%,rgba(216,182,244,.2),transparent 44%),
+    linear-gradient(145deg,rgba(216,182,244,.13),rgba(255,255,255,.025) 58%),#111015;
+  box-shadow:inset 0 1px rgba(255,255,255,.08),0 4px 14px rgba(122,82,159,.16),0 0 0 1px rgba(216,182,244,.07);
+  transform:translateY(-1px);
 }
 .starlight-account-avatar{
-  display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;
-  padding:1px;overflow:hidden;border:1px solid rgba(216,182,244,.28);
-  border-radius:50%;background:linear-gradient(145deg,#2a2135,#17151c);
+  display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;
+  padding:1px;overflow:hidden;border:1px solid rgba(216,182,244,.36);
+  border-radius:50%;background:linear-gradient(145deg,#352741,#17151c);
+  box-shadow:0 0 0 2px rgba(216,182,244,.045);
 }
 .starlight-account-avatar .av{
-  display:block!important;width:28px!important;height:28px!important;min-width:28px;
+  display:block!important;width:24px!important;height:24px!important;min-width:24px;
   margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;
   object-fit:cover;object-position:center;box-shadow:none!important;
 }
 .starlight-account-details{
   display:flex;flex:1 1 auto;flex-direction:column;align-items:stretch;
-  justify-content:center;gap:3px;min-width:0;
+  justify-content:center;gap:2px;min-width:0;
 }
 .starlight-account-name-line{
   display:flex;align-items:center;justify-content:space-between;gap:4px;min-width:0;
@@ -2021,33 +2027,36 @@ nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{
   display:block;flex:1 1 auto;width:100%;min-width:0;max-width:100%;
   margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
   outline:none!important;box-shadow:none!important;background:transparent!important;
-  color:#f5f0fa!important;font-family:'Noto Sans Thai','Prompt',sans-serif;font-size:.76rem;
-  font-weight:650;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#fbf5ff!important;font-family:'Noto Sans Thai','Prompt',sans-serif;font-size:.77rem;
+  font-weight:700;line-height:1.1;letter-spacing:.12px;text-shadow:0 0 11px rgba(216,182,244,.28);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   appearance:none;-webkit-appearance:none;cursor:pointer;
 }
 nav .links .me-pill.starlight-account-pill .starlight-account-name-line select:focus-visible{
   outline:2px solid rgba(216,182,244,.6)!important;outline-offset:2px!important;border-radius:4px!important;
 }
 nav .links .me-pill.starlight-account-pill .starlight-account-name-line option{background:#17131e;color:#f5f0fa}
-.starlight-account-chevron{display:block;flex:0 0 11px;width:11px;height:11px;color:#b9a7ce;pointer-events:none}
+.starlight-account-chevron{display:block;flex:0 0 11px;width:11px;height:11px;color:#c7b0df;pointer-events:none;transition:transform .2s ease,color .2s ease}
+nav .links .me-pill.starlight-account-pill:hover .starlight-account-chevron{color:#f1d9ff;transform:translateY(1px)}
 .starlight-account-balance{
-  display:block;min-width:0;min-height:12px;line-height:1.2;text-align:left;
+  display:block;min-width:0;min-height:10px;line-height:1;text-align:left;
 }
 .starlight-account-amount{
   display:block;width:100%;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  color:#e9ca83;font-family:'Prompt','Noto Sans Thai',sans-serif;font-size:.61rem;
-  font-weight:650;line-height:1.2;letter-spacing:0;font-variant-numeric:tabular-nums;
+  color:#f0d394;font-family:'Prompt','Noto Sans Thai',sans-serif;font-size:.59rem;
+  font-weight:700;line-height:1.05;letter-spacing:.08px;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 8px rgba(233,202,131,.12);
 }
 @media(max-width:560px){
   nav .links .me-pill.starlight-account-pill{
-    flex:0 0 146px;width:146px;min-width:140px;max-width:154px;gap:6px;padding:2px 7px 2px 5px;border-radius:12px;
+    flex:0 0 146px;width:146px;min-width:140px;max-width:154px;height:35px;min-height:35px;gap:6px;padding:2px 7px 2px 5px;border-radius:11px;
   }
-  .starlight-account-avatar{flex-basis:30px;width:30px;height:30px}
-  .starlight-account-details{gap:3px}
-  nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{font-size:.73rem}
-  .starlight-account-amount{font-size:.59rem}
+  .starlight-account-avatar{flex-basis:26px;width:26px;height:26px}
+  .starlight-account-details{gap:2px}
+  nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{font-size:.74rem}
+  .starlight-account-amount{font-size:.58rem}
 }
-@media(prefers-reduced-motion:reduce){nav .links .me-pill.starlight-account-pill{transition:none}}
+@media(prefers-reduced-motion:reduce){nav .links .me-pill.starlight-account-pill{transition:none;transform:none}}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -4160,6 +4169,13 @@ function handlePhoneLauncherClick(){
  if(!me()){go('login');return}
  const panel=ensurePhoneFloatUI().querySelector('#phoneFloatWindow');
  if(panel&&!panel.hidden){minimizePhoneFloat();return}
+ /* Reopen beside the edge launcher; the panel is still draggable after it opens. */
+ if(panel){
+  panel.style.left='';panel.style.top='';
+  panel.style.right=window.innerWidth<=560?'8px':'76px';
+  panel.style.bottom=window.innerWidth<=560?'8px':'16px';
+ }
+ phoneFloatWindowPositionApplied=true;
  openPhoneFloatApp(phoneFloatCurrentApp||'home');
 }
 function togglePhoneFloat(){handlePhoneLauncherClick()}
