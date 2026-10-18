@@ -466,8 +466,6 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 
 
 /* ================= MOVABLE FLOATING PHONE ================= */
-.nav-phone-link{appearance:none;border:0;background:transparent;color:var(--txt);font:inherit;cursor:pointer;padding:4px 7px;border-radius:9px}
-.nav-phone-link:hover{background:var(--card2)}
 #phoneFloatRoot{position:fixed;inset:0;z-index:100100;pointer-events:none}
 .phone-float-launcher{position:fixed;z-index:100102;top:43%;right:0;width:58px;height:68px;border:1px solid color-mix(in srgb,var(--pri) 52%,#ffffff20);border-right:0;border-radius:22px 0 0 22px;background:linear-gradient(145deg,#292833f5,#111116f5);color:#f7f7fa;box-shadow:0 9px 30px #0005,inset 0 1px #ffffff22;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:grab;touch-action:none;user-select:none;pointer-events:auto;transition:box-shadow .18s,border-color .18s}
 .phone-float-launcher:hover,.phone-float-launcher.is-open{border-color:var(--pri);box-shadow:0 12px 36px #0007,0 0 0 2px color-mix(in srgb,var(--pri) 13%,transparent)}
@@ -3620,8 +3618,38 @@ function bankRequestFailed(meta,error){
  if(message.includes('Request identifier has already been used'))return;
  if(meta&&meta.key&&error&&(error.code||error.status))store.removeItem(meta.key);
 }
+function phoneRenderAppBadges(){
+ document.querySelectorAll('[data-phone-badge]').forEach(node=>{
+  const id=node.getAttribute('data-phone-badge'),count=Math.max(0,Number(PHONE_APP_UNREAD[id])||0);
+  node.textContent=count>99?'99+':String(count);node.hidden=count===0;
+ });
+}
+async function phoneRefreshUnreadCounts(characterId){
+ const c=getActiveChar(me()),u=me();if(!u)return;
+ const id=characterId||c?.id;
+ if(cloudReady&&id){
+  try{
+   const [conversations,notifications]=await Promise.all([
+    phoneBankRpc('site_phone_list_conversations',{p_character_id:id}),
+    phoneBankRpc('site_phone_list_notifications',{p_character_id:id})
+   ]);
+   if(getActiveChar(me())?.id!==id)return;
+   PHONE_CONVERSATIONS=Array.isArray(conversations)?conversations:[];
+   PHONE_APP_UNREAD.chat=PHONE_CONVERSATIONS.filter(x=>x.kind==='dm').reduce((sum,x)=>sum+(Number(x.unread_count)||0),0);
+   PHONE_APP_UNREAD.groupchat=PHONE_CONVERSATIONS.filter(x=>x.kind==='group').reduce((sum,x)=>sum+(Number(x.unread_count)||0),0);
+   PHONE_NOTIFICATIONS=Array.isArray(notifications)?notifications:[];
+   phoneUpdateNotificationCount(PHONE_NOTIFICATIONS);
+   PHONE_LOCK_ALERTS=PHONE_NOTIFICATIONS.filter(n=>!n.is_read).slice(0,3).map(n=>({sender:n.actor_name||'STARLIGHT SYSTEM',kind:phoneTitleForNotification(n)}));
+  }catch(e){}
+ }
+ const cache=mailCacheFor(u.id);
+ if(!cache.loaded.inbox&&!cache.loading.inbox)await loadMailFolder('inbox',u.id);
+ phoneSyncMailUnread();
+ phoneRenderAppBadges();
+}
 function phoneTile(icon,name,desc,id){
- return '<button type="button" class="phone-app-tile" onclick="openPhoneApp(\''+id+'\')"><span class="phone-app-icon">'+icon+'</span><span class="phone-app-name">'+esc(name)+'</span><span class="phone-app-caption">'+esc(desc||'')+'</span></button>';
+ const unread=Number(PHONE_APP_UNREAD[id])||0;
+ return '<button type="button" class="phone-app-tile" onclick="openPhoneApp(\\''+id+'\\')"><span class="phone-app-icon">'+icon+'</span><span class="phone-app-badge" data-phone-badge="'+esc(id)+'"'+(unread?'':' hidden')+'>'+(unread>99?'99+':unread)+'</span><span class="phone-app-name">'+esc(name)+'</span><span class="phone-app-caption">'+esc(desc||'')+'</span></button>';
 }
 function openPhoneApp(id){return openPhoneFloatApp(id||'home')}
 function unlockPhone(){phoneUnlocked=true;pagePhone('home')}
@@ -3636,7 +3664,7 @@ function pagePhone(appId){
   main='<div class="phone-lock"><div class="phone-lock-star">✦</div><div class="phone-lock-time">'+time+'</div><div class="phone-lock-date">'+esc(date)+'</div>'+phoneLockAlertMarkup()+'<button type="button" class="phone-unlock-btn" onclick="unlockPhone()">✧ แตะเพื่อปลดล็อก ✧</button></div>';
   after=()=>{if(c)phoneLoadLockAlerts(c.id)};
  }else if(appId==='home'){
-  main=phoneAppHomeHtml(c,u);after=()=>{if(c){phoneTouchPresence(c.id);phoneLoadLockAlerts(c.id)}};
+  main=phoneAppHomeHtml(c,u);after=()=>{if(c){phoneTouchPresence(c.id);phoneLoadLockAlerts(c.id);phoneRefreshUnreadCounts(c.id)}else phoneRefreshUnreadCounts()};
  }else if(appId==='bank'){
   if(!c)main='<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติแล้วก่อนเปิดบัญชีธนาคาร</div>';
   else main=phoneAppBack('บัญชีธนาคาร')+'<div id="bankPanel" class="phone-bank-panel"><div class="phone-bank-subcard">กำลังเชื่อมต่อบัญชีธนาคาร…</div></div>';
@@ -4021,11 +4049,14 @@ function phoneLockAlertMarkup(){
 }
 function phoneUpdateNotificationCount(notifications){
  const unread=(notifications||[]).filter(n=>!n.is_read).length;
- PHONE_APP_UNREAD.notifications=unread;
+ PHONE_APP_UNREAD.notifications=unread;phoneRenderAppBadges();
  if(PHONE_LAST_UNREAD_COUNT!==null&&unread>PHONE_LAST_UNREAD_COUNT)phonePulseLauncher();
  PHONE_LAST_UNREAD_COUNT=unread;
 }
+function phoneVibrationEnabled(){try{return store.getItem('sa_phone_vibration_enabled')!=='false'}catch(e){return true}}
+function phoneSetVibrationEnabled(value){try{store.setItem('sa_phone_vibration_enabled',value?'true':'false')}catch(e){}if(!value){const button=document.getElementById('phoneFloatLauncher');button?.classList.remove('phone-phone-vibrate')}toast(value?'เปิดการสั่นแจ้งเตือนแล้ว':'ปิดการสั่นแจ้งเตือนแล้ว')}
 function phonePulseLauncher(){
+ if(!phoneVibrationEnabled())return;
  const button=document.getElementById('phoneFloatLauncher');if(!button)return;
  button.classList.remove('phone-phone-vibrate');void button.offsetWidth;button.classList.add('phone-phone-vibrate');
  try{if(navigator&&typeof navigator.vibrate==='function')navigator.vibrate(65)}catch(e){}
@@ -4095,7 +4126,7 @@ async function loadPhoneConversations(kind){
   const data=await phoneBankRpc('site_phone_list_conversations',{p_character_id:c.id});
   PHONE_CONVERSATIONS=Array.isArray(data)?data:[];
   const isGroup=kind==='groupchat',list=PHONE_CONVERSATIONS.filter(x=>isGroup?x.kind==='group':x.kind==='dm');
-  PHONE_APP_UNREAD[kind]=list.reduce((sum,x)=>sum+(Number(x.unread_count)||0),0);
+  PHONE_APP_UNREAD[kind]=list.reduce((sum,x)=>sum+(Number(x.unread_count)||0),0);phoneRenderAppBadges();
   root.innerHTML=list.length?list.map(phoneConversationRow).join(''):'<div class="phone-msg-card"><b>'+(isGroup?'ยังไม่มีกลุ่ม':'ยังไม่มีแชต')+'</b><p class="phone-msg-muted">'+(isGroup?'สร้างกลุ่มใหม่ด้านบน หรือรับคำเชิญจากสมาชิก':'เริ่มต้นบทสนทนาได้จากแอปรายชื่อ')+'</p></div>';
   if(isGroup)await loadPhoneGroupInvites(c.id);
  }catch(e){root.innerHTML=phoneFeatureError(e)}
@@ -4371,7 +4402,7 @@ async function phoneOpenNotificationConversation(id){
 }
 
 function phoneSettingsMarkup(){
- return phoneAppBack('ความเป็นส่วนตัว')+'<div id="phoneSettingsRoot" class="phone-msg-card"><div class="phone-msg-muted">กำลังโหลดการตั้งค่า…</div></div>';
+ return phoneAppBack('ความเป็นส่วนตัว')+'<div class="phone-msg-card"><h3 style="margin-top:0">การแจ้งเตือนบนอุปกรณ์</h3><label class="user-pref-choice"><input type="checkbox" id="phoneVibrationEnabled" '+(phoneVibrationEnabled()?'checked':'')+' onchange="phoneSetVibrationEnabled(this.checked)"><span><b>สั่น/ขยับปุ่มเมื่อมีแจ้งเตือนใหม่</b><small>ปิดได้หากไม่ต้องการเอฟเฟกต์หรือการสั่นบนอุปกรณ์</small></span></label></div><div id="phoneSettingsRoot" class="phone-msg-card"><div class="phone-msg-muted">กำลังโหลดการตั้งค่า…</div></div>';
 }
 async function loadPhonePrivacy(){
  const c=getActiveChar(me()),root=document.getElementById('phoneSettingsRoot');if(!c||!root)return;
@@ -4627,9 +4658,9 @@ function phoneSyncMailUnread(){
  const cache=mailCacheFor(u.id);
  if(!cache.loaded.inbox)return;
  const unread=(cache.inbox||[]).filter(m=>!(m.readAt||m.read_at)).length;
- PHONE_APP_UNREAD.mail=unread;
+ PHONE_APP_UNREAD.mail=unread;phoneRenderAppBadges();
  if(PHONE_LAST_MAIL_UNREAD_COUNT!==null&&unread>PHONE_LAST_MAIL_UNREAD_COUNT)phonePulseLauncher();
- PHONE_LAST_MAIL_UNREAD_COUNT=unread;
+ PHONE_LAST_MAIL_UNREAD_COUNT=unread;phoneRenderAppBadges();
 }
 async function phoneOpenNotificationTarget(appId){
  if(!getActiveChar(me()))return;
