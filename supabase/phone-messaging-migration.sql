@@ -614,7 +614,7 @@ begin
   'status',coalesce(r.payload->>'status','approved'),
   'online',case when coalesce(pr.hide_presence,false) then false else pr.last_seen_at>now()-interval '90 seconds' end,
   'last_seen_at',case when coalesce(pr.hide_last_seen,false) then null else pr.last_seen_at end
- ) order by c.favorite desc,coalesce(nullif(r.payload->>'stageName',''),nullif(r.payload->>'name',''),c.contact_character_id))),'[]'::jsonb)
+ ) order by c.favorite desc,coalesce(nullif(r.payload->>'stageName',''),nullif(r.payload->>'name',''),c.contact_character_id)),'[]'::jsonb)
  into v_result from public.site_phone_contacts c
  left join public.site_records r on r.collection='characters' and r.record_id=c.contact_character_id
  left join public.site_phone_presence pr on pr.character_id=c.contact_character_id
