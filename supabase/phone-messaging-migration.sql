@@ -1296,15 +1296,6 @@ revoke all on function public.site_mail_send(jsonb) from public,anon;
 grant execute on function public.site_mail_send(jsonb) to authenticated;
 
 
-revoke all on function public.site_phone_group_members(text,text) from public,anon;
-grant execute on function public.site_phone_group_members(text,text) to authenticated;
-revoke all on function public.site_phone_group_pin_message(text,text,text) from public,anon;
-grant execute on function public.site_phone_group_pin_message(text,text,text) to authenticated;
-notify pgrst,'reload schema';
-
-commit;
-
-
 create or replace function public.site_phone_group_members(p_character_id text,p_conversation_id text)
 returns jsonb language plpgsql security definer
 set search_path=public,pg_temp
@@ -1349,3 +1340,11 @@ begin
  return jsonb_build_object('ok',true,'pinned_message_id',p_message_id);
 end;
 $$;
+
+revoke all on function public.site_phone_group_members(text,text) from public,anon;
+grant execute on function public.site_phone_group_members(text,text) to authenticated;
+revoke all on function public.site_phone_group_pin_message(text,text,text) from public,anon;
+grant execute on function public.site_phone_group_pin_message(text,text,text) to authenticated;
+
+notify pgrst,'reload schema';
+commit;
