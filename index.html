@@ -4592,7 +4592,7 @@ async function phoneDeleteMailThread(folder,threadId){
   toast('ลบเธรดออกจากกล่องของคุณแล้ว');openPhoneFloatApp('mail');
  }catch(e){toast('ลบเธรดไม่สำเร็จ: '+(e.message||e),'bad');openPhoneFloatApp('mail')}
 }
-function phoneDeleteMailMessage(id,folder){
+async function phoneDeleteMailMessage(id,folder){
  const u=me();if(!u||!await ask('ลบจดหมายออกจากกล่องของคุณหรือไม่? อีกฝ่ายยังมีสำเนาของตัวเอง'))return;
  try{
   if(cloudReady)await phoneBankRpc('site_mail_delete',{p_mail_id:id,p_folder:folder});
