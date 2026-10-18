@@ -83,7 +83,7 @@ summary{cursor:pointer;font-weight:600}
 .ed-tabs button{background:transparent;border:0;color:var(--mut);font:inherit;font-size:.85rem;padding:7px 14px;border-radius:9px 9px 0 0;cursor:pointer}
 .ed-tabs button.on{background:var(--card2);color:var(--txt);font-weight:600}
 .ed-count{margin-left:auto;font-size:.78rem;color:var(--mut);padding:0 6px 6px}
-.ed-bar{display:flex;flex-wrap:wrap;align-items:center;gap:3px;padding:5px 6px;border-bottom:1px solid var(--line);position:sticky;top:58px;background:var(--card2);z-index:3}.ed-bar .ed-g{display:flex;align-items:center;gap:2px;padding-right:5px;margin-right:2px;border-right:1px solid var(--line)}.ed-bar .ed-g:last-child{border-right:0}.ed-bar button,.ed-c{height:30px;min-width:30px;padding:0 6px}.ed-bar select{height:30px;max-width:150px}.ed-area{min-height:360px;max-height:75vh;overflow:auto;padding:18px;outline:0}
+.ed-bar{display:flex;flex-wrap:wrap;align-items:center;gap:3px;padding:5px 6px;border-bottom:1px solid var(--line);position:sticky;top:58px;background:var(--card2);z-index:3}.ed-bar .ed-g{display:flex;align-items:center;gap:2px;padding-right:5px;margin-right:2px;border-right:1px solid var(--line)}.ed-bar .ed-g:last-child{border-right:0}.ed-bar button,.ed-c{height:30px;min-width:30px;padding:0 6px}.ed-bar select{height:30px;max-width:150px}.ed-area{min-height:160px;max-height:50vh;overflow:auto;padding:12px 14px;outline:0}
 .ed-area .html-source-block{display:block;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--txt);font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}.ed-area .html-source-block code{font:inherit;white-space:inherit}
 .ed-g{display:flex;gap:2px;align-items:center;padding-right:6px;border-right:1px solid var(--line)}
 .ed-g:last-child{border:0}
@@ -92,7 +92,7 @@ summary{cursor:pointer;font-weight:600}
 .ed-bar select{height:32px;width:auto;margin:0;padding:0 6px;font-size:.82rem;background:var(--card);border-radius:7px}
 .ed-c{position:relative;overflow:hidden}
 .ed-c input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;margin:0;padding:0}
-.ed-area{min-height:220px;max-height:65vh;overflow:auto;padding:14px 16px;outline:0}
+.ed-area{min-height:160px;max-height:50vh;overflow:auto;padding:12px 14px;outline:0}
 .ed-area:empty:before{content:attr(data-ph);color:var(--mut);pointer-events:none}
 .ed textarea{border:0;border-radius:0;margin:0;min-height:240px;background:#120f22}
 .ed-foot{display:flex;justify-content:space-between;gap:10px;padding:6px 12px;font-size:.76rem;color:var(--mut);border-top:1px solid var(--line);background:var(--card)}
@@ -3366,13 +3366,16 @@ function shouldKeepAsHtmlSource(value,mode=''){
  return looksLikeHtmlSource(value);
 }
 function richEditor(name,val='',o={}){
- const id='ed'+(++EDN),htmlMode=o.mode==='html',bbcodeMode=o.mode==='bbcode',initial=String(val??'');const detectedHtmlSource=!htmlMode&&!bbcodeMode&&shouldKeepAsHtmlSource(initial,o.mode),initialVisual=(bbcodeMode||detectedHtmlSource)?editorSourceBlockHtml(initial,bbcodeMode?'bbcode':'html'):sanitize(val);
- return `<div class="ed${htmlMode?' html-source-mode':''}" id="${id}" data-name="${name}" data-mode="rich" data-html-source="${htmlMode?'1':'0'}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
- <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML / BBCode">${htmlMode?'👁 กลับไปหน้าเขียน':'📄 โค้ดดิบ'}</button><span class="ed-count"></span></div></div>
- <div class="ed-bar" ${htmlMode?'hidden':''}>${edBar(id)}</div>
- <div class="ed-area rich" contenteditable="true" ${htmlMode?'hidden':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML / BBCode ในช่องเดียวกัน ✨')}">${htmlMode?'':initialVisual}</div>
- <textarea class="ed-source-area" wrap="soft" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="โค้ด HTML ดิบ" placeholder="วางหรือแก้ไข HTML / BBCode / CSS ได้ที่นี่..." ${htmlMode?'':'hidden'}>${htmlMode?esc(initial):''}</textarea>
- <div class="ed-foot"><span class="ed-hint">💡 เขียนข้อความตามปกติได้ หรือวาง HTML / BBCode เพื่อแก้ไขเป็นโค้ด จากนั้นกด “ดูตัวอย่างโพสต์” เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
+ const id='ed'+(++EDN),htmlMode=o.mode==='html',bbcodeMode=o.mode==='bbcode',initial=String(val??'');
+ const detectedHtmlSource=!htmlMode&&!bbcodeMode&&shouldKeepAsHtmlSource(initial,o.mode);
+ /* ใช้พื้นที่เขียนเดียวเสมอ: โค้ดที่บันทึกไว้จะแสดงเป็นข้อความแก้ไขได้ในกล่องเดียว */
+ const initialVisual=(htmlMode||bbcodeMode||detectedHtmlSource)?editorSourceBlockHtml(initial,bbcodeMode?'bbcode':'html'):sanitize(val);
+ return `<div class="ed" id="${id}" data-name="${name}" data-mode="rich" data-html-source="0" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
+ <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><span class="ed-count"></span></div></div>
+ <div class="ed-bar">${edBar(id)}</div>
+ <div class="ed-area rich" contenteditable="true" data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML / BBCode ในช่องเดียวกัน ✨')}">${initialVisual}</div>
+ <textarea class="ed-source-area" hidden wrap="soft" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="ข้อมูลสำรองตัวแก้ไข" tabindex="-1">${htmlMode?esc(initial):''}</textarea>
+ <div class="ed-foot"><span class="ed-hint">💡 เขียนและแก้ไขในกล่องนี้ได้เลย รวมถึงโค้ด HTML / BBCode จากนั้นกด “ดูตัวอย่างโพสต์” เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
 function editorIcon(name){
  const p={
