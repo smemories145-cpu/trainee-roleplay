@@ -581,6 +581,9 @@ main{width:100%;max-width:1580px;padding:20px 14px 72px}
 .ed.html-source-mode .ed-area{font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);color:var(--txt);tab-size:2}
 .ed.html-source-mode .ed-bar{display:none!important}
 .admin-permissions-modal{width:min(760px,calc(100vw - 24px));max-width:760px;max-height:min(88vh,900px);overflow:auto}
+/* Keep shared confirmation dialogs and feedback above permission/settings modals. */
+#dlg{z-index:10010!important}
+#toast{z-index:10020!important}
 .admin-permissions-modal .mut{font-size:.85rem;line-height:1.7;margin:0 0 14px}
 .admin-permissions-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .admin-permission-option{display:flex;align-items:flex-start;gap:10px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--card2);cursor:pointer;min-width:0}
