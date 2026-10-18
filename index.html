@@ -4129,6 +4129,7 @@ function phoneConversationThreadShell(){
  if(isGroup&&x.pinned_message_id)html+='<div class="phone-pinned-banner">📌 มีข้อความปักหมุดในห้องนี้ <button class="phone-chat-action" onclick="phoneFocusPinnedMessage()">ดูข้อความ</button></div>';
  html+='<div id="phoneChatMessages" class="phone-chat-stream"><div class="phone-msg-muted">กำลังโหลดข้อความ…</div></div>';
  html+='<form id="phoneChatSendForm" class="phone-msg-form" onsubmit="doPhoneSendMessage(event)"><textarea name="body" maxlength="4000" placeholder="พิมพ์ข้อความ… ใช้ @ชื่อในกลุ่มเพื่อกล่าวถึง" rows="2"></textarea><input name="image_url" type="url" placeholder="URL รูปภาพ (ไม่บังคับ)"><div class="row between" style="gap:8px"><small class="phone-msg-muted">เก็บเป็นข้อความธรรมดา · ไม่ประมวลผล HTML</small><button class="btn" type="submit">ส่งข้อความ ↑</button></div></form>';
+ if(isGroup&&!x.is_closed)html+='<div style="margin:8px 0"><button type="button" class="btn sm ghost" onclick="phoneShowMentionPicker()">＠ กล่าวถึงสมาชิก</button><div id="phoneMentionPicker"></div></div>';
  html+='<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn sm ghost" onclick="phoneMuteCurrentConversation()">🔕 ปิดเสียง/กล่าวถึง</button>';
  if(!isGroup&&x.other_character_id)html+='<button class="btn sm ghost" onclick="phoneBlockCurrentDM()">🚫 บล็อกตัวละคร</button>';
  if(isGroup&&!x.is_closed&&x.is_owner)html+='<button class="btn sm ghost" onclick="openPhoneGroupManager(\''+String(x.id||PHONE_OPEN_CONVERSATION_ID).replace(/'/g,'')+'\')">⚙ จัดการกลุ่ม</button>';
@@ -4618,6 +4619,27 @@ async function phoneOpenNotificationTarget(appId){
  if(appId==='bank')return openPhoneFloatApp('bank');
  if(appId==='item-transfer')return openPhoneFloatApp('item-transfer');
  return openPhoneFloatApp(appId);
+}
+
+
+function phoneShowMentionPicker(){
+ const c=getActiveChar(me()),root=document.getElementById('phoneMentionPicker');
+ if(!c||!root||!PHONE_OPEN_CONVERSATION_ID)return;
+ root.innerHTML='<div class="phone-msg-muted">กำลังโหลดสมาชิก…</div>';
+ phoneBankRpc('site_phone_group_members',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID}).then(members=>{
+  const active=(Array.isArray(members)?members:[]).filter(m=>!m.left_at);
+  root.innerHTML=active.length?'<div class="phone-msg-list" style="margin-top:8px">'+active.map(m=>'<button type="button" class="phone-msg-conv" data-mention-name="'+esc(m.name)+'" onclick="phoneInsertMentionFromButton(this)"><span class="phone-msg-avatar">＠</span><span class="phone-msg-conv-main"><span class="phone-msg-conv-title">'+esc(m.name)+'</span><span class="phone-msg-preview">'+(m.is_owner?'เจ้าของกลุ่ม':m.is_me?'คุณ':'สมาชิก')+'</span></span></button>').join('')+'</div>':'<div class="phone-msg-muted">ไม่พบสมาชิกในกลุ่ม</div>';
+ }).catch(e=>{root.innerHTML=phoneFeatureError(e)});
+}
+function phoneInsertMentionFromButton(button){phoneInsertMention(button&&button.dataset?button.dataset.mentionName||'':'')}
+function phoneInsertMention(name){
+ const area=document.querySelector('#phoneChatSendForm textarea[name="body"]');if(!area)return;
+ const token='@'+String(name||'').trim().replace(/^@/,'')+' ';
+ const start=area.selectionStart===undefined?area.value.length:area.selectionStart;
+ const end=area.selectionEnd===undefined?area.value.length:area.selectionEnd;
+ area.value=area.value.slice(0,start)+token+area.value.slice(end);
+ const pos=start+token.length;area.focus();area.setSelectionRange(pos,pos);
+ const picker=document.getElementById('phoneMentionPicker');if(picker)picker.innerHTML='';
 }
 
 /* ================= ROUTER ================= */
