@@ -185,25 +185,31 @@ begin
   if length(v_query)<2 then raise exception 'Enter at least 2 characters or a full account number'; end if;
 
   select coalesce(jsonb_agg(jsonb_build_object(
-    'character_id',ba.character_id,
-    'account_number',ba.account_number,
-    'display_name',coalesce(nullif(cr.payload ->> 'stageName',''),nullif(cr.payload ->> 'name',''),ba.character_id)
-  ) order by coalesce(nullif(cr.payload ->> 'stageName',''),nullif(cr.payload ->> 'name',''),ba.character_id)), '[]'::jsonb)
+    'character_id',candidates.character_id,
+    'account_number',candidates.account_number,
+    'display_name',candidates.display_name
+  ) order by candidates.display_name), '[]'::jsonb)
   into v_results
-  from public.site_bank_accounts ba
-  join public.site_records cr
-    on cr.collection='characters' and cr.record_id=ba.character_id
-  where ba.character_id<>p_character_id
-    and cr.payload ->> 'status'='approved'
-    and (
-      ba.account_number=v_query
-      or (
-        length(v_query)>=2
-        and coalesce(nullif(cr.payload ->> 'stageName',''),nullif(cr.payload ->> 'name',''),ba.character_id)
-          ilike '%' || replace(replace(replace(v_query,'\','\\'),'%','\%'),'_','\_') || '%' escape '\'
+  from (
+    select
+      ba.character_id,
+      ba.account_number,
+      coalesce(nullif(cr.payload ->> 'stageName',''),nullif(cr.payload ->> 'name',''),ba.character_id) as display_name
+    from public.site_bank_accounts ba
+    join public.site_records cr
+      on cr.collection='characters' and cr.record_id=ba.character_id
+    where ba.character_id<>p_character_id
+      and cr.payload ->> 'status'='approved'
+      and (
+        ba.account_number=v_query
+        or (
+          length(v_query)>=2
+          and position(lower(v_query) in lower(coalesce(nullif(cr.payload ->> 'stageName',''),nullif(cr.payload ->> 'name',''),ba.character_id)))>0
+        )
       )
-    )
-  limit 10;
+    order by display_name
+    limit 10
+  ) candidates;
 
   return v_results;
 end;
