@@ -2337,6 +2337,25 @@ nav{
  font-size:.78rem;font-weight:700;letter-spacing:.08em;color:var(--ac);
  text-shadow:0 2px 12px #000;overflow-wrap:anywhere;
 }
+/* Thread move picker: keep destination list scrollable and make the intended event forum easy to find. */
+.qu-thread-move-modal{max-width:620px;max-height:min(88dvh,820px);min-height:0}
+.qu-thread-move-modal .qu-modal-head{flex:0 0 auto}
+.qu-thread-move-modal .qu-modal-head p{overflow-wrap:anywhere}
+.qu-thread-move-modal .qu-forum-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.qu-thread-move-modal .qu-thread-move-featured{padding:10px;border:1px solid color-mix(in srgb,var(--pri) 38%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--pri) 7%,var(--card))}
+.qu-thread-move-modal .qu-thread-move-featured h3{margin-top:0}
+.qu-thread-move-current{display:flex;flex-direction:column;gap:4px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card2)}
+.qu-thread-move-current small{font-size:.76rem;opacity:.7}
+.qu-thread-move-modal .qu-modal-actions{flex:0 0 auto}
+@media(max-width:600px){.qu-thread-move-modal{max-height:calc(100dvh - 18px)}.qu-thread-move-modal .qu-modal-head{gap:8px}.qu-thread-move-modal .qu-modal-actions .btn{min-height:42px;width:100%}}
+/* Keep paper notices the same restrained size in preview and published posts. */
+.rich .st-paper-announcement{
+  box-sizing:border-box!important;
+  display:block!important;
+  width:100%!important;
+  max-width:min(900px,100%)!important;
+  margin:10px auto!important;
+}
 </style>
 </head>
 <body>
@@ -3070,25 +3089,7 @@ img,video{height:auto}
 html,body{height:auto!important;min-height:0!important;max-height:none!important}
 body{box-sizing:border-box}
 body>*{box-sizing:border-box}
-/* Thread move picker: keep destination list scrollable and make the intended event forum easy to find. */
-.qu-thread-move-modal{max-width:620px;max-height:min(88dvh,820px);min-height:0}
-.qu-thread-move-modal .qu-modal-head{flex:0 0 auto}
-.qu-thread-move-modal .qu-modal-head p{overflow-wrap:anywhere}
-.qu-thread-move-modal .qu-forum-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-.qu-thread-move-modal .qu-thread-move-featured{padding:10px;border:1px solid color-mix(in srgb,var(--pri) 38%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--pri) 7%,var(--card))}
-.qu-thread-move-modal .qu-thread-move-featured h3{margin-top:0}
-.qu-thread-move-current{display:flex;flex-direction:column;gap:4px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card2)}
-.qu-thread-move-current small{font-size:.76rem;opacity:.7}
-.qu-thread-move-modal .qu-modal-actions{flex:0 0 auto}
-@media(max-width:600px){.qu-thread-move-modal{max-height:calc(100dvh - 18px)}.qu-thread-move-modal .qu-modal-head{gap:8px}.qu-thread-move-modal .qu-modal-actions .btn{min-height:42px;width:100%}}
-/* Keep paper notices the same restrained size in preview and published posts. */
-.rich .st-paper-announcement{
-  box-sizing:border-box!important;
-  display:block!important;
-  width:100%!important;
-  max-width:min(900px,100%)!important;
-  margin:10px auto!important;
-}
+
 </style>
 </head><body${fullDoc?bodyAttrs:''}>${body||''}
 <script>(function(){var lastHeight=0;function report(){try{var b=document.body;if(!b)return;var h=0,kids=b.children;for(var i=0;i<kids.length;i++){var el=kids[i];if(el.tagName==='SCRIPT'||el.tagName==='STYLE'||el.hidden)continue;var r=el.getBoundingClientRect(),st=getComputedStyle(el);var bottom=r.bottom+(parseFloat(st.marginBottom)||0)+(window.scrollY||0);if(Number.isFinite(bottom))h=Math.max(h,bottom)}if(h<=0){var range=document.createRange();range.selectNodeContents(b);var rr=range.getBoundingClientRect();h=Math.max(0,rr.bottom+(window.scrollY||0))}h=Math.ceil(h+(parseFloat(getComputedStyle(b).marginBottom)||0)+8);if(Number.isFinite(h)&&h>0&&Math.abs(h-lastHeight)>1){lastHeight=h;parent.postMessage({cf:'${id}',h:h},'*')}}catch(e){}}addEventListener('load',report);addEventListener('resize',report);try{new ResizeObserver(report).observe(document.documentElement);if(document.body)new ResizeObserver(report).observe(document.body)}catch(e){}requestAnimationFrame(report);setTimeout(report,100);setTimeout(report,500);setTimeout(report,1200)})()<\/script></body></html>`;
