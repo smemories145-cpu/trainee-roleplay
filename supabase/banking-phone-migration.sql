@@ -583,6 +583,32 @@ grant execute on function public.site_bank_transfer(text,text,bigint,text,text) 
 grant execute on function public.site_bank_admin_overview() to authenticated;
 grant execute on function public.site_bank_admin_update_settings(integer,integer,integer) to authenticated;
 
+
+create or replace function public.site_bank_fee_info()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_profile public.site_profiles%rowtype;
+  v_settings public.site_bank_settings%rowtype;
+begin
+  if auth.uid() is null then raise exception 'Sign in is required'; end if;
+  select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
+  if not found then raise exception 'Account profile has not been initialized'; end if;
+  select * into v_settings from public.site_bank_settings where singleton_id=true;
+  return jsonb_build_object(
+    'deposit_fee_bps',coalesce(v_settings.deposit_fee_bps,0),
+    'withdrawal_fee_bps',coalesce(v_settings.withdrawal_fee_bps,0),
+    'transfer_fee_bps',coalesce(v_settings.transfer_fee_bps,0)
+  );
+end;
+$$;
+
+revoke all on function public.site_bank_fee_info() from public, anon;
+grant execute on function public.site_bank_fee_info() to authenticated;
+
 notify pgrst, 'reload schema';
 
 commit;
