@@ -4636,9 +4636,9 @@ function forumsBody(){
  const cats=DB.get('categories').sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
  const forums=DB.get('forums');
  return `<div class="row between" style="gap:10px;flex-wrap:wrap"><div><h3>📂 หมวดหมู่และซับฟอรั่ม</h3><p class="mut" style="margin:0">เลื่อนลำดับด้วยปุ่มขึ้น/ลง และตั้งค่าครบในป๊อปอัป</p></div><div class="row"><button class="btn sm ghost" onclick="openCategoryEditor('')">＋ หมวดหมู่หลัก</button><button class="btn sm" onclick="openForumEditor('','${esc(cats[0]?.id||'')}')">＋ ฟอรั่มใหม่</button></div></div>`+
- cats.map(cat=>{
+ cats.map((cat,catIndex)=>{
   const sub=forums.filter(f=>f.catId===cat.id).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
-  return `<div class="card forum-manager-category"><div class="row between" style="gap:10px;flex-wrap:wrap"><div><span class="qu-modal-kicker">FORUM CATEGORY</span><h3 style="margin:3px 0 0">${esc(cat.name)}</h3></div><div class="row"><button class="btn sm ghost" onclick="openCategoryEditor('${esc(cat.id)}')">✏️ ตั้งค่าหมวด</button><button class="btn sm bad" onclick="deleteCat('${esc(cat.id)}')">ลบหมวด</button></div></div>
+  return `<div class="card forum-manager-category"><div class="row between" style="gap:10px;flex-wrap:wrap"><div><span class="qu-modal-kicker">FORUM CATEGORY · ${catIndex+1}</span><h3 style="margin:3px 0 0">${esc(cat.name)}</h3></div><div class="row"><button type="button" class="btn sm ghost forum-order-btn" title="เลื่อนหมวดขึ้น" ${catIndex===0?'disabled':''} onclick="moveCategory('${esc(cat.id)}',-1)">↑</button><button type="button" class="btn sm ghost forum-order-btn" title="เลื่อนหมวดลง" ${catIndex===DB.get('categories').length-1?'disabled':''} onclick="moveCategory('${esc(cat.id)}',1)">↓</button><button class="btn sm ghost" onclick="openCategoryEditor('${esc(cat.id)}')">✏️ ตั้งค่าหมวด</button><button class="btn sm bad" onclick="deleteCat('${esc(cat.id)}')">ลบหมวด</button></div></div>`
    <div class="forum-manager-list">${sub.map((f,i)=>`<div class="forum-manager-row"><div class="forum-order-tools"><button type="button" class="btn sm ghost forum-order-btn" title="เลื่อนขึ้น" ${i===0?'disabled':''} onclick="moveForum('${esc(f.id)}',-1)">↑</button><span>${i+1}</span><button type="button" class="btn sm ghost forum-order-btn" title="เลื่อนลง" ${i===sub.length-1?'disabled':''} onclick="moveForum('${esc(f.id)}',1)">↓</button></div>
     <div class="forum-manager-info">${f.banner&&/^https?:\/\//i.test(f.banner)?`<img src="${esc(f.banner)}" alt="" loading="lazy">`:'<span class="forum-manager-placeholder">📂</span>'}<div><b>${esc(f.name)}</b><small>${esc(f.desc||'ไม่มีคำอธิบาย')}</small><span class="mut">ลำดับ ${i+1}${f.parentId?' · ซับฟอรั่มย่อย':''}</span></div></div>
     <div class="row forum-manager-actions"><button class="btn sm ghost" onclick="openForumEditor('${esc(f.id)}','${esc(cat.id)}')">⚙️ ตั้งค่า</button><button class="btn sm bad" onclick="deleteForum('${esc(f.id)}')">ลบ</button></div>
@@ -4668,6 +4668,37 @@ function openCategoryEditor(id){
 }
 function addCat(){openCategoryEditor('')}
 function editCat(id){openCategoryEditor(id)}
+async function moveCategory(id,delta){
+ if(!hasAdminPermission('manage_forums'))return toast('ไม่มีสิทธิ์จัดการหมวดหมู่','bad');
+ if(forumOrderSyncInProgress)return toast('กำลังบันทึกลำดับ กรุณารอสักครู่');
+ const cats=DB.get('categories').sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const from=cats.findIndex(x=>x.id===id),to=from+delta;
+ if(from<0||to<0||to>=cats.length)return;
+ [cats[from],cats[to]]=[cats[to],cats[from]];
+ cats.forEach((x,i)=>x.order=i+1);
+ const errorVersionBefore=cloudSyncErrorVersion;
+ forumOrderSyncInProgress=true;
+ DB.set('categories',cats);
+ render();
+ if(!supaClient||!cloudReady){
+  forumOrderSyncInProgress=false;
+  toast('เปลี่ยนลำดับหมวดหมู่แล้ว');
+  return;
+ }
+ try{
+  await cloudQueue;
+  const syncFailed=cloudSyncErrorVersion>errorVersionBefore;
+  forumOrderSyncInProgress=false;
+  await cloudRefresh(false);
+  render();
+  if(syncFailed)return;
+  toast('เปลี่ยนลำดับหมวดหมู่แล้ว');
+ }catch(err){
+  forumOrderSyncInProgress=false;
+  console.error('Category order save failed:',err);
+  toast('บันทึกลำดับหมวดหมู่ไม่สำเร็จ: '+(err?.message||'กรุณาลองอีกครั้ง'),'bad');
+ }
+}
 async function deleteCat(id){if(!hasAdminPermission('manage_forums')||!await ask('ลบหมวดหมู่นี้และซับฟอรั่มข้างใน?'))return;DB.set('categories',DB.get('categories').filter(c=>c.id!==id));DB.set('forums',DB.get('forums').filter(f=>f.catId!==id));render()}
 function openForumEditor(id,catId){
  if(!hasAdminPermission('manage_forums'))return toast('ไม่มีสิทธิ์จัดการฟอรั่ม','bad');
