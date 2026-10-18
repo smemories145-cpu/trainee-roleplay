@@ -464,6 +464,48 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 }
 @media(prefers-reduced-motion:reduce){.phone-app-icon{transition:none}}
 
+
+/* ================= MOVABLE FLOATING PHONE ================= */
+.nav-phone-link{appearance:none;border:0;background:transparent;color:var(--txt);font:inherit;cursor:pointer;padding:4px 7px;border-radius:9px}
+.nav-phone-link:hover{background:var(--card2)}
+#phoneFloatRoot{position:fixed;inset:0;z-index:100100;pointer-events:none}
+.phone-float-launcher{position:fixed;z-index:100102;top:43%;right:0;width:58px;height:68px;border:1px solid color-mix(in srgb,var(--pri) 52%,#ffffff20);border-right:0;border-radius:22px 0 0 22px;background:linear-gradient(145deg,#292833f5,#111116f5);color:#f7f7fa;box-shadow:0 9px 30px #0005,inset 0 1px #ffffff22;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:grab;touch-action:none;user-select:none;pointer-events:auto;transition:box-shadow .18s,border-color .18s}
+.phone-float-launcher:hover,.phone-float-launcher.is-open{border-color:var(--pri);box-shadow:0 12px 36px #0007,0 0 0 2px color-mix(in srgb,var(--pri) 13%,transparent)}
+.phone-float-launcher:active{cursor:grabbing}
+.phone-float-launcher-icon{font-size:1.55rem;line-height:1}
+.phone-float-launcher-label{font-size:.52rem;letter-spacing:1.3px;opacity:.82}
+.phone-float-window{position:fixed;z-index:100101;right:76px;bottom:16px;width:min(430px,calc(100vw - 24px));height:min(760px,calc(100dvh - 24px));min-height:300px;border:1px solid color-mix(in srgb,var(--pri) 35%,var(--line));border-radius:25px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);color:var(--txt);box-shadow:0 25px 90px #0009;pointer-events:auto;isolation:isolate}
+.phone-float-window[hidden]{display:none!important}
+.phone-float-window-head{height:48px;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px 8px 16px;background:linear-gradient(110deg,color-mix(in srgb,var(--pri) 13%,var(--card)),var(--card));border-bottom:1px solid var(--line);cursor:grab;touch-action:none;user-select:none}
+.phone-float-window-head:active{cursor:grabbing}
+.phone-float-window-title{font-size:.76rem;letter-spacing:1.1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phone-float-window-subtitle{font-size:.64rem;color:var(--mut);margin-top:1px;letter-spacing:.4px}
+.phone-float-window-controls{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.phone-float-control{width:29px;height:29px;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--txt);display:grid;place-items:center;cursor:pointer;font-size:1rem;line-height:1}
+.phone-float-control:hover{border-color:var(--pri)}
+.phone-float-window-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;background:var(--bg)}
+.phone-float-window-body .phone-page{width:100%;max-width:none;margin:0;padding:0;height:100%}
+.phone-float-window-body .phone-frame{width:100%;height:100%;min-height:0;margin:0;border:0;border-radius:0;box-shadow:none}
+.phone-float-window-body .phone-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:17px 16px 24px}
+.phone-float-window-body .phone-status,.phone-float-window-body .phone-appbar,.phone-float-window-body .phone-bottom-home{flex-shrink:0}
+.phone-float-window-body .phone-lock{overflow:auto}
+.phone-float-window-body .phone-admin-page{max-width:none;margin:0;padding:12px 12px 24px}
+.phone-float-window-body .phone-admin-form{grid-template-columns:1fr}
+.phone-float-window-body .phone-admin-form .btn{grid-column:auto}
+.phone-float-window-body .phone-admin-table{min-width:650px}
+.phone-float-window-body .phone-admin-table-wrap{max-width:100%}
+.phone-float-window-body .phone-account-balance{overflow-wrap:anywhere}
+.phone-float-window-body .phone-bank-actions{grid-template-columns:1fr}
+.phone-float-window-body .phone-placeholder{min-height:330px}
+.phone-float-window-hint{height:5px;min-height:5px;width:74px;border-radius:99px;background:color-mix(in srgb,var(--mut) 55%,transparent);margin:5px auto 7px;flex-shrink:0}
+@media(max-width:560px){
+ .phone-float-launcher{width:51px;height:61px;border-radius:19px 0 0 19px}
+ .phone-float-window{left:8px!important;right:8px!important;top:8px!important;bottom:8px!important;width:auto;height:auto;min-height:0;border-radius:22px}
+ .phone-float-window-body .phone-content{padding:15px 13px 22px}
+ .phone-float-window-body .phone-frame{border-radius:0}
+}
+@media(prefers-reduced-motion:reduce){.phone-float-launcher{transition:none}}
+
 </style>
 <style id="postReadability">
 /* ---------- อ่านโพสต์โรลเพลย์ได้สบายขึ้น ---------- */
@@ -3572,7 +3614,7 @@ function pagePhone(appId){
   const item=titles[appId]||['✦','แอปพลิเคชัน',''];
   main='<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="go(\'phone/home\')">← หน้าแรก</button><div class="phone-eyebrow">STARLIGHT APPLICATION</div></div><div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+item[0]+'</div><h2 style="margin:0 0 8px">'+esc(item[1])+'</h2><p class="mut">'+esc(item[2])+'</p><p class="phone-fee-note">ไอคอนและตำแหน่งแอปเตรียมไว้ในหน้าจอโทรศัพท์แล้ว ส่วนระบบนี้ยังไม่ได้เปิดใช้งานจริง</p><button class="btn ghost" onclick="go(\'phone/home\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
  }
- app('<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">✦ STARLIGHT</span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
+ renderPhoneFloatContent(appId, '<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">✦ STARLIGHT</span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
  if(phoneUnlocked&&appId==='bank'&&c)loadPhoneBankPanel(c.id);
 }
 async function phoneBankRpc(name,args){
@@ -3718,10 +3760,10 @@ async function doBankTransfer(event){
  finally{PHONE_BANK_BUSY=false}
 }
 function pageBankAdmin(){
- if(!(isAdmin()||hasAdminPermission('manage_economy'))){
-  app('<div class="card" style="max-width:650px;margin:32px auto"><h2>🔒 ไม่มีสิทธิ์จัดการธนาคาร</h2><p>หน้านี้ให้เฉพาะแอดมินหรือผู้ที่มีสิทธิ์จัดการเศรษฐกิจ</p><a class="btn ghost" href="#phone">กลับโทรศัพท์</a></div>');return;
+ if(!(isAdmin()||hasAdminPermission('manage_economy')){
+  renderPhoneFloatContent('bankadmin','<div class="card" style="margin:14px"><h2>🔒 ไม่มีสิทธิ์จัดการธนาคาร</h2><p>หน้านี้ให้เฉพาะแอดมินหรือผู้ที่มีสิทธิ์จัดการเศรษฐกิจ</p><button class="btn ghost" data-app="home" onclick="openPhoneFloatApp(this.dataset.app)">กลับโทรศัพท์</button></div>');return;
  }
- app('<div class="phone-admin-page"><div class="row between"><div><div class="phone-eyebrow">STARLIGHT BANK · ADMIN</div><h1 style="margin:4px 0">จัดการธนาคาร</h1><p class="mut">ตั้งค่าค่าธรรมเนียมและตรวจสอบประวัติธุรกรรมธนาคาร</p></div><a class="btn ghost" href="#phone">📱 โทรศัพท์</a></div><div id="bankAdminPanel"><div class="card">กำลังโหลดข้อมูล…</div></div></div>');
+ renderPhoneFloatContent('bankadmin','<div class="phone-admin-page"><div class="row between"><div><div class="phone-eyebrow">STARLIGHT BANK · ADMIN</div><h1 style="margin:4px 0">จัดการธนาคาร</h1><p class="mut">ตั้งค่าค่าธรรมเนียมและตรวจสอบประวัติธุรกรรมธนาคาร</p></div><button type="button" class="btn ghost" data-app="home" onclick="openPhoneFloatApp(this.dataset.app)">📱 โทรศัพท์</button></div><div id="bankAdminPanel"><div class="card">กำลังโหลดข้อมูล…</div></div></div>');
  loadBankAdminPanel();
 }
 async function loadBankAdminPanel(){
@@ -3747,6 +3789,126 @@ async function doSaveBankSettings(event){
  }catch(e){toast('บันทึกไม่สำเร็จ: '+(e.message||e),'bad')}
 }
 
+
+/* ================= FLOATING PHONE CONTROLS ================= */
+let phoneFloatCurrentApp='home';
+let phoneFloatDidDrag=false;
+let phoneFloatDragState=null;
+function phoneFloatReadPosition(key){
+ try{const value=JSON.parse(store.getItem(key)||'null');if(value&&Number.isFinite(value.x)&&Number.isFinite(value.y))return value}catch(e){}
+ return null;
+}
+function phoneFloatClamp(el,x,y){
+ const maxX=Math.max(8,window.innerWidth-el.offsetWidth-8);
+ const maxY=Math.max(8,window.innerHeight-el.offsetHeight-8);
+ return {x:Math.max(8,Math.min(maxX,x)),y:Math.max(8,Math.min(maxY,y))};
+}
+function phoneFloatApplySaved(el,key){
+ const pos=phoneFloatReadPosition(key);if(!pos)return;
+ const next=phoneFloatClamp(el,pos.x,pos.y);
+ el.style.left=next.x+'px';el.style.top=next.y+'px';el.style.right='auto';el.style.bottom='auto';
+}
+function phoneFloatSavePosition(el,key){
+ const rect=el.getBoundingClientRect();
+ store.setItem(key,JSON.stringify({x:Math.round(rect.left),y:Math.round(rect.top)}));
+}
+function ensurePhoneFloatUI(){
+ let root=document.getElementById('phoneFloatRoot');if(root)return root;
+ root=document.createElement('div');root.id='phoneFloatRoot';
+ root.innerHTML='<button type="button" id="phoneFloatLauncher" class="phone-float-launcher" aria-label="เปิดโทรศัพท์ STARLIGHT" aria-controls="phoneFloatWindow" aria-expanded="false" onclick="handlePhoneLauncherClick()"><span class="phone-float-launcher-icon">✦</span><span class="phone-float-launcher-label">PHONE</span></button>'+
+  '<section id="phoneFloatWindow" class="phone-float-window" role="dialog" aria-label="โทรศัพท์ STARLIGHT" aria-modal="false" hidden>'+
+   '<header id="phoneFloatDragHandle" class="phone-float-window-head"><div style="min-width:0"><div id="phoneFloatWindowTitle" class="phone-float-window-title">✦ STARLIGHT PHONE</div><div class="phone-float-window-subtitle">ลากตรงนี้เพื่อย้ายหน้าต่าง</div></div><div class="phone-float-window-controls"><button type="button" class="phone-float-control" aria-label="ย่อโทรศัพท์" title="ย่อ" onclick="minimizePhoneFloat()">−</button><button type="button" class="phone-float-control" aria-label="ปิดหน้าต่างโทรศัพท์" title="ปิด" onclick="closePhoneFloat()">×</button></div></header>'+
+   '<div id="phoneFloatPanelBody" class="phone-float-window-body"></div><div class="phone-float-window-hint"></div></section>';
+ document.body.appendChild(root);
+ const launcher=document.getElementById('phoneFloatLauncher');
+ const panel=document.getElementById('phoneFloatWindow');
+ const handle=document.getElementById('phoneFloatDragHandle');
+ phoneFloatApplySaved(launcher,'sa_phone_float_launcher_pos');
+ phoneFloatApplySaved(panel,'sa_phone_float_window_pos');
+ launcher.addEventListener('pointerdown',e=>phoneFloatStartDrag(e,'launcher'));
+ handle.addEventListener('pointerdown',e=>phoneFloatStartDrag(e,'window'));
+ document.addEventListener('pointermove',phoneFloatMove,{passive:false});
+ document.addEventListener('pointerup',phoneFloatFinishDrag);
+ document.addEventListener('pointercancel',phoneFloatFinishDrag);
+ window.addEventListener('resize',phoneFloatClampStoredPositions);
+ return root;
+}
+function phoneFloatStartDrag(event,type){
+ if(event.button!==undefined&&event.button!==0)return;
+ if(type==='window'&&event.target.closest('button'))return;
+ const el=document.getElementById(type==='launcher'?'phoneFloatLauncher':'phoneFloatWindow');if(!el)return;
+ const rect=el.getBoundingClientRect();
+ if(type==='window'){el.style.left=rect.left+'px';el.style.top=rect.top+'px';el.style.right='auto';el.style.bottom='auto'}
+ phoneFloatDragState={type:type,el:el,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,initialX:rect.left,initialY:rect.top,moved:false};
+ event.preventDefault();
+}
+function phoneFloatMove(event){
+ const d=phoneFloatDragState;if(!d||event.pointerId!==d.pointerId)return;
+ const dx=event.clientX-d.startX,dy=event.clientY-d.startY;
+ if(Math.abs(dx)>4||Math.abs(dy)>4){d.moved=true;phoneFloatDidDrag=true}
+ if(!d.moved)return;
+ if(event.cancelable)event.preventDefault();
+ const next=phoneFloatClamp(d.el,d.initialX+dx,d.initialY+dy);
+ d.el.style.left=next.x+'px';d.el.style.top=next.y+'px';d.el.style.right='auto';d.el.style.bottom='auto';
+}
+function phoneFloatFinishDrag(event){
+ const d=phoneFloatDragState;if(!d||event.pointerId!==d.pointerId)return;
+ phoneFloatDragState=null;
+ if(!d.moved)return;
+ if(d.type==='launcher'){
+  const rect=d.el.getBoundingClientRect();
+  const snapX=rect.left+rect.width/2<window.innerWidth/2?8:Math.max(8,window.innerWidth-rect.width-8);
+  const next=phoneFloatClamp(d.el,snapX,rect.top);
+  d.el.style.left=next.x+'px';d.el.style.top=next.y+'px';d.el.style.right='auto';d.el.style.bottom='auto';
+  phoneFloatSavePosition(d.el,'sa_phone_float_launcher_pos');
+ }else phoneFloatSavePosition(d.el,'sa_phone_float_window_pos');
+ setTimeout(()=>{phoneFloatDidDrag=false},220);
+}
+function phoneFloatClampStoredPositions(){
+ ['phoneFloatLauncher','phoneFloatWindow'].forEach(id=>{
+  const el=document.getElementById(id);if(!el||el.hidden)return;
+  if(el.style.left===''&&el.style.top==='')return;
+  const rect=el.getBoundingClientRect(),next=phoneFloatClamp(el,rect.left,rect.top);
+  el.style.left=next.x+'px';el.style.top=next.y+'px';el.style.right='auto';el.style.bottom='auto';
+  phoneFloatSavePosition(el,id==='phoneFloatLauncher'?'sa_phone_float_launcher_pos':'sa_phone_float_window_pos');
+ });
+}
+function handlePhoneLauncherClick(){
+ if(phoneFloatDidDrag){phoneFloatDidDrag=false;return}
+ if(!me()){go('login');return}
+ const panel=ensurePhoneFloatUI().querySelector('#phoneFloatWindow');
+ if(panel&&!panel.hidden){minimizePhoneFloat();return}
+ openPhoneFloatApp(phoneFloatCurrentApp||'home');
+}
+function togglePhoneFloat(){handlePhoneLauncherClick()}
+function minimizePhoneFloat(){
+ const panel=document.getElementById('phoneFloatWindow'),launcher=document.getElementById('phoneFloatLauncher');
+ if(panel)panel.hidden=true;
+ if(launcher){launcher.classList.remove('is-open');launcher.setAttribute('aria-expanded','false')}
+}
+function closePhoneFloat(){minimizePhoneFloat()}
+function openPhoneFloatApp(appId){
+ appId=appId||'home';
+ if(!me()){minimizePhoneFloat();return go('login')}
+ ensurePhoneFloatUI();
+ phoneFloatCurrentApp=appId;
+ if(appId==='bankadmin')return pageBankAdmin();
+ return pagePhone(appId);
+}
+function renderPhoneFloatContent(appId,html){
+ ensurePhoneFloatUI();
+ phoneFloatCurrentApp=appId||'home';
+ const panel=document.getElementById('phoneFloatWindow'),body=document.getElementById('phoneFloatPanelBody');
+ const launcher=document.getElementById('phoneFloatLauncher');
+ if(!panel||!body)return;
+ const titleMap={home:'✦ STARLIGHT PHONE',bank:'✦ STARLIGHT BANK',bankadmin:'✦ BANK ADMIN',chat:'✦ PRIVATE CHAT',groupchat:'✦ GROUP CHAT',contacts:'✦ CONTACTS','item-transfer':'✦ ITEM TRANSFER',notifications:'✦ NOTIFICATIONS',jobs:'✦ JOBS',events:'✦ EVENTS'};
+ const title=document.getElementById('phoneFloatWindowTitle');
+ if(title)title.textContent=titleMap[phoneFloatCurrentApp]||'✦ STARLIGHT PHONE';
+ body.innerHTML=html;
+ panel.hidden=false;
+ if(launcher){launcher.classList.add('is-open');launcher.setAttribute('aria-expanded','true')}
+}
+
 /* ================= ROUTER ================= */
 const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
  chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editbio:pageEditCharacterBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
@@ -3754,11 +3916,22 @@ const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageTh
  admin:pageAdmin,mail:pageMail,editthread:pageEditThread,newthreadtoforum:pageNewThreadToForum,
  phone:pagePhone,bankadmin:pageBankAdmin};
 let ROUTE=(()=>{try{return location.hash.slice(1)}catch(e){return ''}})()||'home';
-function go(h){ROUTE=h||'home';try{if(location.hash.slice(1)!==ROUTE)history.pushState(null,'','#'+ROUTE)}catch(e){}render()}
+function go(h){
+ const target=String(h||'home');
+ if(target==='phone'||target.startsWith('phone/'))return openPhoneFloatApp(target.split('/')[1]||'home');
+ if(target==='bankadmin')return openPhoneFloatApp('bankadmin');
+ const phoneWindow=document.getElementById('phoneFloatWindow');
+ if(phoneWindow&&!phoneWindow.hidden)minimizePhoneFloat();
+ ROUTE=target;try{if(location.hash.slice(1)!==ROUTE)history.pushState(null,'','#'+ROUTE)}catch(e){}render()
+}
 function render(){
  try{
-  loadSettings();const [p,param,sub]=ROUTE.split('/');
-  renderNav();(routes[p]||pageHome)(param,sub);window.scrollTo(0,0);
+  loadSettings();ensurePhoneFloatUI();const [p,param,sub]=ROUTE.split('/');
+  renderNav();
+  if(p==='phone'||p==='bankadmin'){
+   pageHome();openPhoneFloatApp(p==='bankadmin'?'bankadmin':(param||'home'));
+  }else (routes[p]||pageHome)(param,sub);
+  window.scrollTo(0,0);
  }catch(e){
   console.error('Page render failed:',e);
   const el=document.getElementById('app');
@@ -3809,7 +3982,7 @@ function renderNav(){
  const navEl=document.getElementById('nav');
  if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
  <div class="links">
-  <a href="#phone" class="nav-phone-link">📱 โทรศัพท์</a>
+  <button type="button" class="nav-phone-link" onclick="openPhoneFloatApp('home')">📱 โทรศัพท์</button>
   <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a><button type="button" class="btn sm ghost theme-open-btn" onclick="openThemePicker()">🎨 สีธีม</button>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
   ${adminPanel?`<a href="#admin">👑 แผงดูแล ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
