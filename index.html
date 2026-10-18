@@ -381,6 +381,89 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 .char-bio-studio-image-pick{padding:8px 8px 10px;font-size:10px;text-align:left;line-height:1.6}
 .char-bio-studio-image-preview{background:linear-gradient(140deg,#282033,#12101a)}
 
+
+/* ================= STARLIGHT PHONE ================= */
+.phone-page{max-width:1120px;margin:18px auto;padding:0 14px 28px}
+.phone-frame{position:relative;width:min(100%,460px);min-height:770px;margin:0 auto;overflow:hidden;border:1px solid color-mix(in srgb,var(--pri) 36%,var(--line));border-radius:34px;background:radial-gradient(circle at 10% 0,color-mix(in srgb,var(--sec) 20%,var(--card)) 0,var(--bg) 72%);box-shadow:0 28px 80px #0008;color:var(--txt);display:flex;flex-direction:column}
+.phone-status{height:36px;display:flex;align-items:center;justify-content:space-between;padding:8px 22px 0;font-size:.74rem;color:var(--mut);flex-shrink:0}
+.phone-status-icons{letter-spacing:4px}
+.phone-appbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line)}
+.phone-app-brand{font-size:.77rem;letter-spacing:2px;font-weight:600;color:var(--pri)}
+.phone-app-char{font-size:.76rem;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
+.phone-content{flex:1;padding:18px 18px 26px;min-height:620px}
+.phone-home-welcome{margin:2px 0 20px}
+.phone-home-welcome h2{font-size:1.35rem;margin:3px 0 2px;letter-spacing:-.4px}
+.phone-eyebrow{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--mut)}
+.phone-home-card{border:1px solid var(--line);border-radius:18px;padding:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 10%,var(--card)),var(--card));margin-bottom:18px}
+.phone-home-card .phone-balance{font-size:1.5rem;font-weight:600;letter-spacing:-.5px}
+.phone-app-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 10px}
+.phone-app-tile{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;border:0!important;background:transparent!important;color:var(--txt);padding:0 2px!important;box-shadow:none!important}
+.phone-app-icon{height:58px;width:58px;border-radius:19px;display:grid;place-items:center;font-size:1.65rem;border:1px solid color-mix(in srgb,var(--pri) 18%,var(--line));background:linear-gradient(145deg,color-mix(in srgb,var(--pri) 16%,var(--card2)),var(--card));box-shadow:0 8px 18px #0002;transition:transform .16s ease,border-color .16s ease}
+.phone-app-tile:hover .phone-app-icon{transform:translateY(-2px);border-color:var(--pri)}
+.phone-app-name{font-size:.75rem;text-align:center;line-height:1.35}
+.phone-app-caption{font-size:.65rem;color:var(--mut);text-align:center}
+.phone-lock{position:absolute;z-index:3;inset:36px 0 0;padding:44px 22px 36px;display:flex;flex-direction:column;align-items:center;text-align:center;background:linear-gradient(165deg,#0c0b10f7 0%,#17151bf5 48%,#050506fa 100%);backdrop-filter:blur(12px)}
+.phone-lock-star{font-size:1.6rem;color:#d6d6dc;margin-bottom:18px}
+.phone-lock-time{font-size:4rem;line-height:1.1;font-weight:300;letter-spacing:-3px}
+.phone-lock-date{color:#c1c0c8;font-size:.85rem;margin:6px 0 34px}
+.phone-lock-alert{width:100%;text-align:left;border:1px solid #ffffff20;background:#ffffff0c;border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.phone-lock-alert b{display:block;font-size:.82rem}.phone-lock-alert span{display:block;font-size:.73rem;color:#aaa8b1;margin-top:4px}
+.phone-unlock-btn{margin-top:auto;width:100%;border:1px solid #ffffff42;background:#ffffff12;color:#fff;border-radius:999px;padding:13px 18px;letter-spacing:.5px}
+.phone-bottom-home{height:24px;width:96px;border-radius:20px;background:color-mix(in srgb,var(--mut) 55%,transparent);margin:0 auto 7px;flex-shrink:0}
+.phone-back{padding:6px 10px!important}
+.phone-section-title{font-size:1rem;margin:4px 0 12px}
+.phone-account-card{border:1px solid color-mix(in srgb,var(--pri) 30%,var(--line));border-radius:20px;padding:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 12%,var(--card)),var(--card) 75%);margin-bottom:14px}
+.phone-account-number{font-size:.8rem;color:var(--mut);letter-spacing:1.5px}
+.phone-account-balance{font-size:1.9rem;line-height:1.25;font-weight:600;margin:8px 0}
+.phone-bank-cash{font-size:.79rem;color:var(--mut)}
+.phone-bank-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.phone-bank-form{border:1px solid var(--line);border-radius:16px;padding:13px;background:var(--card);min-width:0}
+.phone-bank-form label{font-size:.77rem}
+.phone-bank-form input,.phone-admin-form input{width:100%;min-width:0;margin:6px 0 10px}
+.phone-bank-form .btn{width:100%}
+.phone-bank-panel{display:flex;flex-direction:column;gap:14px}
+.phone-bank-subcard{border:1px solid var(--line);border-radius:16px;padding:14px;background:color-mix(in srgb,var(--card) 90%,var(--bg))}
+.phone-bank-subcard p{margin:4px 0 10px}
+.phone-fee-note{font-size:.73rem;line-height:1.55;color:var(--mut)}
+.phone-recipient-result{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+.phone-recipient-result small{display:block;color:var(--mut);font-size:.7rem;overflow-wrap:anywhere}
+.phone-bank-history{display:flex;flex-direction:column;gap:0}
+.phone-bank-tx{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.phone-bank-tx:last-child{border-bottom:0}
+.phone-bank-tx b{font-size:.8rem}.phone-bank-tx small{display:block;font-size:.68rem;color:var(--mut);margin-top:3px}
+.phone-bank-tx-amount{text-align:right;font-size:.85rem;font-weight:600;white-space:nowrap}
+.phone-backline{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.phone-placeholder{min-height:450px;display:flex;align-items:center;justify-content:center;text-align:center}
+.phone-placeholder-inner{max-width:300px}
+.phone-placeholder-icon{font-size:3rem;margin-bottom:10px}
+.phone-admin-page{max-width:1100px;margin:24px auto;padding:0 14px 36px}
+.phone-admin-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.phone-admin-form .btn{grid-column:1/-1}
+.phone-admin-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+.phone-admin-table{width:100%;border-collapse:collapse;min-width:720px}
+.phone-admin-table th,.phone-admin-table td{text-align:left;border-bottom:1px solid var(--line);padding:10px 12px;font-size:.78rem;vertical-align:top}
+.phone-admin-table th{color:var(--mut);font-weight:500;background:var(--card2)}
+.phone-not-ready{border:1px solid #c7a96755;background:#c7a9670c;border-radius:14px;padding:14px;color:var(--txt)}
+@media(min-width:760px){
+ .phone-frame{width:min(100%,880px);min-height:min(860px,calc(100vh - 150px));border-radius:28px}
+ .phone-content{padding:22px 24px 30px;min-height:600px}
+ .phone-app-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 14px}
+ .phone-app-icon{height:66px;width:66px;border-radius:21px;font-size:1.8rem}
+ .phone-app-name{font-size:.82rem}
+}
+@media(max-width:480px){
+ .phone-page{margin:0;padding:0}
+ .phone-frame{width:100%;min-height:calc(100dvh - 62px);border-radius:0;border-left:0;border-right:0}
+ .phone-content{padding:16px 14px 22px;min-height:560px}
+ .phone-lock{padding:36px 16px 28px}
+ .phone-lock-time{font-size:3.5rem}
+ .phone-app-grid{gap:17px 6px}
+ .phone-app-icon{height:54px;width:54px;border-radius:17px}
+ .phone-bank-actions{grid-template-columns:1fr}
+ .phone-admin-form{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.phone-app-icon{transition:none}}
+
 </style>
 <style id="postReadability">
 /* ---------- อ่านโพสต์โรลเพลย์ได้สบายขึ้น ---------- */
@@ -3405,11 +3488,234 @@ async function deleteMailMessage(id,folder){
  const cache=mailCacheFor(u.id);cache.loaded[folder]=false;cache.error[folder]='';cache.loading[folder]=false;toast('ลบจดหมายแล้ว');pageMail(folder);
 }
 
+
+/* ================= PHONE + BANKING ================= */
+let phoneUnlocked=false;
+let PHONE_BANK_ACCOUNT=null;
+let PHONE_BANK_FEES={deposit_fee_bps:0,withdrawal_fee_bps:0,transfer_fee_bps:0};
+let PHONE_BANK_SELECTED_RECIPIENT=null;
+function bankMoney(n){return '₩'+(Number(n)||0).toLocaleString('en-US')}
+function bankFeeBpsLabel(n){return ((Number(n)||0)/100).toFixed(2)+'%'}
+function bankFeeFor(amount,bps){return Math.ceil((Number(amount)||0)*(Number(bps)||0)/10000)}
+function bankRequestId(){return uid()+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
+function phoneTile(icon,name,desc,id){
+ return '<button type="button" class="phone-app-tile" onclick="openPhoneApp(\''+id+'\')"><span class="phone-app-icon">'+icon+'</span><span class="phone-app-name">'+esc(name)+'</span><span class="phone-app-caption">'+esc(desc||'')+'</span></button>';
+}
+function openPhoneApp(id){
+ if(id==='mail')return go('mail/inbox');
+ if(id==='shop')return go('shop');
+ if(id==='profile'||id==='inventory'){
+  const c=getActiveChar(me());if(!c)return toast('ต้องมีตัวละครที่อนุมัติแล้วก่อน','bad');
+  return go('char/'+c.id);
+ }
+ if(id==='bankadmin')return go('bankadmin');
+ go('phone/'+id);
+}
+function unlockPhone(){phoneUnlocked=true;pagePhone('home')}
+function pagePhone(appId){
+ const u=me();if(!u)return go('login');
+ appId=appId||'home';
+ const c=getActiveChar(u);
+ const now=new Date();
+ const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+ const date=now.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
+ let main='';
+ if(!phoneUnlocked){
+  main='<div class="phone-lock"><div class="phone-lock-star">✦</div><div class="phone-lock-time">'+time+'</div><div class="phone-lock-date">'+esc(date)+'</div><div class="phone-lock-alert"><b>STARLIGHT SYSTEM</b><span>การแจ้งเตือนจะแสดงเฉพาะผู้ส่งและประเภทการแจ้งเตือน</span></div><div class="phone-lock-alert"><b>การแจ้งเตือน</b><span>ยังไม่มีการแจ้งเตือนใหม่</span></div><button type="button" class="phone-unlock-btn" onclick="unlockPhone()">✧ แตะเพื่อปลดล็อก ✧</button></div>';
+ }else if(appId==='home'){
+  const apps=[
+   ['bank','🏦','ธนาคาร','บัญชีและธุรกรรม'],
+   ['chat','💬','แชตส่วนตัว','ข้อความ'],
+   ['groupchat','👥','แชตกลุ่ม','สนทนาเป็นกลุ่ม'],
+   ['mail','✉️','จดหมาย','กล่องจดหมาย'],
+   ['contacts','📇','รายชื่อ','ตัวละคร'],
+   ['item-transfer','🎁','ส่งไอเทม','มอบสิ่งของ'],
+   ['notifications','🔔','แจ้งเตือน','กิจกรรมล่าสุด'],
+   ['shop','🛍️','ร้านค้า','สินค้า'],
+   ['jobs','💼','งานพิเศษ','หารายได้'],
+   ['events','🌟','กิจกรรม','ข่าวและประกาศ'],
+   ['inventory','🎒','กระเป๋า','สิ่งของของตัวละคร'],
+   ['profile','🪪','โปรไฟล์','ข้อมูลตัวละคร']
+  ];
+  main='<div class="phone-home-welcome"><div class="phone-eyebrow">STARLIGHT · PERSONAL DEVICE</div><h2>สวัสดี, '+esc(c?(c.stageName||c.name):u.username)+'</h2><div class="mut" style="font-size:.78rem">พื้นที่ส่วนตัวของตัวละคร</div></div>';
+  if(c)main+='<div class="phone-home-card"><div class="phone-eyebrow">CASH WALLET</div><div class="phone-balance">'+bankMoney(c.won)+'</div><div class="mut" style="font-size:.72rem">เงินสดของตัวละคร · แยกจากยอดเงินธนาคาร</div></div>';
+  if(!c)main+='<div class="phone-not-ready">ยังไม่มีตัวละครที่อนุมัติ กรุณาสร้างหรือเลือกตัวละครก่อนใช้งานแอปธนาคาร</div>';
+  main+='<div class="phone-app-grid">'+apps.map(x=>phoneTile(x[1],x[2],x[3],x[0])).join('');
+  if(isAdmin()||hasAdminPermission('manage_economy'))main+=phoneTile('🧾','จัดการธนาคาร','ค่าธรรมเนียมและประวัติ','bankadmin');
+  main+='</div>';
+ }else if(appId==='bank'){
+  if(!c)main='<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติแล้วก่อนเปิดบัญชีธนาคาร <p><a href="#mychars">ไปที่ตัวละครของฉัน</a></p></div>';
+  else main='<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="go(\'phone/home\')">← หน้าแรก</button><div><div class="phone-eyebrow">STARLIGHT BANK</div><b>บัญชีธนาคาร</b></div></div><div id="bankPanel" class="phone-bank-panel"><div class="phone-bank-subcard">กำลังเชื่อมต่อบัญชีธนาคาร…</div></div>';
+ }else{
+  const titles={
+   chat:['💬','แชตส่วนตัว','ระบบส่งข้อความส่วนตัวจะเชื่อมกับระบบแชตในขั้นถัดไป'],
+   groupchat:['👥','แชตกลุ่ม','สร้างห้องกลุ่ม เชิญสมาชิก และจัดการประวัติห้อง'],
+   contacts:['📇','รายชื่อติดต่อ','ค้นหาตัวละครและจัดการรายชื่อโปรด'],
+   'item-transfer':['🎁','ส่งไอเทม','เลือกไอเทม จำนวน และตัวละครผู้รับ พร้อมบันทึกประวัติการส่ง'],
+   notifications:['🔔','การแจ้งเตือน','แจ้งเตือนข้อความ จดหมาย การโอนเงิน และไอเทมเข้า'],
+   jobs:['💼','งานพิเศษ','ระบบงานและรายได้จะเชื่อมกับระบบเศรษฐกิจในขั้นต่อไป'],
+   events:['🌟','กิจกรรมและประกาศ','ดูประกาศและกิจกรรมของ STARLIGHT RP']
+  };
+  const item=titles[appId]||['✦','แอปพลิเคชัน',''];
+  main='<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="go(\'phone/home\')">← หน้าแรก</button><div class="phone-eyebrow">STARLIGHT APPLICATION</div></div><div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+item[0]+'</div><h2 style="margin:0 0 8px">'+esc(item[1])+'</h2><p class="mut">'+esc(item[2])+'</p><p class="phone-fee-note">ไอคอนและตำแหน่งแอปเตรียมไว้ในหน้าจอโทรศัพท์แล้ว ส่วนระบบนี้ยังไม่ได้เปิดใช้งานจริง</p><button class="btn ghost" onclick="go(\'phone/home\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
+ }
+ app('<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">✦ STARLIGHT</span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
+ if(phoneUnlocked&&appId==='bank'&&c)loadPhoneBankPanel(c.id);
+}
+async function phoneBankRpc(name,args){
+ if(!supaClient||!cloudReady)throw new Error('ยังไม่ได้เชื่อมต่อ Supabase ด้วยบัญชีออนไลน์ กรุณาเข้าสู่ระบบอีกครั้ง');
+ const result=await supaClient.rpc(name,args||{});
+ if(result.error)throw result.error;
+ return result.data;
+}
+function bankNotReadyHtml(error){
+ return '<div class="phone-not-ready"><b>ยังเปิดระบบธนาคารไม่ได้</b><p>'+esc(error||'ยังไม่ได้ติดตั้งส่วนฐานข้อมูลธนาคาร')+'</p><p>ตรวจว่ารันไฟล์ <code>supabase/banking-phone-migration.sql</code> ใน SQL Editor แล้ว หากเพิ่งรัน ให้รีเฟรชหน้าเว็บหลังจาก Schema โหลดใหม่</p><p><a href="https://github.com/smemories145-cpu/trainee-roleplay/blob/main/supabase/banking-phone-migration.sql" target="_blank" rel="noopener">เปิดไฟล์ migration</a></p></div>';
+}
+async function loadPhoneBankPanel(characterId){
+ const root=document.getElementById('bankPanel');if(!root)return;
+ root.innerHTML='<div class="phone-bank-subcard">กำลังโหลดบัญชีและประวัติธุรกรรม…</div>';
+ try{
+  if(!supaClient||!cloudReady)throw new Error('กรุณาเข้าสู่ระบบออนไลน์ผ่าน Supabase ก่อนใช้งานบัญชีธนาคาร');
+  const fees=await phoneBankRpc('site_bank_fee_info',{});
+  PHONE_BANK_FEES=fees||{deposit_fee_bps:0,withdrawal_fee_bps:0,transfer_fee_bps:0};
+  const account=await phoneBankRpc('site_bank_get_account',{p_character_id:characterId});
+  PHONE_BANK_ACCOUNT=account;
+  if(!document.getElementById('bankPanel'))return;
+  if(!account){
+   const ch=DB.get('characters').find(x=>x.id===characterId);
+   root.innerHTML='<div class="phone-bank-account-card"><div class="phone-eyebrow">NEW ACCOUNT</div><h3 style="margin:7px 0">เปิดบัญชีธนาคารให้ '+esc(ch?(ch.stageName||ch.name):'ตัวละครนี้')+'</h3><p class="mut" style="font-size:.82rem">เปิดได้ทันทีโดยไม่ต้องรออนุมัติ ไม่มีค่าธรรมเนียมเปิดบัญชี และยอดเริ่มต้น ₩0 เงินสดเดิมจะไม่ถูกย้ายเข้าบัญชีอัตโนมัติ</p><button class="btn" onclick="doBankOpenAccount(\''+characterId+'\')">＋ เปิดบัญชีฟรี</button></div><div class="phone-fee-note">ค่าธรรมเนียมปัจจุบัน · ฝาก '+bankFeeBpsLabel(PHONE_BANK_FEES.deposit_fee_bps)+' · ถอน '+bankFeeBpsLabel(PHONE_BANK_FEES.withdrawal_fee_bps)+' · โอน '+bankFeeBpsLabel(PHONE_BANK_FEES.transfer_fee_bps)+'</div>';
+   return;
+  }
+  const tx=await phoneBankRpc('site_bank_my_transactions',{p_character_id:characterId});
+  if(!document.getElementById('bankPanel'))return;
+  root.innerHTML=phoneBankAccountHtml(account,Array.isArray(tx)?tx:[]);
+ }catch(e){
+  if(document.getElementById('bankPanel'))document.getElementById('bankPanel').innerHTML=bankNotReadyHtml(e&&e.message?e.message:String(e));
+ }
+}
+function phoneBankAccountHtml(account,transactions){
+ const feeText='ค่าธรรมเนียม: ฝาก '+bankFeeBpsLabel(PHONE_BANK_FEES.deposit_fee_bps)+' · ถอน '+bankFeeBpsLabel(PHONE_BANK_FEES.withdrawal_fee_bps)+' · โอน '+bankFeeBpsLabel(PHONE_BANK_FEES.transfer_fee_bps)+' (เริ่มต้น 0%)';
+ let html='<div class="phone-account-card"><div class="row between" style="align-items:flex-start"><div><div class="phone-eyebrow">STARLIGHT BANK · WON</div><div class="phone-account-number">NO. '+esc(account.account_number)+'</div></div><span class="badge">ACTIVE</span></div><div class="phone-account-balance">'+bankMoney(account.balance)+'</div><div class="phone-account-number">ยอดเงินในบัญชี</div><div class="phone-bank-cash">เงินสดคงเหลือ: '+bankMoney(account.cash_balance)+'</div></div>';
+ html+='<div class="phone-fee-note">'+feeText+'</div>';
+ html+='<div class="phone-bank-actions">';
+ html+='<form class="phone-bank-form" onsubmit="doBankDeposit(event)"><b>↓ ฝากเงินสด</b><p class="mut" style="font-size:.72rem;margin:4px 0">เงินสด → ธนาคาร</p><label>จำนวนเงิน (วอน)</label><input type="number" name="amount" min="1" step="1" max="9000000000000000" required><button class="btn" type="submit">ฝากเงิน</button></form>';
+ html+='<form class="phone-bank-form" onsubmit="doBankWithdraw(event)"><b>↑ ถอนเงิน</b><p class="mut" style="font-size:.72rem;margin:4px 0">ธนาคาร → เงินสด</p><label>จำนวนเงิน (วอน)</label><input type="number" name="amount" min="1" step="1" max="9000000000000000" required><button class="btn" type="submit">ถอนเงิน</button></form></div>';
+ html+='<div class="phone-bank-subcard"><h3 class="phone-section-title">⇄ โอนเงินผ่านบัญชีธนาคาร</h3><p class="mut" style="font-size:.76rem">ค้นหาด้วยเลขบัญชี หรือชื่อสเตจ / ชื่อตัวละคร ระบบจะแสดงชื่อและเลขบัญชีก่อนยืนยันทุกครั้ง</p><form onsubmit="bankSearchRecipients(event)"><div class="row" style="gap:8px"><input name="query" aria-label="เลขบัญชีหรือชื่อตัวละคร" placeholder="เลขบัญชีหรือชื่อตัวละคร" minlength="2" required style="flex:1;min-width:0"><button class="btn" type="submit">ค้นหา</button></div></form><div id="bankRecipientResults"></div><div id="bankSelectedRecipient"></div></div>';
+ html+='<div class="phone-bank-subcard"><div class="row between"><h3 class="phone-section-title" style="margin:0">ประวัติธุรกรรม</h3><span class="phone-eyebrow">LATEST 50</span></div><div class="phone-bank-history">'+(transactions.length?transactions.map(x=>phoneBankTransactionHtml(x,account.character_id)).join(''):'<div class="mut" style="font-size:.8rem;padding:12px 0">ยังไม่มีธุรกรรม</div>')+'</div></div>';
+ return html;
+}
+function phoneBankTransactionHtml(tx,characterId){
+ let title='ธุรกรรม',sign='',amountColor='';
+ if(tx.kind==='deposit'){title='ฝากเงินสดเข้าธนาคาร';sign='+'}
+ else if(tx.kind==='withdraw'){title='ถอนเงินเข้ากระเป๋าเงินสด';sign='−'}
+ else if(tx.sender_character_id===characterId){title='โอนเงินไปยัง '+(tx.recipient_name||'ตัวละคร');sign='−'}
+ else {title='รับโอนจาก '+(tx.sender_name||'ตัวละคร');sign='+'}
+ const at=new Date(tx.created_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});
+ const amount=Number(tx.amount)||0,fee=Number(tx.fee)||0;
+ return '<div class="phone-bank-tx"><div><b>'+esc(title)+'</b><small>'+esc(at)+(tx.note?' · '+esc(tx.note):'')+'</small>'+(fee?'<small>ค่าธรรมเนียม '+bankMoney(fee)+'</small>':'')+'</div><div class="phone-bank-tx-amount">'+sign+bankMoney(amount)+(fee&&tx.sender_character_id===characterId?'<small>รวมค่าธรรมเนียม '+bankMoney(amount+fee)+'</small>':'')+'</div></div>';
+}
+async function doBankOpenAccount(characterId){
+ try{
+  if(!await ask('ยืนยันเปิดบัญชีธนาคารให้ตัวละครนี้?\nเปิดฟรี ยอดเริ่มต้น ₩0 และเงินสดเดิมจะไม่ถูกย้าย'))return;
+  await phoneBankRpc('site_bank_open_account',{p_character_id:characterId});
+  toast('เปิดบัญชีธนาคารเรียบร้อยแล้ว');
+  await loadPhoneBankPanel(characterId);
+ }catch(e){toast('เปิดบัญชีไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function doBankDeposit(event){
+ event.preventDefault();
+ const form=event.currentTarget,amount=Number(new FormData(form).get('amount')),c=getActiveChar(me());
+ if(!c||!Number.isSafeInteger(amount)||amount<1)return toast('กรุณาใส่จำนวนเงินวอนเป็นจำนวนเต็ม','bad');
+ const fee=bankFeeFor(amount,PHONE_BANK_FEES.deposit_fee_bps);
+ if(!await ask('ยืนยันฝาก '+bankMoney(amount)+'?\nค่าธรรมเนียมโดยประมาณ '+bankMoney(fee)+'\nเงินสดจะถูกหักรวม '+bankMoney(amount+fee)+' และยอดธนาคารจะเพิ่ม '+bankMoney(amount)))return;
+ try{
+  await phoneBankRpc('site_bank_deposit',{p_character_id:c.id,p_amount:amount,p_request_id:bankRequestId()});
+  await cloudRefresh(false);toast('ฝากเงินสำเร็จ');
+  await loadPhoneBankPanel(c.id);
+ }catch(e){toast('ฝากเงินไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function doBankWithdraw(event){
+ event.preventDefault();
+ const form=event.currentTarget,amount=Number(new FormData(form).get('amount')),c=getActiveChar(me());
+ if(!c||!Number.isSafeInteger(amount)||amount<1)return toast('กรุณาใส่จำนวนเงินวอนเป็นจำนวนเต็ม','bad');
+ const fee=bankFeeFor(amount,PHONE_BANK_FEES.withdrawal_fee_bps);
+ if(!await ask('ยืนยันถอน '+bankMoney(amount)+'?\nค่าธรรมเนียมโดยประมาณ '+bankMoney(fee)+'\nยอดธนาคารจะถูกหักรวม '+bankMoney(amount+fee)+' และเงินสดจะเพิ่ม '+bankMoney(amount)))return;
+ try{
+  await phoneBankRpc('site_bank_withdraw',{p_character_id:c.id,p_amount:amount,p_request_id:bankRequestId()});
+  await cloudRefresh(false);toast('ถอนเงินสำเร็จ');
+  await loadPhoneBankPanel(c.id);
+ }catch(e){toast('ถอนเงินไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function bankSearchRecipients(event){
+ event.preventDefault();
+ const c=getActiveChar(me()),form=event.currentTarget,query=String(new FormData(form).get('query')||'').trim();
+ const target=document.getElementById('bankRecipientResults');if(!target||!c)return;
+ target.innerHTML='<div class="mut" style="padding:10px 0;font-size:.75rem">กำลังค้นหา…</div>';
+ PHONE_BANK_SELECTED_RECIPIENT=null;
+ const selected=document.getElementById('bankSelectedRecipient');if(selected)selected.innerHTML='';
+ try{
+  const data=await phoneBankRpc('site_bank_find_recipient',{p_character_id:c.id,p_query:query});
+  if(!Array.isArray(data)||!data.length){target.innerHTML='<div class="mut" style="padding:10px 0;font-size:.76rem">ไม่พบตัวละครที่เปิดบัญชีธนาคารและตรงกับคำค้นหา</div>';return}
+  target.innerHTML=data.map(x=>'<div class="phone-recipient-result"><div><b>'+esc(x.display_name)+'</b><small>เลขบัญชี '+esc(x.account_number)+'</small></div><button type="button" class="btn sm" onclick="chooseBankRecipient(\''+String(x.character_id).replace(/'/g,'')+'\',\''+String(x.account_number).replace(/'/g,'')+'\',\''+String(x.display_name).replace(/'/g,'')+'\')">เลือกผู้รับ</button></div>').join('');
+ }catch(e){target.innerHTML='<div class="mut" style="padding:10px 0;font-size:.76rem">'+esc(e.message||String(e))+'</div>'}
+}
+function chooseBankRecipient(characterId,accountNumber,displayName){
+ PHONE_BANK_SELECTED_RECIPIENT={character_id:characterId,account_number:accountNumber,display_name:displayName};
+ const root=document.getElementById('bankSelectedRecipient');if(!root)return;
+ root.innerHTML='<div class="phone-bank-subcard" style="margin-top:10px;border-color:color-mix(in srgb,var(--pri) 35%,var(--line))"><div class="phone-eyebrow">ผู้รับที่เลือก</div><b>'+esc(displayName)+'</b><div class="mut" style="font-size:.76rem">เลขบัญชี '+esc(accountNumber)+'</div><form onsubmit="doBankTransfer(event)"><label>จำนวนเงิน (วอน)</label><input type="number" name="amount" min="1" step="1" max="9000000000000000" required><label>หมายเหตุ (ไม่บังคับ)</label><input type="text" name="note" maxlength="160" placeholder="ระบุหมายเหตุ"><button class="btn" type="submit" style="width:100%">ตรวจสอบและยืนยันการโอน</button></form></div>';
+}
+async function doBankTransfer(event){
+ event.preventDefault();
+ const c=getActiveChar(me()),recipient=PHONE_BANK_SELECTED_RECIPIENT,form=event.currentTarget;
+ const fd=new FormData(form),amount=Number(fd.get('amount')),note=String(fd.get('note')||'').trim();
+ if(!c||!recipient)return toast('กรุณาเลือกบัญชีผู้รับก่อน','bad');
+ if(!Number.isSafeInteger(amount)||amount<1)return toast('กรุณาใส่จำนวนเงินวอนเป็นจำนวนเต็ม','bad');
+ const fee=bankFeeFor(amount,PHONE_BANK_FEES.transfer_fee_bps);
+ const confirmed=await ask('ยืนยันโอนเงิน?\nผู้รับ: '+recipient.display_name+'\nเลขบัญชี: '+recipient.account_number+'\nยอดโอน: '+bankMoney(amount)+'\nค่าธรรมเนียมโดยประมาณ: '+bankMoney(fee)+'\nรวมตัดจากบัญชี: '+bankMoney(amount+fee)+'\n\nเมื่อยืนยันแล้วจะบันทึกธุรกรรมทันที');
+ if(!confirmed)return;
+ try{
+  await phoneBankRpc('site_bank_transfer',{p_character_id:c.id,p_recipient_character_id:recipient.character_id,p_amount:amount,p_note:note,p_request_id:bankRequestId()});
+  PHONE_BANK_SELECTED_RECIPIENT=null;
+  toast('โอนเงินผ่านธนาคารสำเร็จ');
+  await loadPhoneBankPanel(c.id);
+ }catch(e){toast('โอนเงินไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+function pageBankAdmin(){
+ if(!(isAdmin()||hasAdminPermission('manage_economy'))){
+  app('<div class="card" style="max-width:650px;margin:32px auto"><h2>🔒 ไม่มีสิทธิ์จัดการธนาคาร</h2><p>หน้านี้ให้เฉพาะแอดมินหรือผู้ที่มีสิทธิ์จัดการเศรษฐกิจ</p><a class="btn ghost" href="#phone">กลับโทรศัพท์</a></div>');return;
+ }
+ app('<div class="phone-admin-page"><div class="row between"><div><div class="phone-eyebrow">STARLIGHT BANK · ADMIN</div><h1 style="margin:4px 0">จัดการธนาคาร</h1><p class="mut">ตั้งค่าค่าธรรมเนียมและตรวจสอบประวัติธุรกรรมธนาคาร</p></div><a class="btn ghost" href="#phone">📱 โทรศัพท์</a></div><div id="bankAdminPanel"><div class="card">กำลังโหลดข้อมูล…</div></div></div>');
+ loadBankAdminPanel();
+}
+async function loadBankAdminPanel(){
+ const root=document.getElementById('bankAdminPanel');if(!root)return;
+ try{
+  const data=await phoneBankRpc('site_bank_admin_overview',{});
+  const s=data.settings||{},tx=Array.isArray(data.transactions)?data.transactions:[];
+  root.innerHTML='<section class="card"><h2 style="margin-top:0">⚙️ ค่าธรรมเนียมธนาคาร</h2><p class="mut">กำหนดเป็นเปอร์เซ็นต์ ยอดตั้งต้นทุกประเภทคือ 0% ปรับค่าได้ระหว่าง 0–100%</p><form class="phone-admin-form" onsubmit="doSaveBankSettings(event)"><div><label>ฝากเงิน (%)</label><input name="depositFee" type="number" step=".01" min="0" max="100" required value="'+esc((Number(s.deposit_fee_bps||0)/100).toFixed(2))+'"></div><div><label>ถอนเงิน (%)</label><input name="withdrawalFee" type="number" step=".01" min="0" max="100" required value="'+esc((Number(s.withdrawal_fee_bps||0)/100).toFixed(2))+'"></div><div><label>โอนเงิน (%)</label><input name="transferFee" type="number" step=".01" min="0" max="100" required value="'+esc((Number(s.transfer_fee_bps||0)/100).toFixed(2))+'"></div><button class="btn" type="submit">บันทึกค่าธรรมเนียม</button></form><p class="phone-fee-note">ค่าธรรมเนียมคำนวณจากยอดหลักและปัดขึ้นเป็นจำนวนเต็มวอน การเปลี่ยนแปลงมีผลกับธุรกรรมใหม่เท่านั้น</p></section><section class="card" style="margin-top:16px"><div class="row between"><h2 style="margin:0">🧾 ประวัติธุรกรรมล่าสุด</h2><span class="badge">'+tx.length+' รายการ</span></div><p class="mut" style="font-size:.78rem">แสดงรายการล่าสุดสูงสุด 200 รายการ รายการธุรกรรมจะไม่ถูกแก้ไขจากหน้าเว็บ</p><div class="phone-admin-table-wrap"><table class="phone-admin-table"><thead><tr><th>วันเวลา</th><th>ประเภท</th><th>ผู้เกี่ยวข้อง</th><th>จำนวน</th><th>ค่าธรรมเนียม</th><th>หมายเหตุ</th></tr></thead><tbody>'+(tx.length?tx.map(x=>'<tr><td>'+esc(new Date(x.created_at).toLocaleString('th-TH'))+'</td><td>'+esc(x.kind==='deposit'?'ฝาก':x.kind==='withdraw'?'ถอน':'โอน')+'</td><td>'+esc(x.sender_name||'—')+' → '+esc(x.recipient_name||'—')+'<br><small>'+esc(x.source_account_number||'เงินสด')+' → '+esc(x.destination_account_number||'เงินสด')+'</small></td><td>'+bankMoney(x.amount)+'</td><td>'+bankMoney(x.fee)+'</td><td>'+esc(x.note||'—')+'</td></tr>').join(''):'<tr><td colspan="6">ยังไม่มีธุรกรรม</td></tr>')+'</tbody></table></div></section>';
+ }catch(e){
+  root.innerHTML=bankNotReadyHtml(e.message||String(e));
+ }
+}
+async function doSaveBankSettings(event){
+ event.preventDefault();
+ if(!(isAdmin()||hasAdminPermission('manage_economy')))return toast('ไม่มีสิทธิ์ตั้งค่าธนาคาร','bad');
+ const fd=new FormData(event.currentTarget);
+ const dp=Number(fd.get('depositFee')),wp=Number(fd.get('withdrawalFee')),tp=Number(fd.get('transferFee'));
+ if([dp,wp,tp].some(x=>!Number.isFinite(x)||x<0||x>100))return toast('ค่าธรรมเนียมต้องอยู่ระหว่าง 0–100%','bad');
+ try{
+  await phoneBankRpc('site_bank_admin_update_settings',{p_deposit_fee_bps:Math.round(dp*100),p_withdrawal_fee_bps:Math.round(wp*100),p_transfer_fee_bps:Math.round(tp*100)});
+  toast('บันทึกค่าธรรมเนียมแล้ว');
+  await loadBankAdminPanel();
+ }catch(e){toast('บันทึกไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+
 /* ================= ROUTER ================= */
 const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
  chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editbio:pageEditCharacterBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
  agencies:pageAgencies,agency:pageAgency,editagency:pageEditAgency,groups:pageGroups,group:pageGroup,editgroup:pageEditGroup,
- admin:pageAdmin,mail:pageMail,editthread:pageEditThread,newthreadtoforum:pageNewThreadToForum};
+ admin:pageAdmin,mail:pageMail,editthread:pageEditThread,newthreadtoforum:pageNewThreadToForum,
+ phone:pagePhone,bankadmin:pageBankAdmin};
 let ROUTE=(()=>{try{return location.hash.slice(1)}catch(e){return ''}})()||'home';
 function go(h){ROUTE=h||'home';try{if(location.hash.slice(1)!==ROUTE)history.pushState(null,'','#'+ROUTE)}catch(e){}render()}
 function render(){
@@ -3466,6 +3772,7 @@ function renderNav(){
  const navEl=document.getElementById('nav');
  if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
  <div class="links">
+  <a href="#phone" class="nav-phone-link">📱 โทรศัพท์</a>
   <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a><button type="button" class="btn sm ghost theme-open-btn" onclick="openThemePicker()">🎨 สีธีม</button>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
   ${adminPanel?`<a href="#admin">👑 แผงดูแล ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
