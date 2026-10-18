@@ -2240,6 +2240,22 @@ nav{
 @media(max-width:760px){
  #reply-composer .topic-field-row,.reply-composer .topic-field-row{grid-template-columns:minmax(0,1fr);gap:5px}
 }
+</style><style id="starlightIsolatedEditorPreview2026">
+.topic-composer>.preview,.topic-composer>.topic-preview,.reply-composer>.reply-preview,
+#reply-composer>.preview,.preview.topic-preview{
+ display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+ overflow:hidden;overflow-wrap:anywhere;contain:layout paint;
+}
+.topic-composer>.preview[hidden],.topic-composer>.topic-preview[hidden],
+.reply-composer>.reply-preview[hidden],#reply-composer>.preview[hidden],
+.preview.topic-preview[hidden]{display:none!important}
+.topic-composer>.preview iframe.cf,.reply-composer>.reply-preview iframe.cf,
+.preview.topic-preview iframe.cf{
+ display:block;width:100%!important;max-width:100%!important;min-width:0!important;
+ border:0!important;box-sizing:border-box;background:transparent;
+}
+#reply-composer .ed-area .html-source-block,
+.reply-composer .ed-area .html-source-block{background:var(--bg)!important;background-image:none!important;color:var(--txt)!important}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -3297,8 +3313,20 @@ function applyCharacterProfileTemplate(button){
  field.dispatchEvent(new Event('input',{bubbles:true}));
  toast('ใส่เทมเพลตแล้ว — แก้โค้ดและกดพรีวิวก่อนบันทึกได้เลย');
 }
+function looksLikeHtmlSource(value){
+ const source=String(value||'').replace(/^\uFEFF/,'').trim();
+ if(!source)return false;
+ if(/<!doctype\s+html|<html\b|<head\b|<body\b|<style\b|<\/style\s*>|<script\b|<\/script\s*>/i.test(source))return true;
+ const tags=source.match(/<\/?(?:div|section|article|main|header|footer|table|thead|tbody|tr|td|th|p|span|h[1-6]|ul|ol|li|a|img|br|hr|center|blockquote|font|figure|details|summary|svg|iframe|b|strong|i|em|u|s|pre|code)\b[^>]*>/gi)||[];
+ return tags.length>=4&&(source.includes('\n')||source.length>500);
+}
+function shouldKeepAsHtmlSource(value,mode=''){
+ if(mode==='html')return true;
+ if(mode==='bbcode')return false;
+ return looksLikeHtmlSource(value);
+}
 function richEditor(name,val='',o={}){
- const id='ed'+(++EDN),htmlMode=o.mode==='html',bbcodeMode=o.mode==='bbcode',initial=String(val??'');const initialVisual=bbcodeMode?editorSourceBlockHtml(initial,'bbcode'):sanitize(val);
+ const id='ed'+(++EDN),htmlMode=o.mode==='html',bbcodeMode=o.mode==='bbcode',initial=String(val??'');const detectedHtmlSource=!htmlMode&&!bbcodeMode&&shouldKeepAsHtmlSource(initial,o.mode),initialVisual=(bbcodeMode||detectedHtmlSource)?editorSourceBlockHtml(initial,bbcodeMode?'bbcode':'html'):sanitize(val);
  return `<div class="ed${htmlMode?' html-source-mode':''}" id="${id}" data-name="${name}" data-mode="rich" data-html-source="${htmlMode?'1':'0'}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
  <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML / BBCode">${htmlMode?'👁 กลับไปหน้าเขียน':'📄 โค้ดดิบ'}</button><span class="ed-count"></span></div></div>
  <div class="ed-bar" ${htmlMode?'hidden':''}>${edBar(id)}</div>
@@ -3479,25 +3507,16 @@ function setEditorSourceMode(ed,sourceMode){
  }else{
   const raw=String(source.value||'');
   if(raw!==String(ed.dataset.sourceOriginal??'__no_source_snapshot__')){
-   /* Preserve the user's source byte-for-byte in the visual composer.
-      Parsing/sanitizing belongs to preview/post time, not to the mode switch. */
-   let visible=raw,type='html',css='';
-   const found=getEditorHtmlSource(raw);
-   if(isForumMarkupSource(raw)){
-    type='bbcode';
-   }else if(found){
-    const parts=extractEditorHtmlSource(found);
-    css=parts.css||'';
-    visible=raw;
-   }else if(!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw)){
+   let visible=raw,type='html';
+   if(isForumMarkupSource(raw))type='bbcode';
+   else if(!shouldKeepAsHtmlSource(raw,'html')&&!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw)){
     area.textContent=raw;
     setEditorSourceCss(ed,'');
     visible=null;
    }
-   if(visible!==null){
-    area.innerHTML=editorSourceBlockHtml(visible,type);
-    setEditorSourceCss(ed,css);
-   }
+   /* Don't call setEditorSourceCss() here: imported rules can style the editor itself. */
+   setEditorSourceCss(ed,'');
+   if(visible!==null)area.innerHTML=editorSourceBlockHtml(visible,type);
   }
   delete ed.dataset.sourceOriginal;
   delete ed.dataset.htmlSource;
@@ -3773,6 +3792,18 @@ function edGet(ed){
    setEditorSourceCss(ed,parts.css);
   }else if(isForumMarkupSource(text))area.innerHTML=editorSourceBlockHtml(text,'bbcode');
  }
+ const sourceBlocks=[...area.querySelectorAll('pre.html-source-block')];
+ if(sourceBlocks.length===1){
+  const block=sourceBlocks[0],sourceText=block.textContent||'';
+  const remainder=area.cloneNode(true);
+  remainder.querySelectorAll('pre.html-source-block').forEach(node=>node.remove());
+  const extraText=String(remainder.textContent||'').replace(/[\u200B\uFEFF]/g,'').trim();
+  const extraMedia=remainder.querySelector('img,iframe,video,table,hr,svg');
+  if(!extraText&&!extraMedia){
+   if(block.classList.contains('bbcode-source-block'))return{mode:'bbcode',content:sourceText.trim()};
+   if(looksLikeHtmlSource(sourceText))return{mode:'html',content:sourceText.trim()};
+  }
+ }
  let raw='',hasBBCodeSource=false;
  {
   const copy=area.cloneNode(true);
@@ -3784,13 +3815,7 @@ function edGet(ed){
    }else{
     const rendered=document.createElement('div');
     const detected=getEditorHtmlSource(sourceText);
-    if(detected){
-     const parts=extractEditorHtmlSource(detected);
-     if(parts.css&&!ed.dataset.sourceCss)setEditorSourceCss(ed,parts.css);
-     rendered.innerHTML=sanitize(parts.html);
-    }else{
-     rendered.innerHTML=sanitize(sourceText);
-    }
+    rendered.innerHTML=sanitize(detected||sourceText);
     block.replaceWith(...rendered.childNodes);
    }
   });
@@ -3834,14 +3859,9 @@ function initEditors(){
    if(ed.dataset.htmlSource==='1')return;
    const clip=e.clipboardData,tx=clip.getData('text/plain'),h=clip.getData('text/html');e.preventDefault();
    let found=getEditorHtmlSource(tx);
-   if(!found&&h){
-    const tmp=document.createElement('template');tmp.innerHTML=h;
-    const code=tmp.content.querySelector('pre code,pre');
-    if(code)found=getEditorHtmlSource(code.textContent||'');
-    if(!found)found=getEditorHtmlSource(tmp.content.textContent||'');
-   }
-   if(found){const parts=extractEditorHtmlSource(found);insertEditorSourceBlock(ed,parts.html,parts.css,'html');return}
+   if(found){insertEditorSourceBlock(ed,tx||found,'','html');return}
    if(isForumMarkupSource(tx)){insertEditorSourceBlock(ed,tx,'','bbcode');return}
+   if(looksLikeHtmlSource(tx)){insertEditorSourceBlock(ed,tx,'','html');return}
    if(h){insertEditorPaste(ed,sanitize(h));return}
    document.execCommand('insertText',false,tx);a.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);
   });
