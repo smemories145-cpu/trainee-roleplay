@@ -3492,12 +3492,25 @@ async function deleteMailMessage(id,folder){
 /* ================= PHONE + BANKING ================= */
 let phoneUnlocked=false;
 let PHONE_BANK_ACCOUNT=null;
+let PHONE_BANK_BUSY=false;
 let PHONE_BANK_FEES={deposit_fee_bps:0,withdrawal_fee_bps:0,transfer_fee_bps:0};
 let PHONE_BANK_SELECTED_RECIPIENT=null;
 function bankMoney(n){return '₩'+(Number(n)||0).toLocaleString('en-US')}
 function bankFeeBpsLabel(n){return ((Number(n)||0)/100).toFixed(2)+'%'}
 function bankFeeFor(amount,bps){return Math.ceil((Number(amount)||0)*(Number(bps)||0)/10000)}
 function bankRequestId(){return uid()+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
+function bankRequestMeta(kind,characterId,amount,extra){
+ const key='sa_bank_pending_'+encodeURIComponent([kind,characterId,amount,extra||''].join('|'));
+ let id=store.getItem(key);
+ if(!id){id=bankRequestId();store.setItem(key,id)}
+ return {key:key,id:id};
+}
+function bankRequestResolved(meta){if(meta&&meta.key)store.removeItem(meta.key)}
+function bankRequestFailed(meta,error){
+ const message=String(error&&error.message||'');
+ if(message.includes('Request identifier has already been used'))return;
+ if(meta&&meta.key&&error&&(error.code||error.status))store.removeItem(meta.key);
+}
 function phoneTile(icon,name,desc,id){
  return '<button type="button" class="phone-app-tile" onclick="openPhoneApp(\''+id+'\')"><span class="phone-app-icon">'+icon+'</span><span class="phone-app-name">'+esc(name)+'</span><span class="phone-app-caption">'+esc(desc||'')+'</span></button>';
 }
@@ -3624,27 +3637,43 @@ async function doBankOpenAccount(characterId){
 }
 async function doBankDeposit(event){
  event.preventDefault();
+ if(PHONE_BANK_BUSY)return toast('กำลังดำเนินการธุรกรรมอยู่ กรุณารอสักครู่','bad');
  const form=event.currentTarget,amount=Number(new FormData(form).get('amount')),c=getActiveChar(me());
  if(!c||!Number.isSafeInteger(amount)||amount<1)return toast('กรุณาใส่จำนวนเงินวอนเป็นจำนวนเต็ม','bad');
+ PHONE_BANK_BUSY=true;
+ const req=bankRequestMeta('deposit',c.id,amount,'');
  const fee=bankFeeFor(amount,PHONE_BANK_FEES.deposit_fee_bps);
- if(!await ask('ยืนยันฝาก '+bankMoney(amount)+'?\nค่าธรรมเนียมโดยประมาณ '+bankMoney(fee)+'\nเงินสดจะถูกหักรวม '+bankMoney(amount+fee)+' และยอดธนาคารจะเพิ่ม '+bankMoney(amount)))return;
  try{
-  await phoneBankRpc('site_bank_deposit',{p_character_id:c.id,p_amount:amount,p_request_id:bankRequestId()});
+  const confirmed=await ask('ยืนยันฝาก '+bankMoney(amount)+'?'+String.fromCharCode(10)+'ค่าธรรมเนียมโดยประมาณ '+bankMoney(fee)+String.fromCharCode(10)+'เงินสดจะถูกหักรวม '+bankMoney(amount+fee)+' และยอดธนาคารจะเพิ่ม '+bankMoney(amount));
+  if(!confirmed)return;
+  try{
+   await phoneBankRpc('site_bank_deposit',{p_character_id:c.id,p_amount:amount,p_request_id:req.id});
+   bankRequestResolved(req);
+  }catch(error){bankRequestFailed(req,error);throw error}
   await cloudRefresh(false);toast('ฝากเงินสำเร็จ');
   await loadPhoneBankPanel(c.id);
  }catch(e){toast('ฝากเงินไม่สำเร็จ: '+(e.message||e),'bad')}
+ finally{PHONE_BANK_BUSY=false}
 }
 async function doBankWithdraw(event){
  event.preventDefault();
+ if(PHONE_BANK_BUSY)return toast('กำลังดำเนินการธุรกรรมอยู่ กรุณารอสักครู่','bad');
  const form=event.currentTarget,amount=Number(new FormData(form).get('amount')),c=getActiveChar(me());
  if(!c||!Number.isSafeInteger(amount)||amount<1)return toast('กรุณาใส่จำนวนเงินวอนเป็นจำนวนเต็ม','bad');
+ PHONE_BANK_BUSY=true;
+ const req=bankRequestMeta('withdraw',c.id,amount,'');
  const fee=bankFeeFor(amount,PHONE_BANK_FEES.withdrawal_fee_bps);
- if(!await ask('ยืนยันถอน '+bankMoney(amount)+'?\nค่าธรรมเนียมโดยประมาณ '+bankMoney(fee)+'\nยอดธนาคารจะถูกหักรวม '+bankMoney(amount+fee)+' และเงินสดจะเพิ่ม '+bankMoney(amount)))return;
  try{
-  await phoneBankRpc('site_bank_withdraw',{p_character_id:c.id,p_amount:amount,p_request_id:bankRequestId()});
+  const confirmed=await ask('ยืนยันถอน '+bankMoney(amount)+'?'+String.fromCharCode(10)+'ค่าธรรมเนียมโดยประมาณ '+bankMoney(fee)+String.fromCharCode(10)+'ยอดธนาคารจะถูกหักรวม '+bankMoney(amount+fee)+' และเงินสดจะเพิ่ม '+bankMoney(amount));
+  if(!confirmed)return;
+  try{
+   await phoneBankRpc('site_bank_withdraw',{p_character_id:c.id,p_amount:amount,p_request_id:req.id});
+   bankRequestResolved(req);
+  }catch(error){bankRequestFailed(req,error);throw error}
   await cloudRefresh(false);toast('ถอนเงินสำเร็จ');
   await loadPhoneBankPanel(c.id);
  }catch(e){toast('ถอนเงินไม่สำเร็จ: '+(e.message||e),'bad')}
+ finally{PHONE_BANK_BUSY=false}
 }
 async function bankSearchRecipients(event){
  event.preventDefault();
@@ -3667,19 +3696,26 @@ function chooseBankRecipient(characterId,accountNumber,displayName){
 }
 async function doBankTransfer(event){
  event.preventDefault();
+ if(PHONE_BANK_BUSY)return toast('กำลังดำเนินการธุรกรรมอยู่ กรุณารอสักครู่','bad');
  const c=getActiveChar(me()),recipient=PHONE_BANK_SELECTED_RECIPIENT,form=event.currentTarget;
  const fd=new FormData(form),amount=Number(fd.get('amount')),note=String(fd.get('note')||'').trim();
  if(!c||!recipient)return toast('กรุณาเลือกบัญชีผู้รับก่อน','bad');
  if(!Number.isSafeInteger(amount)||amount<1)return toast('กรุณาใส่จำนวนเงินวอนเป็นจำนวนเต็ม','bad');
+ PHONE_BANK_BUSY=true;
+ const req=bankRequestMeta('transfer',c.id,amount,recipient.character_id+'|'+note);
  const fee=bankFeeFor(amount,PHONE_BANK_FEES.transfer_fee_bps);
- const confirmed=await ask('ยืนยันโอนเงิน?\nผู้รับ: '+recipient.display_name+'\nเลขบัญชี: '+recipient.account_number+'\nยอดโอน: '+bankMoney(amount)+'\nค่าธรรมเนียมโดยประมาณ: '+bankMoney(fee)+'\nรวมตัดจากบัญชี: '+bankMoney(amount+fee)+'\n\nเมื่อยืนยันแล้วจะบันทึกธุรกรรมทันที');
- if(!confirmed)return;
  try{
-  await phoneBankRpc('site_bank_transfer',{p_character_id:c.id,p_recipient_character_id:recipient.character_id,p_amount:amount,p_note:note,p_request_id:bankRequestId()});
+  const confirmed=await ask('ยืนยันโอนเงิน?'+String.fromCharCode(10)+'ผู้รับ: '+recipient.display_name+String.fromCharCode(10)+'เลขบัญชี: '+recipient.account_number+String.fromCharCode(10)+'ยอดโอน: '+bankMoney(amount)+String.fromCharCode(10)+'ค่าธรรมเนียมโดยประมาณ: '+bankMoney(fee)+String.fromCharCode(10)+'รวมตัดจากบัญชี: '+bankMoney(amount+fee)+String.fromCharCode(10)+String.fromCharCode(10)+'เมื่อยืนยันแล้วจะบันทึกธุรกรรมทันที');
+  if(!confirmed)return;
+  try{
+   await phoneBankRpc('site_bank_transfer',{p_character_id:c.id,p_recipient_character_id:recipient.character_id,p_amount:amount,p_note:note,p_request_id:req.id});
+   bankRequestResolved(req);
+  }catch(error){bankRequestFailed(req,error);throw error}
   PHONE_BANK_SELECTED_RECIPIENT=null;
   toast('โอนเงินผ่านธนาคารสำเร็จ');
   await loadPhoneBankPanel(c.id);
  }catch(e){toast('โอนเงินไม่สำเร็จ: '+(e.message||e),'bad')}
+ finally{PHONE_BANK_BUSY=false}
 }
 function pageBankAdmin(){
  if(!(isAdmin()||hasAdminPermission('manage_economy'))){
@@ -4295,7 +4331,7 @@ async function emergencyResetAdmin(){
  toast(`รีเซ็ตแล้ว! ชื่อผู้ใช้ "${admin.username}" รหัสผ่าน "admin1234"`);go('admin/settings');
 }
 async function logout(){
- phoneUnlocked=false;
+ phoneUnlocked=false;PHONE_BANK_BUSY=false;PHONE_BANK_SELECTED_RECIPIENT=null;
  if(supaClient)try{await supaClient.auth.signOut()}catch(e){console.warn('Cloud sign out failed',e)}
  cloudProfile=null;cloudReady=false;store.removeItem('sa_session');toast('ออกจากระบบแล้ว');go('home')
 }
