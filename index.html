@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STARLIGHT RP — Trainee &amp; Idol Roleplay</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#050506;--card:#111113;--card2:#19191d;--line:#303036;--pri:#d6d6dc;--sec:#85858f;--txt:#ededf0;--mut:#a0a0aa;--ok:#66d6a4;--warn:#e5c879;--bad:#ff7272}
 *{box-sizing:border-box}
@@ -2302,6 +2302,25 @@ nav{
 #reply-composer #replySubject,#reply-composer input[name="postSubject"]{display:none!important}
 #reply-composer .topic-field-row:has(#replySubject),#reply-composer .topic-field-row:has(input[name="postSubject"]){display:none!important}
 </style>
+<style id="starlightSideAndReplyPolish20261019">
+/* STARLIGHT side portrait polish: rank replaces USERNAME, title uses compact editorial typography. */
+#app .post>.post-layout>.side .side-name b,
+#app .thread-opening-post>.post-layout>.side .side-name b{
+ color:var(--ac)!important;
+ font-family:'Cormorant Garamond','Noto Sans Thai',serif!important;
+ font-size:clamp(1.18rem,1.4vw,1.38rem)!important;
+ font-weight:700;letter-spacing:-.015em;line-height:1.08;
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
+ overflow:hidden;overflow-wrap:anywhere;word-break:normal;
+ text-shadow:0 2px 14px #000,0 0 1px #000;
+}
+#app .post>.post-layout>.side .side-name .side-rank,
+#app .thread-opening-post>.post-layout>.side .side-name .side-rank{
+ display:block;color:var(--ac)!important;font-family:'Prompt','Noto Sans Thai',sans-serif;
+ font-size:.62rem;letter-spacing:.12em;line-height:1.2;margin:0 0 5px;
+ font-weight:700;opacity:.98;text-transform:uppercase;
+}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
@@ -4043,10 +4062,12 @@ function sideCard(c,owner,count){
  const inventory=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it).slice(0,3);
  const top=[...STATS].sort((a,b)=>(c.stats?.[b.k]||0)-(c.stats?.[a.k]||0))[0];
  const ownerName=owner?.username||'สมาชิก';
- return `<aside class="side" style="--ac:${esc(c.sideColor||S.pri)}" ${c.hoverOwner!==false?`title="โพสต์โดย ${esc(ownerName)}"`:''}>
+ const stage=STAGES[c.stage]||STAGES[0];
+ const stageColor=stage?.c||S.pri;
+ return `<aside class="side" style="--ac:${esc(stageColor)}" ${c.hoverOwner!==false?`title="โพสต์โดย ${esc(ownerName)}"`:''}>
   <div class="side-por"><div class="ini">${esc((c.stageName||c.name||'?')[0])}</div>
    ${/^https?:\/\//.test(img||'')?`<img src="${esc(img)}" loading="lazy" onerror="this.remove()">`:''}
-   <div class="side-name">${c.sideTag?`<small>${esc(c.sideTag)}</small>`:''}<b><a href="#char/${c.id}" style="color:inherit">${esc(c.stageName||c.name)}</a></b><span>${esc(c.name)}</span></div>
+   <div class="side-name"><small class="side-rank">${esc(stage?.en||stage?.n||'TRAINEE')}</small><b><a href="#char/${c.id}" style="color:inherit">${esc(c.stageName||c.name)}</a></b><span>${esc(c.name)}</span></div>
    ${c.hoverOwner!==false?`<div class="side-hover">✍️ <a href="#profile/${owner?.id}" style="color:#fff"><b>${esc(ownerName)}</b></a></div>`:''}
   </div>
   <div class="side-body">
@@ -6131,7 +6152,7 @@ async function doReply(e,tid){
  const {content,mode}=edGet(edOf(f,'content'));
  if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
  if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
- const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),createdAt:Date.now()};
+ const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),createdAt:Date.now()};let postedPostId=base.id;
  if(hasAdminPermission('manage_threads')&&E.as?.value==='gm'){
   posts.push({...base,charId:null,gm:true});DB.set('posts',posts);
   if(cloudReady)await cloudQueue;
@@ -6146,6 +6167,7 @@ async function doReply(e,tid){
    if(error)return toast('โพสต์ไม่สำเร็จ: '+error.message,'bad');
    await cloudRefresh(false);
    const actual=data?.post||{};
+   postedPostId=actual.id||actual.post_id||actual.postId||base.id;
    const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0;
    toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
   }else{
@@ -6158,7 +6180,7 @@ async function doReply(e,tid){
   }
  }
  store.removeItem('sa_draft_'+tid);
- render();setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),300);
+ go('thread/'+tid+'/post-'+encodeURIComponent(postedPostId));
 }
 function pageEditPost(id){
  const u=me(),p=DB.get('posts').find(x=>x.id===id);
