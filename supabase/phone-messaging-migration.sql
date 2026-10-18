@@ -1430,6 +1430,8 @@ grant execute on function public.site_phone_admin_reports() to authenticated;
 grant execute on function public.site_phone_admin_report_action(bigint,text,text) to authenticated;
 revoke all on function public.site_mail_send(jsonb) from public,anon;
 grant execute on function public.site_mail_send(jsonb) to authenticated;
+revoke all on function public.site_mail_list(text) from public,anon;
+grant execute on function public.site_mail_list(text) to authenticated;
 
 
 create or replace function public.site_phone_group_members(p_character_id text,p_conversation_id text)
