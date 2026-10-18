@@ -3298,11 +3298,11 @@ function applyCharacterProfileTemplate(button){
  toast('ใส่เทมเพลตแล้ว — แก้โค้ดและกดพรีวิวก่อนบันทึกได้เลย');
 }
 function richEditor(name,val='',o={}){
- const id='ed'+(++EDN),htmlMode=o.mode==='html',initial=String(val??'');
+ const id='ed'+(++EDN),htmlMode=o.mode==='html',bbcodeMode=o.mode==='bbcode',initial=String(val??'');const initialVisual=bbcodeMode?editorSourceBlockHtml(initial,'bbcode'):sanitize(val);
  return `<div class="ed${htmlMode?' html-source-mode':''}" id="${id}" data-name="${name}" data-mode="rich" data-html-source="${htmlMode?'1':'0'}" data-draft="${esc(o.draft||'')}" data-tpl="${esc(o.tpl||'')}">
  <div class="ed-head"><span class="ed-title">✨ เขียนง่าย</span><div class="ed-head-actions"><button type="button" class="btn ghost sm ed-source-toggle" data-editor-action="toggle-html" title="ดูหรือแก้ไขโค้ด HTML / BBCode">${htmlMode?'👁 กลับไปหน้าเขียน':'📄 โค้ดดิบ'}</button><span class="ed-count"></span></div></div>
  <div class="ed-bar" ${htmlMode?'hidden':''}>${edBar(id)}</div>
- <div class="ed-area rich" contenteditable="true" ${htmlMode?'hidden':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML / BBCode ในช่องเดียวกัน ✨')}">${htmlMode?'':sanitize(val)}</div>
+ <div class="ed-area rich" contenteditable="true" ${htmlMode?'hidden':''} data-ph="${esc(o.ph||'เริ่มเขียนได้เลย... พิมพ์ข้อความหรือวาง HTML / BBCode ในช่องเดียวกัน ✨')}">${htmlMode?'':initialVisual}</div>
  <textarea class="ed-source-area" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="โค้ด HTML ดิบ" placeholder="วางหรือแก้ไข HTML / BBCode / CSS ได้ที่นี่..." ${htmlMode?'':'hidden'}>${htmlMode?esc(initial):''}</textarea>
  <div class="ed-foot"><span class="ed-hint">💡 เขียนข้อความตามปกติได้ หรือวาง HTML / BBCode เพื่อแก้ไขเป็นโค้ด จากนั้นกด “ดูตัวอย่างโพสต์” เพื่อตรวจผล</span><span>Ctrl+Enter = ส่ง</span></div></div>`;
 }
@@ -3769,18 +3769,23 @@ function edGet(ed){
    setEditorSourceCss(ed,parts.css);
   }else if(isForumMarkupSource(text))area.innerHTML=editorSourceBlockHtml(text,'bbcode');
  }
- let raw='';
+ let raw='',hasBBCodeSource=false;
  {
   const copy=area.cloneNode(true);
   copy.querySelectorAll('pre.html-source-block').forEach(block=>{
-   const rendered=document.createElement('div');
    const sourceText=block.textContent||'';
-   const compiled=block.classList.contains('bbcode-source-block')?legacyHtml(sourceText):sanitize(sourceText);
-   rendered.innerHTML=sanitize(compiled);
-   block.replaceWith(...rendered.childNodes);
+   if(block.classList.contains('bbcode-source-block')){
+    hasBBCodeSource=true;
+    block.replaceWith(document.createTextNode(sourceText));
+   }else{
+    const rendered=document.createElement('div');
+    rendered.innerHTML=sanitize(sourceText);
+    block.replaceWith(...rendered.childNodes);
+   }
   });
   raw=copy.innerHTML||copy.textContent||'';
  }
+ if(hasBBCodeSource)return{mode:'bbcode',content:raw.trim()};
  const clean=sanitize(raw).trim();
  const meaningful=textLen(clean,'rich')>0||/<(img|iframe|hr|table|div|h[1-6]|ul|ol|li|p)\b/i.test(clean);
  const css=ed.dataset.sourceCss||'';
@@ -6028,7 +6033,7 @@ function pageEditPost(id){
   <div class="topic-composer-heading"><h2>✏️ แก้ไขโพสต์</h2><p>ปรับหัวข้อและข้อความตอบกลับ</p></div>
   <div class="preview topic-preview" hidden></div>
   <div class="topic-field-row"><label class="topic-field-label" for="replySubjectEdit">หัวข้อโพสต์:</label><div class="topic-field-value"><input id="replySubjectEdit" name="postSubject" class="topic-subject" maxlength="140" value="${esc(p.subject||('RE: '+(t?.title||'')))}"></div></div>
-  <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content',p.mode==='html'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}</div></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content',p.mode==='html'||p.mode==='bbcode'?p.content:toRich(p.content,p.mode),{code:true,mode:p.mode,tpl:t?.tpl})}</div></div></div>
   <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">💾 บันทึก</button></div></form>`);
 }
 function doEditPost(e,id){
