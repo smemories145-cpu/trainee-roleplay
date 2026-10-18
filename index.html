@@ -564,6 +564,10 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 @keyframes phoneFloatBuzz{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px) rotate(-2deg)}40%{transform:translateX(3px) rotate(2deg)}60%{transform:translateX(-2px) rotate(-1deg)}80%{transform:translateX(2px) rotate(1deg)}}
 @media(prefers-reduced-motion:reduce){.phone-phone-vibrate{animation:none}}
 
+
+/* Compact single-area composer: the dark region is the typing surface, not a separate code panel. */
+.topic-composer .ed-area{min-height:110px!important;max-height:35vh!important;overflow:auto}
+@media(max-width:600px){.topic-composer .ed-area{min-height:100px!important;max-height:35vh!important}}
 </style>
 <style id="postReadability">
 /* ---------- อ่านโพสต์โรลเพลย์ได้สบายขึ้น ---------- */
@@ -639,7 +643,7 @@ main{max-width:1380px}
 .topic-composer .topic-field-row .chk{margin:0}
 .topic-composer .topic-editor-wrap{min-width:0;width:100%}
 .topic-composer .ed{margin:0}
-.topic-composer .ed-area{min-height:310px;max-height:70vh}
+.topic-composer .ed-area{min-height:110px;max-height:35vh}
 .topic-composer .topic-subsection{padding:14px 18px;background:var(--card);border-bottom:1px solid var(--line)}
 .topic-composer .topic-subsection>label:first-child{display:block;color:var(--txt);font-weight:600;margin-bottom:7px}
 .topic-composer .topic-reward-line{font-size:.9rem;font-weight:600;color:var(--txt);line-height:1.8}
@@ -660,7 +664,7 @@ main{max-width:1380px}
  .topic-composer .topic-field-label{padding-top:0}
  .topic-composer .topic-composer-heading{padding:16px 14px}
  .topic-composer .topic-compact-row,.topic-composer .topic-compact-row.three{grid-template-columns:repeat(2,minmax(0,1fr))}
- .topic-composer .ed-area{min-height:260px}
+ .topic-composer .ed-area{min-height:110px;max-height:35vh}
  .topic-composer .topic-actions{padding:12px;justify-content:stretch}
  .topic-composer .topic-actions .btn{flex:1;min-width:0}
  .topic-composer .topic-preview{margin:0 12px 12px}
