@@ -4386,7 +4386,7 @@ function pageShop(cat){
  const rich=DB.get('characters').filter(x=>x.status==='approved').sort((a,b)=>(b.won||0)-(a.won||0)).slice(0,5);
  const cats=[...new Set(items.map(i=>i.cat))];
  app(`<div class="row between"><h2>🛍 ร้านค้า</h2>${hasAdminPermission('manage_shop')?'<a class="btn sm ghost" href="#admin/shop">⚙️ จัดการสินค้า</a>':''}</div>
- <div class="card row between">${c?`<div class="row">${avatar(c,44)}<div><b>${esc(c.stageName||c.name)}</b><div class="won">💰 ${wonFmt(c.won)}</div></div></div><a class="btn sm ghost" href="#char/${c.id}">💳 กระเป๋าเงิน / โอนเงิน</a>`:'<span class="mut">เข้าสู่ระบบและมีตัวละครที่อนุมัติแล้วเพื่อซื้อของ</span>'}</div>
+ <div class="card row between">${c?`<div class="row">${avatar(c,44)}<div><b>${esc(c.stageName||c.name)}</b><div class="won">💰 ${wonFmt(c.won)}</div></div></div><a class="btn sm ghost" href="#char/${c.id}">💰 ดูกระเป๋าเงิน</a>`:'<span class="mut">เข้าสู่ระบบและมีตัวละครที่อนุมัติแล้วเพื่อซื้อของ</span>'}</div>
  <div class="tabs"><a href="#shop" class="${!cat?'on':''}">ทั้งหมด</a>${cats.map(x=>`<a href="#shop/${encodeURIComponent(x)}" class="${cat&&decodeURIComponent(cat)===x?'on':''}">${esc(x)}</a>`).join('')}</div>
  ${(cat?items.filter(i=>i.cat===decodeURIComponent(cat)):list).length?`<div class="grid">${(cat?items.filter(i=>i.cat===decodeURIComponent(cat)):list).map(it=>{const owned=c&&(c.inv||[]).some(x=>x.iid===it.id),out=it.stock===0;
   return `<div class="card shop-item" style="margin:0"><div class="pic">${it.img?`<img src="${esc(it.img)}" loading="lazy">`:'🎁'}</div><b>${esc(it.name)}</b><span class="badge" style="--c:var(--sec);margin:auto">${esc(it.cat)}</span>
