@@ -6082,8 +6082,11 @@ function pageThread(id,view=''){
    </form>`;
   }
  }
-   app(`<div class="thread-page-toolbar"><div>${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}</div>${!closed&&!t.characterBio&&u&&(t.type!=='notice'||isAdmin())?'<button type="button" class="btn thread-reply-jump" onclick="document.getElementById(\'reply-composer\')?.scrollIntoView({behavior:\'smooth\',block:\'start\'})">✍️ ตอบกระทู้</button>':''}</div>
-  <div id="post-opening" class="card post thread-opening-post${targetPostId==='opening'?' post-permalink-target':''}"><div class="post-layout">
+   const replyMode=String(view||'')==='reply';
+ const contextPosts=replyMode?posts.slice(-6).reverse():pagePosts;
+ const contextPostsHtml=contextPosts.map(p=>postHtml(p,posts.indexOf(p))).join('');
+ app(`<div class="thread-page-toolbar"><div>${fo?`<a href="#forum/${fo.id}">← กลับไป ${esc(fo.name)}</a>`:'<a href="#threads">← กระทู้ทั้งหมด</a>'}${replyMode?` · <a href="#thread/${t.id}">กลับไปอ่านกระทู้</a>`:''}</div>${!replyMode&&!closed&&!t.characterBio&&u&&(t.type!=='notice'||isAdmin())?'<a class="btn thread-reply-jump" href="#thread/'+t.id+'/reply">✍️ ตอบกระทู้</a>':''}</div>
+  ${replyMode?'<div class="card topic-composer-heading"><h2>ตอบกลับกระทู้: '+esc(t.title)+'</h2><p>เขียนโพสต์ใหม่ แล้วดูตัวอย่างได้ก่อนส่ง</p></div>':`<div id="post-opening" class="card post thread-opening-post${targetPostId==='opening'?' post-permalink-target':''}"><div class="post-layout">
    ${openingSide}
    <div class="post-content-column">
     <div class="thread-opening-meta"><span class="mut">${esc(threadAuthorName(t))} · ${fmt(t.createdAt)}</span><span class="mut"><button type="button" class="post-number-link" title="คัดลอกลิงก์โพสต์ #1" aria-label="คัดลอกลิงก์โพสต์ #1" onclick="copyPostLink('${t.id}','opening')">#1 <span aria-hidden="true">↗</span></button> · กระทู้ต้นเรื่อง</span></div>
@@ -6099,9 +6102,9 @@ function pageThread(id,view=''){
   <div id="thread-replies-heading" class="thread-replies-heading"><h3>💬 โรลเพลย์ (${posts.length})</h3>${totalPages>1?`<span>หน้า ${page} / ${totalPages}</span>`:''}</div>
   ${paginationHtml()}
   ${pagePosts.map((p,i)=>postHtml(p,startIndex+i)).join('')||'<div class="card mut">ยังไม่มีโพสต์ — เป็นคนแรกที่เริ่มเรื่องสิ!</div>'}
-  ${paginationHtml()}
-  ${form}`);
- if(targetPostId||page>1){
+  ${paginationHtml()}`}
+  ${replyMode?form:''}${replyMode?`<div id="thread-replies-heading" class="thread-replies-heading"><h3>💬 โพสต์ล่าสุดในกระทู้ (ไม่เกิน 6 โพสต์)</h3><span>เรียงจากใหม่ไปเก่า</span></div>${contextPostsHtml||'<div class="card mut">ยังไม่มีโพสต์ตอบกลับในกระทู้นี้</div>'}`:form}`);
+ if(!replyMode&&(targetPostId||page>1)){
   requestAnimationFrame(()=>{
    const target=document.getElementById(targetPostId==='opening'?'post-opening':targetPostId?'post-'+targetPostId:'thread-replies-heading');
    if(target)target.scrollIntoView({behavior:'smooth',block:'start'});
