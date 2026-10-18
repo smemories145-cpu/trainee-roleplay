@@ -1688,8 +1688,8 @@ begin
 
   select * into v_tx from public.site_bank_transactions where request_id=p_request_id;
   if found then
-    if v_tx.actor_app_user_id<>v_profile.app_user_id or v_tx.kind<>'deposit' or v_tx.recipient_character_id<>p_character_id then
-      raise exception 'Request identifier has already been used';
+    if v_tx.actor_app_user_id<>v_profile.app_user_id or v_tx.kind<>'deposit' or v_tx.recipient_character_id<>p_character_id or v_tx.amount<>p_amount then
+      raise exception 'Request identifier has already been used for a different request';
     end if;
     return jsonb_build_object('ok',true,'duplicate',true,'transaction_id',v_tx.id);
   end if;
@@ -1757,7 +1757,7 @@ begin
 
   select * into v_tx from public.site_bank_transactions where request_id=p_request_id;
   if found then
-    if v_tx.actor_app_user_id<>v_profile.app_user_id or v_tx.kind<>'withdraw' or v_tx.sender_character_id<>p_character_id then
+    if v_tx.actor_app_user_id<>v_profile.app_user_id or v_tx.kind<>'withdraw' or v_tx.sender_character_id<>p_character_id or v_tx.amount<>p_amount then
       raise exception 'Request identifier has already been used';
     end if;
     return jsonb_build_object('ok',true,'duplicate',true,'transaction_id',v_tx.id);
@@ -1829,7 +1829,7 @@ begin
   select * into v_tx from public.site_bank_transactions where request_id=p_request_id;
   if found then
     if v_tx.actor_app_user_id<>v_profile.app_user_id or v_tx.kind<>'transfer'
-       or v_tx.sender_character_id<>p_character_id or v_tx.recipient_character_id<>p_recipient_character_id then
+       or v_tx.sender_character_id<>p_character_id or v_tx.recipient_character_id<>p_recipient_character_id or v_tx.amount<>p_amount or coalesce(v_tx.note,'') is distinct from v_note then
       raise exception 'Request identifier has already been used';
     end if;
     return jsonb_build_object('ok',true,'duplicate',true,'transaction_id',v_tx.id);
