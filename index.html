@@ -2060,6 +2060,42 @@ nav .links .me-pill.starlight-account-pill:hover .starlight-account-chevron{colo
   .starlight-account-amount{font-size:.59rem;line-height:1.1}
 }
 @media(prefers-reduced-motion:reduce){nav .links .me-pill.starlight-account-pill{transition:none;transform:none}}
+</style>
+<style id="starlightAccountBalanceVisibilityFix">
+/* Keep the character balance fully readable; avoid vertical clipping of the won line. */
+nav#nav .links .me-pill.starlight-account-pill{
+  height:48px!important;min-height:48px!important;max-height:none!important;
+  flex-shrink:0!important;box-sizing:border-box!important;
+  padding:3px 8px 3px 5px!important;overflow:hidden!important;
+}
+nav#nav .links .me-pill.starlight-account-pill .starlight-account-details{
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  gap:3px!important;min-height:0!important;height:auto!important;overflow:visible!important;
+}
+nav#nav .links .me-pill.starlight-account-pill .starlight-account-name-line{
+  display:flex!important;align-items:center!important;min-height:15px!important;height:auto!important;
+  overflow:visible!important;flex-shrink:0!important;
+}
+nav#nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{
+  height:auto!important;min-height:0!important;line-height:1.2!important;
+}
+nav#nav .links .me-pill.starlight-account-pill .starlight-account-balance{
+  display:block!important;height:auto!important;min-height:12px!important;
+  line-height:normal!important;overflow:visible!important;flex-shrink:0!important;
+}
+nav#nav .links .me-pill.starlight-account-pill .starlight-account-amount{
+  display:block!important;height:auto!important;min-height:0!important;
+  font-size:.62rem!important;line-height:1.3!important;
+  overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important;
+}
+@media(max-width:560px){
+  nav#nav .links .me-pill.starlight-account-pill{
+    height:48px!important;min-height:48px!important;padding:3px 7px 3px 5px!important;
+  }
+  nav#nav .links .me-pill.starlight-account-pill .starlight-account-amount{
+    font-size:.61rem!important;line-height:1.3!important;
+  }
+}
 </style></head>
 <body>
 <nav id="nav"></nav>
