@@ -1175,9 +1175,22 @@ begin
 end;
 $$;
 
+-- Add email thread IDs so replies remain in one thread in each mailbox.
+alter table public.site_mail add column if not exists thread_id text;
+update public.site_mail set thread_id=id where thread_id is null or trim(thread_id)='';
+alter table public.site_mail alter column thread_id set default gen_random_uuid()::text;
+alter table public.site_mail alter column thread_id set not null;
+create index if not exists site_mail_thread_sender_idx
+ on public.site_mail(sender_app_user_id,thread_id,created_at);
+create index if not exists site_mail_thread_recipient_idx
+ on public.site_mail(recipient_app_user_id,thread_id,created_at);
+
 -- Keep private mail compatible with character-level blocks: the active sender character is passed by the client.
+-- Keep private mail compatible with character-level blocks and thread replies.
 create or replace function public.site_mail_send(p_mail jsonb)
-returns jsonb language plpgsql security definer
+returns jsonb
+language plpgsql
+security definer
 set search_path=public,pg_temp
 as $$
 declare
@@ -1187,11 +1200,13 @@ declare
  v_subject text:=trim(coalesce(p_mail->>'subject',''));
  v_body text:=trim(coalesce(p_mail->>'body',''));
  v_sender_character_id text:=trim(coalesce(p_mail->>'senderCharacterId',''));
+ v_thread_id text:=coalesce(nullif(trim(coalesce(p_mail->>'threadId','')),''),v_id);
 begin
  if auth.uid() is null then raise exception 'Sign in is required'; end if;
  select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
  if not found then raise exception 'Account profile has not been initialized'; end if;
  if v_id='' or char_length(v_id)>80 then raise exception 'Message ID is invalid'; end if;
+ if v_thread_id='' or char_length(v_thread_id)>80 then raise exception 'Mail thread ID is invalid'; end if;
  if v_recipient_id='' then raise exception 'Recipient is required'; end if;
  if char_length(v_subject)<1 or char_length(v_subject)>120 then raise exception 'Subject must be between 1 and 120 characters'; end if;
  if char_length(v_body)<1 or char_length(v_body)>12000 then raise exception 'Message must be between 1 and 12000 characters'; end if;
@@ -1209,9 +1224,49 @@ begin
    ))
   ) then raise exception 'This character is blocked for mail'; end if;
  end if;
- insert into public.site_mail(id,sender_app_user_id,recipient_app_user_id,subject,body)
- values(v_id,v_profile.app_user_id,v_recipient_id,v_subject,v_body);
- return jsonb_build_object('ok',true,'id',v_id);
+ insert into public.site_mail(id,thread_id,sender_app_user_id,recipient_app_user_id,subject,body)
+ values(v_id,v_thread_id,v_profile.app_user_id,v_recipient_id,v_subject,v_body);
+ return jsonb_build_object('ok',true,'id',v_id,'threadId',v_thread_id);
+end;
+$$;
+
+create or replace function public.site_mail_list(p_folder text default 'inbox')
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $$
+declare
+ v_profile public.site_profiles%rowtype;
+ v_messages jsonb;
+begin
+ if auth.uid() is null then raise exception 'Sign in is required'; end if;
+ if p_folder not in ('inbox','sent') then raise exception 'Folder must be inbox or sent'; end if;
+ select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
+ if not found then raise exception 'Account profile has not been initialized'; end if;
+ select coalesce(jsonb_agg(q.message order by q.created_at desc),'[]'::jsonb)
+ into v_messages
+ from (
+  select m.created_at,
+   jsonb_build_object(
+    'id',m.id,
+    'threadId',coalesce(m.thread_id,m.id),
+    'senderId',m.sender_app_user_id,
+    'senderUsername',s.username,
+    'recipientId',m.recipient_app_user_id,
+    'recipientUsername',r.username,
+    'subject',m.subject,
+    'body',m.body,
+    'createdAt',floor(extract(epoch from m.created_at)*1000)::bigint,
+    'readAt',case when m.read_at is null then null else floor(extract(epoch from m.read_at)*1000)::bigint end
+   ) as message
+  from public.site_mail m
+  join public.site_profiles s on s.app_user_id=m.sender_app_user_id
+  join public.site_profiles r on r.app_user_id=m.recipient_app_user_id
+  where (p_folder='inbox' and m.recipient_app_user_id=v_profile.app_user_id and not m.recipient_deleted)
+     or (p_folder='sent' and m.sender_app_user_id=v_profile.app_user_id and not m.sender_deleted)
+ ) q;
+ return v_messages;
 end;
 $$;
 
@@ -1350,7 +1405,7 @@ $$;
 create or replace function public.site_phone_get_privacy(p_character_id text)
 returns jsonb language plpgsql security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare v_profile public.site_profiles%rowtype; v_settings public.site_phone_presence%rowtype;
 begin
  if auth.uid() is null then raise exception 'Sign in is required'; end if;
@@ -1359,12 +1414,12 @@ begin
  select * into v_settings from public.site_phone_presence where character_id=p_character_id;
  return jsonb_build_object('hide_presence',coalesce(v_settings.hide_presence,false),'hide_last_seen',coalesce(v_settings.hide_last_seen,false));
 end;
-$;
+$$;
 
 create or replace function public.site_phone_group_cancel_invite(p_character_id text,p_invite_id text)
 returns jsonb language plpgsql security definer
 set search_path=public,pg_temp
-as $
+as $$
 declare v_profile public.site_profiles%rowtype; v_inv public.site_phone_group_invites%rowtype; v_conv public.site_phone_conversations%rowtype; v_count integer;
 begin
  if auth.uid() is null then raise exception 'Sign in is required'; end if;
@@ -1378,7 +1433,7 @@ begin
  get diagnostics v_count=row_count;
  return jsonb_build_object('ok',v_count>0);
 end;
-$;
+$$;
 
 revoke all on function public.site_phone_group_cancel_invite(text,text) from public,anon;
 grant execute on function public.site_phone_group_cancel_invite(text,text) to authenticated;
