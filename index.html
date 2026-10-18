@@ -2096,6 +2096,75 @@ nav#nav .links .me-pill.starlight-account-pill .starlight-account-amount{
     font-size:.61rem!important;line-height:1.3!important;
   }
 }
+</style><style id="starlightPhonePerformanceAndChatRefresh">
+.phone-float-window{box-shadow:0 12px 34px rgba(0,0,0,.52)!important}
+.phone-lock,.phone-settings-overlay{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.phone-app-icon{box-shadow:0 3px 8px rgba(0,0,0,.16)!important;transition:border-color .12s ease!important}
+.phone-app-tile:hover .phone-app-icon{transform:none!important}
+.phone-float-window-body .phone-content.phone-content-chat{
+ display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:11px 12px 7px!important;
+}
+.phone-chat-screen{
+ display:flex;flex:1 1 auto;flex-direction:column;width:100%;height:100%;
+ min-width:0;min-height:0;overflow:hidden;
+}
+.phone-chat-screen>.phone-backline{flex:0 0 auto;margin-bottom:8px}
+.phone-chat-screen>.phone-not-ready,.phone-chat-screen>.phone-pinned-banner{flex:0 0 auto}
+.phone-float-window-body .phone-content-chat .phone-chat-stream{
+ flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+ gap:8px;padding:4px 2px 12px;scrollbar-width:thin;
+}
+.phone-float-window-body .phone-content-chat .phone-chat-row{max-width:95%;gap:6px}
+.phone-float-window-body .phone-content-chat .phone-chat-avatar{width:25px;height:25px;flex-basis:25px;border-radius:8px}
+.phone-float-window-body .phone-content-chat .phone-chat-bubble{padding:8px 10px;border-radius:14px 14px 14px 4px}
+.phone-float-window-body .phone-content-chat .phone-chat-row.mine .phone-chat-bubble{border-radius:14px 14px 4px 14px}
+.phone-chat-composer{
+ position:relative;z-index:2;display:flex;flex:0 0 auto;flex-direction:column!important;
+ gap:4px!important;margin:7px 0 6px!important;padding:5px!important;
+ border:1px solid color-mix(in srgb,var(--pri) 22%,var(--line))!important;
+ border-radius:20px!important;background:var(--card)!important;box-shadow:none!important;
+}
+.phone-chat-composer-row{display:flex;align-items:flex-end;gap:6px;width:100%;min-width:0}
+#phoneChatSendForm.phone-chat-composer textarea.phone-chat-input{
+ display:block;flex:1 1 auto;width:auto;min-width:0;height:42px;min-height:42px;max-height:112px;
+ resize:none;overflow-y:auto;margin:0!important;padding:10px 12px!important;
+ border:1px solid var(--line)!important;border-radius:18px!important;
+ background:var(--card2)!important;color:var(--txt)!important;
+ font-family:'Noto Sans Thai','Prompt',sans-serif;font-size:.84rem;line-height:1.3;box-shadow:none!important;
+}
+#phoneChatSendForm .phone-chat-attach,#phoneChatSendForm .phone-chat-send{
+ display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;
+ margin:0!important;padding:0!important;border-radius:50%!important;cursor:pointer;
+}
+#phoneChatSendForm .phone-chat-attach{
+ border:0!important;background:transparent!important;color:var(--mut)!important;
+ font-size:1.45rem;line-height:1;box-shadow:none!important;
+}
+#phoneChatSendForm .phone-chat-attach:hover{color:var(--pri)!important;background:var(--card2)!important}
+#phoneChatSendForm .phone-chat-send{
+ border:0!important;background:linear-gradient(145deg,#27c768,#159d55)!important;color:#fff!important;
+ font-size:1.05rem;font-weight:800;line-height:1;box-shadow:none!important;
+}
+#phoneChatSendForm .phone-chat-send:active{filter:brightness(.94)}
+.phone-chat-image-row{width:100%;padding:3px 3px 1px}
+.phone-chat-image-row[hidden]{display:none!important}
+#phoneChatSendForm .phone-chat-image-row input{
+ width:100%;min-width:0;height:38px;min-height:38px;margin:0!important;padding:8px 10px!important;
+ border-radius:11px;font-size:.76rem;
+}
+.phone-chat-extras{flex:0 0 auto;max-height:92px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.phone-chat-extras .phone-msg-muted{margin-bottom:0}
+.phone-chat-extras .row{gap:5px!important}
+@media(max-width:560px){
+ .phone-float-window-body .phone-content.phone-content-chat{padding:9px 9px 6px!important}
+ .phone-chat-composer{margin:5px 0!important;padding:4px!important}
+ #phoneChatSendForm .phone-chat-attach,#phoneChatSendForm .phone-chat-send{width:36px;height:36px;flex-basis:36px}
+ #phoneChatSendForm.phone-chat-composer textarea.phone-chat-input{height:40px;min-height:40px;padding:9px 10px!important}
+ .phone-chat-extras{max-height:82px}
+}
+@media(prefers-reduced-motion:reduce){
+ .phone-app-icon,.phone-app-tile:hover .phone-app-icon{transition:none!important;transform:none!important}
+}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -3945,7 +4014,7 @@ function pagePhone(appId){
   const app=titles[appId]||['✦','แอปพลิเคชัน',''];
   main=phoneAppBack(app[1])+'<div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+app[0]+'</div><h2>'+esc(app[1])+'</h2><p class="phone-msg-muted">'+esc(app[2])+'</p><button class="btn ghost" onclick="openPhoneFloatApp(\'home\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
  }
- renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-content">'+main+'</div><button type="button" class="phone-bottom-home" aria-label="กลับสู่หน้าหลักโทรศัพท์" title="กลับหน้าหลัก" onclick="openPhoneFloatApp(&quot;home&quot;)"></button></div></div>');
+ renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-content'+(appId==='conversation'?' phone-content-chat':'')+'">'+main+'</div><button type="button" class="phone-bottom-home" aria-label="กลับสู่หน้าหลักโทรศัพท์" title="กลับหน้าหลัก" onclick="openPhoneFloatApp(&quot;home&quot;)"></button></div></div>');
  if(after&&phoneUnlocked)after();
  phoneStartPolling();
 }
@@ -4269,6 +4338,8 @@ let PHONE_APP_UNREAD={chat:0,groupchat:0,notifications:0,mail:0};
 let PHONE_POLL_TIMER=null;
 let PHONE_LAST_TOUCH=0;
 let PHONE_MESSAGE_BUSY=false;
+let PHONE_POLL_BUSY=false;
+let PHONE_LAST_RENDERED_MESSAGES_SIGNATURE='';
 let PHONE_ITEM_TRANSFER_BUSY=false;
 let PHONE_MAIL_DETAIL=null;
 
@@ -4330,13 +4401,18 @@ function phoneStartPolling(){
  if(PHONE_POLL_TIMER)return;
  PHONE_POLL_TIMER=setInterval(async()=>{
   const panel=document.getElementById('phoneFloatWindow');
-  if(!panel||panel.hidden||!phoneUnlocked||!me())return;
-  const c=getActiveChar(me());if(c){phoneTouchPresence(c.id);phoneLoadLockAlerts(c.id);phoneSyncMailUnread()}
-  if(phoneFloatCurrentApp==='conversation'&&PHONE_OPEN_CONVERSATION_ID)await loadPhoneChatThread();
-  else if(phoneFloatCurrentApp==='chat'||phoneFloatCurrentApp==='groupchat')await loadPhoneConversations(phoneFloatCurrentApp);
-  else if(phoneFloatCurrentApp==='notifications')await loadPhoneNotifications();
-  else if(phoneFloatCurrentApp==='mail')await loadPhoneMail(PHONE_CURRENT_MAIL_FOLDER);
- },18000);
+  if(!panel||panel.hidden||!phoneUnlocked||!me()||document.hidden||PHONE_POLL_BUSY)return;
+  PHONE_POLL_BUSY=true;
+  try{
+   const u=me(),c=u&&getActiveChar(u);
+   if(c)await phoneTouchPresence(c.id);
+   if(phoneFloatCurrentApp==='conversation'&&PHONE_OPEN_CONVERSATION_ID)await loadPhoneChatThread(true);
+   else if(phoneFloatCurrentApp==='chat'||phoneFloatCurrentApp==='groupchat')await loadPhoneConversations(phoneFloatCurrentApp);
+   else if(phoneFloatCurrentApp==='notifications')await loadPhoneNotifications();
+   else if(phoneFloatCurrentApp==='mail')await loadPhoneMail(PHONE_CURRENT_MAIL_FOLDER);
+   else if(phoneFloatCurrentApp==='home'&&c)await phoneRefreshUnreadCounts(c.id);
+  }catch(e){}finally{PHONE_POLL_BUSY=false}
+ },30000);
 }
 function phoneAppHomeHtml(c,u){
  const apps=[
@@ -4400,41 +4476,50 @@ async function doPhoneCreateGroup(event){
  catch(e){toast('สร้างกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
 }
 function openPhoneConversation(id,kind){
+ if(PHONE_OPEN_CONVERSATION_ID!==id)PHONE_LAST_RENDERED_MESSAGES_SIGNATURE='';
  PHONE_OPEN_CONVERSATION_ID=id;PHONE_OPEN_CONVERSATION_KIND=kind||'dm';PHONE_CURRENT_CONVERSATION=PHONE_CONVERSATIONS.find(x=>x.id===id)||null;openPhoneFloatApp('conversation');
 }
 function phoneConversationThreadShell(){
  const x=PHONE_CURRENT_CONVERSATION||PHONE_CONVERSATIONS.find(c=>c.id===PHONE_OPEN_CONVERSATION_ID)||{};
  const isGroup=x.kind==='group'||PHONE_OPEN_CONVERSATION_KIND==='group',back=isGroup?'groupchat':'chat';
- let html='<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="openPhoneFloatApp(\''+back+'\')">← กลับ</button><div style="min-width:0;flex:1"><div class="phone-eyebrow">'+(isGroup?'GROUP CHAT':'PRIVATE CHAT')+'</div><b style="overflow-wrap:anywhere">'+esc(x.title||'บทสนทนา')+'</b></div><button class="btn sm ghost" onclick="loadPhoneChatThread()">↻</button></div>';
+ let html='<div class="phone-chat-screen"><div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="openPhoneFloatApp(\''+back+'\')">← กลับ</button><div style="min-width:0;flex:1"><div class="phone-eyebrow">'+(isGroup?'GROUP CHAT':'PRIVATE CHAT')+'</div><b style="overflow-wrap:anywhere">'+esc(x.title||'บทสนทนา')+'</b></div><button class="btn sm ghost" onclick="loadPhoneChatThread()">↻</button></div>';
  if(x.is_closed)html+='<div class="phone-not-ready" style="margin-bottom:10px">ห้องนี้ถูกเก็บเข้าคลังแล้ว อ่านประวัติได้ แต่ส่งข้อความใหม่ไม่ได้</div>';
  if(isGroup&&x.pinned_message_id)html+='<div class="phone-pinned-banner">📌 มีข้อความปักหมุดในห้องนี้ <button class="phone-chat-action" onclick="phoneFocusPinnedMessage()">ดูข้อความ</button></div>';
  html+='<div id="phoneChatMessages" class="phone-chat-stream"><div class="phone-msg-muted">กำลังโหลดข้อความ…</div></div>';
- html+='<form id="phoneChatSendForm" class="phone-msg-form" onsubmit="doPhoneSendMessage(event)"><textarea name="body" maxlength="4000" placeholder="พิมพ์ข้อความ… ใช้ @ชื่อในกลุ่มเพื่อกล่าวถึง" rows="2"></textarea><input name="image_url" type="url" placeholder="URL รูปภาพ (ไม่บังคับ)"><div class="row between" style="gap:8px"><small class="phone-msg-muted">เก็บเป็นข้อความธรรมดา · ไม่ประมวลผล HTML</small><button class="btn" type="submit">ส่งข้อความ ↑</button></div></form>';
- if(isGroup&&!x.is_closed)html+='<div style="margin:8px 0"><button type="button" class="btn sm ghost" onclick="phoneShowMentionPicker()">＠ กล่าวถึงสมาชิก</button><div id="phoneMentionPicker"></div></div>';
- html+='<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn sm ghost" onclick="phoneMuteCurrentConversation()">'+(x.is_muted?'🔔 เปิดเสียงห้อง':'🔕 ปิดเสียงห้อง')+'</button>';
+ html+='<form id="phoneChatSendForm" class="phone-msg-form phone-chat-composer" onsubmit="doPhoneSendMessage(event)"><div class="phone-chat-composer-row"><button type="button" class="phone-chat-attach" aria-label="แนบรูปภาพ" title="แนบรูปภาพผ่าน URL" onclick="phoneToggleChatImageField()">＋</button><textarea class="phone-chat-input" name="body" maxlength="4000" placeholder="พิมพ์ข้อความ…" rows="1" oninput="phoneChatResizeInput(this)"></textarea><button class="phone-chat-send" type="submit" aria-label="ส่งข้อความ" title="ส่งข้อความ">➤</button></div><div class="phone-chat-image-row" id="phoneChatImageRow" hidden><input name="image_url" type="url" placeholder="วาง URL รูปภาพ (ไม่บังคับ)"></div></form>';
+ html+='<div class="phone-chat-extras">';
+ if(isGroup&&!x.is_closed)html+='<div style="margin:3px 0 6px"><button type="button" class="btn sm ghost" onclick="phoneShowMentionPicker()">＠ กล่าวถึงสมาชิก</button><div id="phoneMentionPicker"></div></div>';
+ html+='<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:4px"><button class="btn sm ghost" onclick="phoneMuteCurrentConversation()">'+(x.is_muted?'🔔 เปิดเสียงห้อง':'🔕 ปิดเสียงห้อง')+'</button>';
  if(isGroup&&!x.is_closed)html+='<button class="btn sm ghost" onclick="phoneToggleMentionsCurrentConversation()">'+(x.mentions_enabled===false?'＠ เปิดการแจ้งเตือนกล่าวถึง':'＠ ปิดการแจ้งเตือนกล่าวถึง')+'</button>';
  if(!isGroup&&x.other_character_id)html+='<button class="btn sm ghost" onclick="phoneBlockCurrentDM()">🚫 บล็อกตัวละคร</button>';
  if(isGroup&&!x.is_closed&&x.is_owner)html+='<button class="btn sm ghost" onclick="openPhoneGroupManager(\''+String(x.id||PHONE_OPEN_CONVERSATION_ID).replace(/'/g,'')+'\')">⚙ จัดการกลุ่ม</button>';
  if(isGroup&&!x.is_closed&&!x.is_owner)html+='<button class="btn sm ghost" onclick="phoneLeaveCurrentGroup()">ออกจากกลุ่ม</button>';
- html+='</div><p class="phone-msg-muted" style="margin-top:10px">แตะ “อ่านแล้ว” เพื่อดูว่าใครอ่านข้อความ หรือรายงานข้อความที่ไม่เหมาะสม</p>';
+ html+='</div><p class="phone-msg-muted" style="margin-top:6px;font-size:.68rem">แตะ “อ่านแล้ว” เพื่อดูสถานะการอ่าน หรือรายงานข้อความ</p>';
+ html+='</div></div>';
  return html;
 }
-async function loadPhoneChatThread(){
- const c=getActiveChar(me()),root=document.getElementById('phoneChatMessages');if(!c||!root||!PHONE_OPEN_CONVERSATION_ID)return;
+async function loadPhoneChatThread(silentPoll=false){
+ const c=getActiveChar(me()),root=document.getElementById('phoneChatMessages'),conversationId=PHONE_OPEN_CONVERSATION_ID;
+ if(!c||!root||!conversationId)return;
  try{
   const [conversations,messages]=await Promise.all([
    phoneBankRpc('site_phone_list_conversations',{p_character_id:c.id}),
-   phoneBankRpc('site_phone_get_messages',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID,p_limit:100})
+   phoneBankRpc('site_phone_get_messages',{p_character_id:c.id,p_conversation_id:conversationId,p_limit:100})
   ]);
+  if(PHONE_OPEN_CONVERSATION_ID!==conversationId||!root.isConnected)return;
   PHONE_CONVERSATIONS=Array.isArray(conversations)?conversations:PHONE_CONVERSATIONS;
-  PHONE_CURRENT_CONVERSATION=PHONE_CONVERSATIONS.find(x=>x.id===PHONE_OPEN_CONVERSATION_ID)||PHONE_CURRENT_CONVERSATION;
-  PHONE_CONVERSATION_MESSAGES=Array.isArray(messages)?messages:[];
-  if(!document.getElementById('phoneChatMessages'))return;
-  root.innerHTML=PHONE_CONVERSATION_MESSAGES.length?PHONE_CONVERSATION_MESSAGES.map(phoneMessageMarkup).join(''):'<div class="phone-msg-card"><b>เริ่มบทสนทนา</b><p class="phone-msg-muted">ส่งข้อความแรกได้เลย</p></div>';
+  PHONE_CURRENT_CONVERSATION=PHONE_CONVERSATIONS.find(x=>x.id===conversationId)||PHONE_CURRENT_CONVERSATION;
+  const nextMessages=Array.isArray(messages)?messages:[];
+  const signature=JSON.stringify(nextMessages.map(m=>[m.id,m.body,m.image_url,m.revoked,m.is_pinned,m.created_at,m.sender_name,m.is_mine]));
+  PHONE_CONVERSATION_MESSAGES=nextMessages;
   const conv=PHONE_CURRENT_CONVERSATION;if(conv)PHONE_OPEN_CONVERSATION_KIND=conv.kind;
-  await phoneBankRpc('site_phone_mark_read',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID});
-  if(root.isConnected)root.scrollTop=root.scrollHeight;
- }catch(e){root.innerHTML=phoneFeatureError(e)}
+  if(silentPoll&&signature===PHONE_LAST_RENDERED_MESSAGES_SIGNATURE)return;
+  const wasNearBottom=!silentPoll||(root.scrollHeight-root.scrollTop-root.clientHeight<100);
+  root.innerHTML=nextMessages.length?nextMessages.map(phoneMessageMarkup).join(''):'<div class="phone-msg-card"><b>เริ่มบทสนทนา</b><p class="phone-msg-muted">ส่งข้อความแรกได้เลย</p></div>';
+  PHONE_LAST_RENDERED_MESSAGES_SIGNATURE=signature;
+  await phoneBankRpc('site_phone_mark_read',{p_character_id:c.id,p_conversation_id:conversationId});
+  if(root.isConnected&&wasNearBottom)root.scrollTop=root.scrollHeight;
+ }catch(e){if(root.isConnected)root.innerHTML=phoneFeatureError(e)}
 }
 function phoneMessageMarkup(m){
  const conv=PHONE_CURRENT_CONVERSATION||{},isGroup=conv.kind==='group';
@@ -4450,6 +4535,16 @@ function phoneMessageMarkup(m){
  }
  return '<div id="phone-message-'+esc(m.id)+'" class="phone-chat-row '+(m.is_mine?'mine':'')+'">'+avatarHtml+'<div style="min-width:0;max-width:100%"><div class="phone-chat-bubble">'+(!m.is_mine?'<div class="phone-chat-sender">'+esc(m.sender_name)+(m.is_pinned?' · 📌 ปักหมุด':'')+'</div>':'')+'<div class="phone-chat-body">'+body+'</div>'+image+'</div><div class="phone-chat-meta">'+esc(phoneShortTime(m.created_at))+(m.is_mine?'<span>· ส่งแล้ว</span>':'')+(m.is_pinned?'<span>· 📌</span>':'')+'</div>'+(actions?'<div class="phone-chat-actions">'+actions+'</div>':'')+'</div></div>';
 }
+function phoneToggleChatImageField(){
+ const row=document.getElementById('phoneChatImageRow');if(!row)return;
+ row.hidden=!row.hidden;
+ if(!row.hidden){const input=row.querySelector('input');if(input)input.focus()}
+}
+function phoneChatResizeInput(area){
+ if(!area)return;
+ area.style.height='auto';
+ area.style.height=Math.min(112,Math.max(42,area.scrollHeight))+'px';
+}
 async function doPhoneSendMessage(event){
  event.preventDefault();if(PHONE_MESSAGE_BUSY)return;
  const c=getActiveChar(me()),form=event.currentTarget;if(!c||!PHONE_OPEN_CONVERSATION_ID)return;
@@ -4457,7 +4552,7 @@ async function doPhoneSendMessage(event){
  if(!body.trim()&&!image)return toast('พิมพ์ข้อความหรือใส่ URL รูปภาพก่อน','bad');
  if(image&&!/^https?:\/\/\S+$/i.test(image))return toast('ลิงก์รูปภาพต้องเป็น HTTP หรือ HTTPS','bad');
  PHONE_MESSAGE_BUSY=true;
- try{await phoneBankRpc('site_phone_send_message',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID,p_body:body,p_image_url:image,p_request_id:bankRequestId()});form.reset();await loadPhoneChatThread()}
+ try{await phoneBankRpc('site_phone_send_message',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID,p_body:body,p_image_url:image,p_request_id:bankRequestId()});form.reset();const bodyInput=form.querySelector('.phone-chat-input');if(bodyInput)bodyInput.style.height='42px';const imageRow=form.querySelector('#phoneChatImageRow');if(imageRow)imageRow.hidden=true;await loadPhoneChatThread()}
  catch(e){toast('ส่งข้อความไม่สำเร็จ: '+(e.message||e),'bad')}finally{PHONE_MESSAGE_BUSY=false}
 }
 async function phoneHideMessage(id){
@@ -4987,7 +5082,7 @@ function phoneInsertMention(name){
  const start=area.selectionStart===undefined?area.value.length:area.selectionStart;
  const end=area.selectionEnd===undefined?area.value.length:area.selectionEnd;
  area.value=area.value.slice(0,start)+token+area.value.slice(end);
- const pos=start+token.length;area.focus();area.setSelectionRange(pos,pos);
+ const pos=start+token.length;area.focus();area.setSelectionRange(pos,pos);phoneChatResizeInput(area);
  const picker=document.getElementById('phoneMentionPicker');if(picker)picker.innerHTML='';
 }
 
