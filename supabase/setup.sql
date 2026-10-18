@@ -606,50 +606,8 @@ begin
 end;
 $$;
 
-create or replace function public.site_transfer(
- p_sender_id text,p_recipient_id text,p_amount integer,p_note text default ''
-)
-returns jsonb
-language plpgsql
-security definer
-set search_path = public, pg_temp
-as $$
-declare
- v_profile public.site_profiles%rowtype;
- v_sender jsonb;
- v_recipient jsonb;
- v_now_ms bigint;
- v_note text;
- v_sender_name text;
- v_recipient_name text;
- v_ledger jsonb;
-begin
- if auth.uid() is null then raise exception 'Sign in is required'; end if;
- select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
- if not found then raise exception 'Account profile has not been initialized'; end if;
- if p_amount is null or p_amount<=0 then raise exception 'Invalid transfer amount'; end if;
- select payload into v_sender from public.site_records where collection='characters' and record_id=p_sender_id for update;
- select payload into v_recipient from public.site_records where collection='characters' and record_id=p_recipient_id for update;
- if v_sender is null or v_sender ->> 'ownerId' is distinct from v_profile.app_user_id
-   or v_sender ->> 'status' is distinct from 'approved' then raise exception 'Sender character is not available'; end if;
- if v_recipient is null or v_recipient ->> 'status' is distinct from 'approved' then raise exception 'Recipient character is not available'; end if;
- if p_sender_id=p_recipient_id then raise exception 'Cannot transfer to the same character'; end if;
- if coalesce((v_sender ->> 'won')::numeric,0)<p_amount then raise exception 'Insufficient funds'; end if;
- v_now_ms := floor(extract(epoch from clock_timestamp())*1000)::bigint;
- v_note := left(coalesce(p_note,''),240);
- v_sender_name := coalesce(nullif(v_sender ->> 'stageName',''),v_sender ->> 'name','ตัวละคร');
- v_recipient_name := coalesce(nullif(v_recipient ->> 'stageName',''),v_recipient ->> 'name','ตัวละคร');
- v_sender := jsonb_set(v_sender,'{won}',to_jsonb(coalesce((v_sender ->> 'won')::numeric,0)-p_amount),true);
- v_ledger := jsonb_build_array(jsonb_build_object('at',v_now_ms,'amt',-p_amount,'note','โอนให้ '||v_recipient_name||case when v_note<>'' then ' · '||v_note else '' end)) || coalesce(v_sender -> 'ledger','[]'::jsonb);
- v_sender := jsonb_set(v_sender,'{ledger}',(select coalesce(jsonb_agg(value order by ordinality),'[]'::jsonb) from jsonb_array_elements(v_ledger) with ordinality where ordinality<=30),true);
- v_recipient := jsonb_set(v_recipient,'{won}',to_jsonb(coalesce((v_recipient ->> 'won')::numeric,0)+p_amount),true);
- v_ledger := jsonb_build_array(jsonb_build_object('at',v_now_ms,'amt',p_amount,'note','รับโอนจาก '||v_sender_name||case when v_note<>'' then ' · '||v_note else '' end)) || coalesce(v_recipient -> 'ledger','[]'::jsonb);
- v_recipient := jsonb_set(v_recipient,'{ledger}',(select coalesce(jsonb_agg(value order by ordinality),'[]'::jsonb) from jsonb_array_elements(v_ledger) with ordinality where ordinality<=30),true);
- update public.site_records set payload=v_sender,updated_at=now(),updated_by=auth.uid() where collection='characters' and record_id=p_sender_id;
- update public.site_records set payload=v_recipient,updated_at=now(),updated_by=auth.uid() where collection='characters' and record_id=p_recipient_id;
- return jsonb_build_object('ok',true,'sender',v_sender,'recipient',v_recipient);
-end;
-$$;
+-- Legacy cash-on-hand cross-character transfer has been removed. Transfers belong in the bank system.
+drop function if exists public.site_transfer(text,text,integer,text);
 
 create or replace function public.site_buy_item(p_character_id text,p_item_id text)
 returns jsonb
@@ -700,8 +658,6 @@ revoke all on function public.site_practice(text,text) from public, anon;
 grant execute on function public.site_practice(text,text) to authenticated;
 revoke all on function public.site_claim_salary(text) from public, anon;
 grant execute on function public.site_claim_salary(text) to authenticated;
-revoke all on function public.site_transfer(text,text,integer,text) from public, anon;
-grant execute on function public.site_transfer(text,text,integer,text) to authenticated;
 revoke all on function public.site_buy_item(text,text) from public, anon;
 grant execute on function public.site_buy_item(text,text) to authenticated;
 
