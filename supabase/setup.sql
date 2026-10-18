@@ -1267,7 +1267,7 @@ revoke all on table public.site_presence from anon, authenticated;
 create or replace function public.site_presence_heartbeat(
   p_session_id text,
   p_hidden boolean default false,
-  p_online_group text default 'human',
+  p_online_group text default 'applicant',
   p_display_color text default '#d6d6dc'
 )
 returns jsonb
@@ -1290,16 +1290,14 @@ begin
     where auth_user_id = (select auth.uid());
 
     if found then
-      if v_profile.role = 'admin' then
-        v_group := 'webmaster';
-      else
-        v_group := coalesce(nullif(p_online_group, ''), 'human');
-        if v_group not in (
-          'demon_king','eden_council','race_representative','npc','human',
-          'witch','vampire','werewolf','nature','patient','spirit'
-        ) then
-          v_group := 'human';
-        end if;
+      -- The website derives the category from the selected character's STARLIGHT stage.
+      -- Keep the group key aligned with the eight ranks; do not use example roleplay species/groups.
+      v_group := coalesce(nullif(p_online_group, ''), 'applicant');
+      if v_group not in (
+        'applicant','trainee_d','trainee_c','trainee_b',
+        'trainee_a','pre_debut','rookie_artist','superstar'
+      ) then
+        v_group := 'applicant';
       end if;
 
       v_color := case
