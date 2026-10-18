@@ -333,6 +333,21 @@ begin
   set permissions = (select coalesce(array_agg(distinct p), '{}'::text[]) from unnest(v_permissions) p)
   where app_user_id = p_app_user_id;
 
+  -- Update the visible site_records user in the same transaction as the trusted profile.
+  -- If the public user row is missing, fail and roll back rather than saving partial permissions.
+  update public.site_records
+  set payload = jsonb_set(
+        jsonb_set(payload, '{role}', to_jsonb(case when cardinality(v_permissions) > 0 then 'admin' else 'player' end), true),
+        '{permissions}', to_jsonb(v_permissions), true
+      ),
+      updated_at = now(),
+      updated_by = auth.uid()
+  where collection = 'users' and record_id = p_app_user_id;
+
+  if not found then
+    raise exception 'User record is missing in site_records for app_user_id %', p_app_user_id;
+  end if;
+
   return jsonb_build_object(
     'ok', true,
     'app_user_id', p_app_user_id,
