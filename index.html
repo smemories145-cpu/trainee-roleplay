@@ -4572,7 +4572,7 @@ async function doPhoneSendMail(event){
   PHONE_MAIL_COMPOSE=null;PHONE_CURRENT_MAIL_FOLDER='sent';toast('ส่งจดหมายแล้ว ✉️');openPhoneFloatApp('mail');
  }catch(e){toast('ส่งจดหมายไม่สำเร็จ: '+(e.message||e),'bad')}
 }
-async async function phoneDeleteMailThread(folder,threadId){
+async function phoneDeleteMailThread(folder,threadId){
  const u=me();if(!u||!PHONE_MAIL_DETAIL)return;
  const cache=mailCacheFor(u.id),items=(cache[folder]||[]).filter(m=>String(m.threadId||m.thread_id||m.id)===String(threadId));
  if(!items.length)return toast('ไม่พบเธรดในกล่องนี้','bad');
