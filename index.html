@@ -3537,7 +3537,7 @@ async function edInsertHTML(id){
  const snippet=prompt('วางโค้ด HTML ที่ต้องการแทรก (เช่น <div>, <b>, <img>)\nโค้ดจะคงเป็นข้อความให้แก้ไขได้ และดูผลจริงจากปุ่มพรีวิว');
  if(!snippet)return;
  const found=getEditorHtmlSource(snippet);
- if(found){const parts=extractEditorHtmlSource(found);insertEditorSourceBlock(ed,parts.html,parts.css,'html');return}
+ if(found){insertEditorSourceBlock(ed,snippet||found,'','html');return}
  insertEditorSourceBlock(ed,snippet,'','html');
 }
 async function edLink(id){saveSel();const r=SEL;const u=await askText('ใส่ลิงก์ (https://...)','https://');SEL=r;if(!u||!/^https?:\/\//.test(u))return;if(r&&!r.collapsed)ex(id,'createLink',u);else ins(id,`<a href="${esc(u)}">${esc(u)}</a>&nbsp;`)}
@@ -3749,7 +3749,8 @@ function editorSourceBlockHtml(value,type='html'){
 }
 function insertEditorSourceBlock(ed,value,css='',type='html'){
  const area=ed?.querySelector('.ed-area');if(!area)return;
- if(css)setEditorSourceCss(ed,css);
+ /* Source CSS belongs in the isolated preview frame, never on the editable surface. */
+ setEditorSourceCss(ed,'');
  area.focus();
  document.execCommand('insertHTML',false,editorSourceBlockHtml(value,type));
  area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);saveSel();
@@ -3787,9 +3788,8 @@ function edGet(ed){
  if(!area.children.length){
   const text=area.textContent||'',pasted=getEditorHtmlSource(text);
   if(pasted){
-   const parts=extractEditorHtmlSource(pasted);
-   area.innerHTML=editorSourceBlockHtml(parts.html,'html');
-   setEditorSourceCss(ed,parts.css);
+   area.innerHTML=editorSourceBlockHtml(text,'html');
+   setEditorSourceCss(ed,'');
   }else if(isForumMarkupSource(text))area.innerHTML=editorSourceBlockHtml(text,'bbcode');
  }
  const sourceBlocks=[...area.querySelectorAll('pre.html-source-block')];
