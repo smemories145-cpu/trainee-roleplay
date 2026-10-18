@@ -60,3 +60,15 @@ The import is intentionally blocked if cloud records already exist to prevent ac
 - Existing users should first sign in from a browser where their legacy password is available, so their Supabase Auth account can be created. After that, they can sign in on other devices normally.
 - Password hashes from local storage are not imported into the shared records table.
 - If SQL Editor reports an error, stop and fix that error before trying to register or migrate accounts.
+
+
+## Phone and bank system (existing installations)
+
+The phone screen and bank RPCs are in the front end and the `site_bank_*` database functions. For an existing Supabase project, run `supabase/banking-phone-migration.sql` once in **Supabase Dashboard → SQL Editor**. This migration is safe to re-run: it creates missing banking tables/functions and leaves existing character cash and other site records intact.
+
+- Each approved character can open one account immediately; opening is free and starts at ₩0.
+- Cash balances stay in `characters.won`; bank balances are stored separately.
+- Deposit, withdrawal and transfer are server-side, transactional RPCs with a unique request ID and a transaction log. Transfer is bank-account-to-bank-account only.
+- Fees start at 0% and can be configured by an administrator with `manage_economy` permission (or site admin) from the bank administration page.
+- The migration does not create private chat, group chat, item transfer or notifications yet; those app tiles are a phone shell for subsequent implementation.
+- Do not add a Supabase service-role key to the public website.
