@@ -506,6 +506,73 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 }
 @media(prefers-reduced-motion:reduce){.phone-float-launcher{transition:none}}
 
+
+/* ================= STARLIGHT PHONE MESSAGING APPS ================= */
+.phone-app-badge{position:absolute;transform:translate(21px,-5px);min-width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px;border-radius:20px;background:#d95a6f;color:#fff;font-size:.65rem;font-weight:700;font-style:normal;box-shadow:0 3px 9px #0006}
+.phone-app-tile{position:relative}
+.phone-app-tile:has(.phone-app-badge) .phone-app-icon{border-color:#d95a6f55}
+.phone-msg-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.phone-msg-page-title{font-size:1rem;font-weight:600}
+.phone-msg-muted{color:var(--mut);font-size:.74rem;line-height:1.55}
+.phone-msg-list{display:flex;flex-direction:column;gap:8px}
+.phone-msg-conv{display:flex;align-items:center;gap:10px;width:100%;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--card);text-align:left;color:var(--txt);cursor:pointer}
+.phone-msg-conv:hover{border-color:var(--pri)}
+.phone-msg-avatar{height:43px;width:43px;flex:0 0 43px;border-radius:15px;overflow:hidden;display:grid;place-items:center;background:var(--card2);border:1px solid var(--line);font-size:1.25rem}
+.phone-msg-avatar img{height:100%;width:100%;object-fit:cover}
+.phone-msg-conv-main{min-width:0;flex:1}
+.phone-msg-conv-title{font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.phone-msg-preview{font-size:.72rem;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.phone-msg-time{font-size:.65rem;color:var(--mut);white-space:nowrap}
+.phone-msg-unread{display:inline-flex;min-width:18px;height:18px;align-items:center;justify-content:center;background:var(--pri);color:var(--bg);border-radius:99px;padding:0 5px;font-size:.65rem;font-weight:700}
+.phone-msg-card{border:1px solid var(--line);border-radius:16px;padding:13px;background:var(--card);margin-bottom:10px;min-width:0}
+.phone-msg-form{border:1px solid var(--line);border-radius:16px;padding:12px;background:var(--card);display:flex;flex-direction:column;gap:9px}
+.phone-msg-form input,.phone-msg-form textarea,.phone-msg-form select{width:100%;min-width:0}
+.phone-msg-form textarea{resize:vertical;min-height:78px;max-height:180px}
+.phone-chat-stream{display:flex;flex-direction:column;gap:12px;padding:4px 0 12px;min-height:120px}
+.phone-chat-row{display:flex;align-items:flex-end;gap:7px;max-width:94%;min-width:0}
+.phone-chat-row.mine{margin-left:auto;flex-direction:row-reverse}
+.phone-chat-avatar{height:29px;width:29px;flex:0 0 29px;overflow:hidden;border-radius:10px;background:var(--card2)}
+.phone-chat-avatar img{height:100%;width:100%;object-fit:cover}
+.phone-chat-bubble{min-width:0;max-width:100%;border:1px solid var(--line);border-radius:15px 15px 15px 4px;padding:9px 11px;background:var(--card2);overflow-wrap:anywhere}
+.phone-chat-row.mine .phone-chat-bubble{background:color-mix(in srgb,var(--pri) 12%,var(--card));border-radius:15px 15px 4px 15px}
+.phone-chat-sender{font-size:.66rem;color:var(--mut);margin-bottom:4px;font-weight:600}
+.phone-chat-body{font-size:.82rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.phone-chat-image{display:block;max-width:100%;max-height:220px;object-fit:contain;margin-top:8px;border-radius:10px}
+.phone-chat-meta{font-size:.61rem;color:var(--mut);display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:6px}
+.phone-chat-actions{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.phone-chat-action{border:0;background:transparent;color:var(--mut);font-size:.64rem;padding:2px 3px;text-decoration:underline;cursor:pointer}
+.phone-chat-action:hover{color:var(--pri)}
+.phone-pinned-banner{border:1px solid #c7a96770;background:#c7a9670c;border-radius:12px;padding:9px 11px;margin-bottom:10px;font-size:.73rem}
+.phone-group-invite{border:1px solid color-mix(in srgb,var(--pri) 22%,var(--line));border-radius:13px;padding:12px;margin-bottom:8px;background:var(--card)}
+.phone-contact-card{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--card);min-width:0}
+.phone-contact-info{flex:1;min-width:0}.phone-contact-name{font-size:.8rem;font-weight:600;overflow-wrap:anywhere}
+.phone-contact-meta{font-size:.68rem;color:var(--mut);margin-top:2px}
+.phone-contact-actions{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.phone-action-small{font-size:.68rem;padding:6px 8px;border-radius:10px}
+.phone-online-dot{display:inline-block;height:7px;width:7px;border-radius:50%;background:#66d6a4;margin-right:4px}
+.phone-offline-dot{display:inline-block;height:7px;width:7px;border-radius:50%;background:#777;margin-right:4px}
+.phone-settings-overlay{position:fixed;inset:0;z-index:100105;background:#050507cc;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:10px;pointer-events:auto}
+.phone-settings-modal{width:min(520px,100%);max-height:min(86dvh,800px);overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 90px #0009;padding:16px;color:var(--txt)}
+.phone-settings-modal h3{margin:0}
+.phone-settings-modal label{font-size:.75rem}
+.phone-settings-modal input,.phone-settings-modal textarea,.phone-settings-modal select{width:100%;min-width:0}
+.phone-settings-modal .phone-msg-list{margin-top:10px}
+.phone-transfer-history{border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
+.phone-mini-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.74rem}
+.phone-mini-history-row small{display:block;color:var(--mut);font-size:.66rem;margin-top:3px}
+.phone-notification-row{display:flex;gap:9px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.phone-notification-row:last-child{border-bottom:0}
+.phone-notification-icon{width:35px;height:35px;flex:0 0 35px;border-radius:12px;background:var(--card2);display:grid;place-items:center}
+.phone-notification-main{min-width:0;flex:1}
+.phone-notification-main b{font-size:.78rem;display:block}
+.phone-notification-main small{font-size:.69rem;color:var(--mut);display:block;margin-top:4px}
+.phone-notification-row.unread .phone-notification-icon{border:1px solid var(--pri)}
+.phone-admin-report{border:1px solid var(--line);background:var(--card);border-radius:15px;padding:12px;margin-bottom:10px}
+.phone-admin-report-content{white-space:pre-wrap;overflow-wrap:anywhere;border-left:2px solid var(--pri);padding:8px 10px;background:var(--card2);border-radius:0 9px 9px 0;font-size:.78rem;margin:8px 0}
+.phone-phone-vibrate{animation:phoneFloatBuzz .42s ease-in-out 2}
+@keyframes phoneFloatBuzz{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px) rotate(-2deg)}40%{transform:translateX(3px) rotate(2deg)}60%{transform:translateX(-2px) rotate(-1deg)}80%{transform:translateX(2px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.phone-phone-vibrate{animation:none}}
+
 </style>
 <style id="postReadability">
 /* ---------- อ่านโพสต์โรลเพลย์ได้สบายขึ้น ---------- */
@@ -3556,66 +3623,60 @@ function bankRequestFailed(meta,error){
 function phoneTile(icon,name,desc,id){
  return '<button type="button" class="phone-app-tile" onclick="openPhoneApp(\''+id+'\')"><span class="phone-app-icon">'+icon+'</span><span class="phone-app-name">'+esc(name)+'</span><span class="phone-app-caption">'+esc(desc||'')+'</span></button>';
 }
-function openPhoneApp(id){
- if(id==='mail')return go('mail/inbox');
- if(id==='shop')return go('shop');
- if(id==='profile'||id==='inventory'){
-  const c=getActiveChar(me());if(!c)return toast('ต้องมีตัวละครที่อนุมัติแล้วก่อน','bad');
-  return go('char/'+c.id);
- }
- if(id==='bankadmin')return go('bankadmin');
- go('phone/'+id);
-}
+function openPhoneApp(id){return openPhoneFloatApp(id||'home')}
 function unlockPhone(){phoneUnlocked=true;pagePhone('home')}
 function pagePhone(appId){
  const u=me();if(!u)return go('login');
  appId=appId||'home';
- const c=getActiveChar(u);
- const now=new Date();
+ const c=getActiveChar(u),now=new Date();
  const time=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
  const date=now.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
- let main='';
+ let main='',after=null;
  if(!phoneUnlocked){
-  main='<div class="phone-lock"><div class="phone-lock-star">✦</div><div class="phone-lock-time">'+time+'</div><div class="phone-lock-date">'+esc(date)+'</div><div class="phone-lock-alert"><b>STARLIGHT SYSTEM</b><span>การแจ้งเตือนจะแสดงเฉพาะผู้ส่งและประเภทการแจ้งเตือน</span></div><div class="phone-lock-alert"><b>การแจ้งเตือน</b><span>ยังไม่มีการแจ้งเตือนใหม่</span></div><button type="button" class="phone-unlock-btn" onclick="unlockPhone()">✧ แตะเพื่อปลดล็อก ✧</button></div>';
+  main='<div class="phone-lock"><div class="phone-lock-star">✦</div><div class="phone-lock-time">'+time+'</div><div class="phone-lock-date">'+esc(date)+'</div>'+phoneLockAlertMarkup()+'<button type="button" class="phone-unlock-btn" onclick="unlockPhone()">✧ แตะเพื่อปลดล็อก ✧</button></div>';
+  after=()=>{if(c)phoneLoadLockAlerts(c.id)};
  }else if(appId==='home'){
-  const apps=[
-   ['bank','🏦','ธนาคาร','บัญชีและธุรกรรม'],
-   ['chat','💬','แชตส่วนตัว','ข้อความ'],
-   ['groupchat','👥','แชตกลุ่ม','สนทนาเป็นกลุ่ม'],
-   ['mail','✉️','จดหมาย','กล่องจดหมาย'],
-   ['contacts','📇','รายชื่อ','ตัวละคร'],
-   ['item-transfer','🎁','ส่งไอเทม','มอบสิ่งของ'],
-   ['notifications','🔔','แจ้งเตือน','กิจกรรมล่าสุด'],
-   ['shop','🛍️','ร้านค้า','สินค้า'],
-   ['jobs','💼','งานพิเศษ','หารายได้'],
-   ['events','🌟','กิจกรรม','ข่าวและประกาศ'],
-   ['inventory','🎒','กระเป๋า','สิ่งของของตัวละคร'],
-   ['profile','🪪','โปรไฟล์','ข้อมูลตัวละคร']
-  ];
-  main='<div class="phone-home-welcome"><div class="phone-eyebrow">STARLIGHT · PERSONAL DEVICE</div><h2>สวัสดี, '+esc(c?(c.stageName||c.name):u.username)+'</h2><div class="mut" style="font-size:.78rem">พื้นที่ส่วนตัวของตัวละคร</div></div>';
-  if(c)main+='<div class="phone-home-card"><div class="phone-eyebrow">CASH WALLET</div><div class="phone-balance">'+bankMoney(c.won)+'</div><div class="mut" style="font-size:.72rem">เงินสดของตัวละคร · แยกจากยอดเงินธนาคาร</div></div>';
-  if(!c)main+='<div class="phone-not-ready">ยังไม่มีตัวละครที่อนุมัติ กรุณาสร้างหรือเลือกตัวละครก่อนใช้งานแอปธนาคาร</div>';
-  main+='<div class="phone-app-grid">'+apps.map(x=>phoneTile(x[1],x[2],x[3],x[0])).join('');
-  if(isAdmin()||hasAdminPermission('manage_economy'))main+=phoneTile('🧾','จัดการธนาคาร','ค่าธรรมเนียมและประวัติ','bankadmin');
-  main+='</div>';
+  main=phoneAppHomeHtml(c,u);after=()=>{if(c){phoneTouchPresence(c.id);phoneLoadLockAlerts(c.id)}};
  }else if(appId==='bank'){
-  if(!c)main='<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติแล้วก่อนเปิดบัญชีธนาคาร <p><a href="#mychars">ไปที่ตัวละครของฉัน</a></p></div>';
-  else main='<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="go(\'phone/home\')">← หน้าแรก</button><div><div class="phone-eyebrow">STARLIGHT BANK</div><b>บัญชีธนาคาร</b></div></div><div id="bankPanel" class="phone-bank-panel"><div class="phone-bank-subcard">กำลังเชื่อมต่อบัญชีธนาคาร…</div></div>';
+  if(!c)main='<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติแล้วก่อนเปิดบัญชีธนาคาร</div>';
+  else main=phoneAppBack('บัญชีธนาคาร')+'<div id="bankPanel" class="phone-bank-panel"><div class="phone-bank-subcard">กำลังเชื่อมต่อบัญชีธนาคาร…</div></div>';
+  after=()=>{if(c)loadPhoneBankPanel(c.id)};
+ }else if(appId==='chat'||appId==='groupchat'){
+  main=phoneConversationListShell(appId);after=()=>loadPhoneConversations(appId);
+ }else if(appId==='conversation'){
+  main=phoneConversationThreadShell();after=()=>loadPhoneChatThread();
+ }else if(appId==='mail'){
+  main=phoneMailMarkup(PHONE_CURRENT_MAIL_FOLDER);after=()=>loadPhoneMail(PHONE_CURRENT_MAIL_FOLDER);
+ }else if(appId==='mail-view'){
+  main=phoneMailDetailMarkup();
+ }else if(appId==='contacts'){
+  main=phoneContactsMarkup();after=()=>loadPhoneContacts();
+ }else if(appId==='item-transfer'){
+  main=phoneItemTransferMarkup();after=()=>loadPhoneItemTransferHistory();
+ }else if(appId==='notifications'){
+  main=phoneNotificationsMarkup();after=()=>loadPhoneNotifications();
+ }else if(appId==='phone-settings'){
+  main=phoneSettingsMarkup();after=()=>loadPhonePrivacy();
+ }else if(appId==='phoneadmin'){
+  main=phoneAdminMarkup();after=()=>loadPhoneAdmin();
+ }else if(appId==='shop'){
+  main=phoneShopMarkup(c);
+ }else if(appId==='inventory'){
+  main=phoneInventoryMarkup(c);
+ }else if(appId==='profile'){
+  main=phoneProfileMarkup(c);
+ }else if(appId==='jobs'){
+  main=phoneJobsMarkup(c);
+ }else if(appId==='events'){
+  main=phoneEventsMarkup();
  }else{
-  const titles={
-   chat:['💬','แชตส่วนตัว','ระบบส่งข้อความส่วนตัวจะเชื่อมกับระบบแชตในขั้นถัดไป'],
-   groupchat:['👥','แชตกลุ่ม','สร้างห้องกลุ่ม เชิญสมาชิก และจัดการประวัติห้อง'],
-   contacts:['📇','รายชื่อติดต่อ','ค้นหาตัวละครและจัดการรายชื่อโปรด'],
-   'item-transfer':['🎁','ส่งไอเทม','เลือกไอเทม จำนวน และตัวละครผู้รับ พร้อมบันทึกประวัติการส่ง'],
-   notifications:['🔔','การแจ้งเตือน','แจ้งเตือนข้อความ จดหมาย การโอนเงิน และไอเทมเข้า'],
-   jobs:['💼','งานพิเศษ','ระบบงานและรายได้จะเชื่อมกับระบบเศรษฐกิจในขั้นต่อไป'],
-   events:['🌟','กิจกรรมและประกาศ','ดูประกาศและกิจกรรมของ STARLIGHT RP']
-  };
-  const item=titles[appId]||['✦','แอปพลิเคชัน',''];
-  main='<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="go(\'phone/home\')">← หน้าแรก</button><div class="phone-eyebrow">STARLIGHT APPLICATION</div></div><div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+item[0]+'</div><h2 style="margin:0 0 8px">'+esc(item[1])+'</h2><p class="mut">'+esc(item[2])+'</p><p class="phone-fee-note">ไอคอนและตำแหน่งแอปเตรียมไว้ในหน้าจอโทรศัพท์แล้ว ส่วนระบบนี้ยังไม่ได้เปิดใช้งานจริง</p><button class="btn ghost" onclick="go(\'phone/home\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
+  const titles={groupchat:['👥','แชตกลุ่ม','กลุ่ม'],chat:['💬','แชตส่วนตัว','ข้อความ']};
+  const app=titles[appId]||['✦','แอปพลิเคชัน',''];
+  main=phoneAppBack(app[1])+'<div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+app[0]+'</div><h2>'+esc(app[1])+'</h2><p class="phone-msg-muted">'+esc(app[2])+'</p><button class="btn ghost" onclick="openPhoneFloatApp(\\'home\\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
  }
- renderPhoneFloatContent(appId, '<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">✦ STARLIGHT</span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
- if(phoneUnlocked&&appId==='bank'&&c)loadPhoneBankPanel(c.id);
+ renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">✦ STARLIGHT</span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
+ if(after&&phoneUnlocked)after();
+ phoneStartPolling();
 }
 async function phoneBankRpc(name,args){
  if(!supaClient||!cloudReady)throw new Error('ยังไม่ได้เชื่อมต่อ Supabase ด้วยบัญชีออนไลน์ กรุณาเข้าสู่ระบบอีกครั้ง');
@@ -3901,7 +3962,7 @@ function renderPhoneFloatContent(appId,html){
  const panel=document.getElementById('phoneFloatWindow'),body=document.getElementById('phoneFloatPanelBody');
  const launcher=document.getElementById('phoneFloatLauncher');
  if(!panel||!body)return;
- const titleMap={home:'✦ STARLIGHT PHONE',bank:'✦ STARLIGHT BANK',bankadmin:'✦ BANK ADMIN',chat:'✦ PRIVATE CHAT',groupchat:'✦ GROUP CHAT',contacts:'✦ CONTACTS','item-transfer':'✦ ITEM TRANSFER',notifications:'✦ NOTIFICATIONS',jobs:'✦ JOBS',events:'✦ EVENTS'};
+ const titleMap={home:'✦ STARLIGHT PHONE',bank:'✦ STARLIGHT BANK',bankadmin:'✦ BANK ADMIN',phoneadmin:'✦ PHONE ADMIN',chat:'✦ PRIVATE CHAT',groupchat:'✦ GROUP CHAT',conversation:'✦ MESSAGES',contacts:'✦ CONTACTS',mail:'✦ MAIL','mail-view':'✦ MAIL','item-transfer':'✦ ITEM TRANSFER',notifications:'✦ NOTIFICATIONS',jobs:'✦ JOBS',events:'✦ EVENTS',shop:'✦ SHOP',inventory:'✦ INVENTORY',profile:'✦ PROFILE','phone-settings':'✦ PRIVACY'};
  const title=document.getElementById('phoneFloatWindowTitle');
  if(title)title.textContent=titleMap[phoneFloatCurrentApp]||'✦ STARLIGHT PHONE';
  body.innerHTML=html;
@@ -3984,7 +4045,7 @@ function renderNav(){
  const navEl=document.getElementById('nav');
  if(navEl)navEl.innerHTML=`<a href="#home" class="logo">${esc(S.logo)} ${esc(S.siteName)}</a>
  <div class="links">
-  <button type="button" class="nav-phone-link" onclick="openPhoneFloatApp('home')">📱 โทรศัพท์</button>
+
   <button type="button" class="nav-forum-switch" onclick="openForumSwitcher()" aria-label="เปิดตัวเลือกฟอรั่ม">ฟอรั่ม ▾</button><a href="#mail/inbox" class="nav-mail-link">✉️ จดหมาย${mailUnreadCount()>0?` <span class="mail-unread-badge">${mailUnreadCount()>99?'99+':mailUnreadCount()}</span>`:''}</a><a href="#chars">ทำเนียบ</a><a href="#agencies">ค่ายเพลง</a><a href="#groups">ศิลปิน/วง</a><a href="#shop">🛍 ร้านค้า</a><button type="button" class="btn sm ghost theme-open-btn" onclick="openThemePicker()">🎨 สีธีม</button>
   ${u?'<a href="#mychars">ตัวละครของฉัน</a>':''}
   ${adminPanel?`<a href="#admin">👑 แผงดูแล ${pc?`<span class="dot">${pc}</span>`:''}</a>`:''}
@@ -4932,7 +4993,7 @@ async function buyItem(iid){
  toast('ซื้อสำเร็จ! 🎉 ไปเลือกแสดงบนรูปข้างได้ที่ "แก้ไข/ตกแต่งโปรไฟล์"');render();
 }
 function itemForm(it){
- const v={name:'',img:'',price:1000,cat:ITEM_CATS[0],desc:'',stock:-1,...(it||{})};
+ const v={name:'',img:'',price:1000,cat:ITEM_CATS[0],desc:'',stock:-1,transferable:true,...(it||{})};
  return `<form class="card" onsubmit="doSaveItem(event,'${it?.id||''}')"><h3 style="margin-top:0">${it?'✏️ แก้ไขสินค้า':'➕ เพิ่มสินค้าใหม่'}</h3>
  <div class="row"><div class="f1"><label>ชื่อสินค้า *</label><input name="name" required maxlength="60" value="${esc(v.name)}"></div>
  <div class="f1"><label>หมวด (จะเป็นหัวข้อกล่องบนรูปข้าง)</label><select name="cat">${ITEM_CATS.map(x=>`<option ${x===v.cat?'selected':''}>${x}</option>`).join('')}</select></div></div>
@@ -4940,11 +5001,12 @@ function itemForm(it){
  <div class="f1"><label>จำนวนคงเหลือ (เว้นว่าง = ไม่จำกัด)</label><input name="stock" type="number" min="0" value="${v.stock<0?'':v.stock}"></div></div>
  <label>ลิงก์รูปสินค้า (https://...)</label><input name="img" type="url" value="${esc(v.img)}">
  <label>คำอธิบายสั้น ๆ</label><input name="desc" maxlength="150" value="${esc(v.desc)}">
+ <label class="row" style="gap:9px;align-items:center;margin:10px 0"><input name="transferable" type="checkbox" style="width:auto" ${v.transferable!==false?'checked':''}> <span><b>อนุญาตให้ส่งต่อไอเทมได้</b><small class="mut" style="display:block">หากปิด ผู้เล่นจะไม่สามารถส่งไอเทมชิ้นนี้ให้ตัวละครอื่นได้</small></span></label>
  <div class="row"><button class="btn">${it?'บันทึก':'เพิ่มสินค้า'}</button>${it?'<a class="btn ghost" href="#admin/shop">ยกเลิก</a>':''}</div></form>`;
 }
 function doSaveItem(e,id){
  e.preventDefault();if(!hasAdminPermission('manage_shop'))return toast('ไม่มีสิทธิ์จัดการร้านค้า','bad');const E=e.target.elements;
- const d={name:E.name.value.trim(),cat:E.cat.value,price:Math.max(0,+E.price.value||0),stock:E.stock.value===''?-1:Math.max(0,+E.stock.value),img:E.img.value.trim(),desc:E.desc.value.trim()};
+ const d={name:E.name.value.trim(),cat:E.cat.value,price:Math.max(0,+E.price.value||0),stock:E.stock.value===''?-1:Math.max(0,+E.stock.value),img:E.img.value.trim(),desc:E.desc.value.trim(),transferable:!!E.transferable?.checked};
  if(id)update('items',id,x=>Object.assign(x,d));else{const a=DB.get('items');a.push({id:uid(),...d});DB.set('items',a)}
  toast('บันทึกสินค้าแล้ว');go('admin/shop');
 }
