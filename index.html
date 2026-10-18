@@ -3070,6 +3070,17 @@ img,video{height:auto}
 html,body{height:auto!important;min-height:0!important;max-height:none!important}
 body{box-sizing:border-box}
 body>*{box-sizing:border-box}
+/* Thread move picker: keep destination list scrollable and make the intended event forum easy to find. */
+.qu-thread-move-modal{max-width:620px;max-height:min(88dvh,820px);min-height:0}
+.qu-thread-move-modal .qu-modal-head{flex:0 0 auto}
+.qu-thread-move-modal .qu-modal-head p{overflow-wrap:anywhere}
+.qu-thread-move-modal .qu-forum-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.qu-thread-move-modal .qu-thread-move-featured{padding:10px;border:1px solid color-mix(in srgb,var(--pri) 38%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--pri) 7%,var(--card))}
+.qu-thread-move-modal .qu-thread-move-featured h3{margin-top:0}
+.qu-thread-move-current{display:flex;flex-direction:column;gap:4px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card2)}
+.qu-thread-move-current small{font-size:.76rem;opacity:.7}
+.qu-thread-move-modal .qu-modal-actions{flex:0 0 auto}
+@media(max-width:600px){.qu-thread-move-modal{max-height:calc(100dvh - 18px)}.qu-thread-move-modal .qu-modal-head{gap:8px}.qu-thread-move-modal .qu-modal-actions .btn{min-height:42px;width:100%}}
 /* Keep paper notices the same restrained size in preview and published posts. */
 .rich .st-paper-announcement{
   box-sizing:border-box!important;
@@ -6197,7 +6208,7 @@ function pageThread(id,view=''){
     <h3 class="thread-opening-story-title">📖 เนื้อเรื่อง</h3>
     ${renderBody(t.plot,t.plotMode,t.css,t.characterBio===true)}
     ${t.characterBio&&u&&(u.id===t.authorId||isAdmin())?`<br><div class="row"><a class="btn sm ghost" href="#editbio/${t.id}">✏️ แก้ไขประวัติ</a></div>`:''}
-    ${hasAdminPermission('manage_threads')?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button><button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
+    ${hasAdminPermission('manage_threads')?`<br><div class="row"><a class="btn sm ghost" href="#editthread/${t.id}">✏️ แก้ไข</a><button class="btn sm ghost" onclick="toggleThread('${t.id}')">${t.status==='open'?'🔒 ปิดกระทู้':'🔓 เปิดกระทู้'}</button><button class="btn sm ghost" onclick="pinThread('${t.id}')">${t.pinned?'เลิกปักหมุด':'📌 ปักหมุด'}</button>${!t.characterBio?`<button type="button" class="btn sm ghost" onclick="moveThread('${t.id}')">↗ ย้ายฟอรั่ม</button>`:''}<button class="btn sm bad" onclick="deleteThread('${t.id}')">ลบกระทู้</button></div>`:''}
    </div>
   </div></div>
   <div id="thread-replies-heading" class="thread-replies-heading"><h3>💬 โรลเพลย์ (${posts.length})</h3>${totalPages>1?`<span>หน้า ${page} / ${totalPages}</span>`:''}</div>
@@ -7042,6 +7053,63 @@ async function rejectChar(id){if(!hasAdminPermission('manage_character_review'))
 function setStage(id,d){if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการระดับตัวละคร','bad');const c=update('characters',id,c=>{c.stage=Math.max(0,Math.min(STAGES.length-1,c.stage+d))});toast(`${c.stageName||c.name} → ${STAGES[c.stage].n}`);render()}
 async function giveExp(id){if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการ EXP','bad');const r=await askText('จำนวน EXP (ใส่ค่าลบเพื่อหัก):','10');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');update('characters',id,c=>c.exp=Math.max(0,c.exp+v));toast('อัปเดต EXP แล้ว');render()}
 function toggleThread(id){if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');update('threads',id,t=>t.status=t.status==='open'?'closed':'open');render()}
+function moveThread(id){
+ if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');
+ const t=DB.get('threads').find(x=>x.id===id);
+ if(!t)return toast('ไม่พบกระทู้นี้','bad');
+ if(t.characterBio)return toast('กระทู้ประวัติตัวละครต้องอยู่ในฟอรั่มประวัติตัวละคร','bad');
+ const forums=DB.get('forums'),categories=[...DB.get('categories')].sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const current=forums.find(f=>f.id===t.forumId);
+ const featured=forums.find(f=>f.id==='mvcrmyt5yyc94');
+ const sorted=list=>[...list].sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
+ const makeChoice=f=>`<button type="button" class="qu-forum-choice" data-move-forum-id="${esc(f.id)}" data-forum-name="${esc(f.name)}"><span class="qu-forum-glyph">↗</span><span><b>${esc(f.name)}</b><small>${esc(f.desc||'ย้ายกระทู้มายังฟอรั่มนี้')}</small></span><span class="qu-forum-arrow">›</span></button>`;
+ const featuredHtml=featured
+  ?`<section class="qu-forum-group qu-thread-move-featured"><h3>✦ ฟอรั่มแนะนำ · ข่าวศิลปิน</h3>${featured.id===t.forumId?`<div class="qu-thread-move-current"><b>${esc(featured.name)}</b><small>กระทู้นี้อยู่ในฟอรั่มนี้แล้ว</small></div>`:makeChoice(featured)}</section>`
+  :`<section class="qu-forum-group qu-thread-move-featured"><h3>✦ ฟอรั่มแนะนำ</h3><p class="mut">ไม่พบฟอรั่มปลายทางที่บันทึกไว้ ให้เลือกฟอรั่มจากรายการด้านล่างแทนได้เลย</p></section>`;
+ const sections=categories.map(cat=>{
+  const items=sorted(forums.filter(f=>f.catId===cat.id&&f.id!==featured?.id&&f.id!==t.forumId));
+  if(!items.length)return '';
+  return `<section class="qu-forum-group"><h3>${esc(cat.name)}</h3><div class="qu-forum-list">${items.map(makeChoice).join('')}</div></section>`;
+ }).join('');
+ const assigned=new Set(categories.flatMap(cat=>forums.filter(f=>f.catId===cat.id).map(f=>f.id)));
+ const extras=sorted(forums.filter(f=>!assigned.has(f.id)&&f.id!==featured?.id&&f.id!==t.forumId));
+ const extraHtml=extras.length?`<section class="qu-forum-group"><h3>ฟอรั่มอื่น ๆ</h3><div class="qu-forum-list">${extras.map(makeChoice).join('')}</div></section>`:'';
+ const wrap=document.createElement('div');wrap.id='quickUtilityModal';wrap.className='qu-modal-backdrop';
+ wrap.innerHTML=`<section class="qu-modal qu-forum-modal qu-thread-move-modal" role="dialog" aria-modal="true" aria-labelledby="quThreadMoveTitle">
+  <div class="qu-modal-head"><div><span class="qu-modal-kicker">THREAD MANAGEMENT</span><h2 id="quThreadMoveTitle">↗ ย้ายกระทู้ไปฟอรั่มอื่น</h2><p><b>${esc(t.title)}</b><br>ตำแหน่งปัจจุบัน: ${esc(current?.name||'ไม่ทราบฟอรั่ม')} · โพสต์ตอบกลับจะย้ายไปพร้อมกระทู้โดยอัตโนมัติ</p></div><button type="button" class="qu-modal-close" data-thread-move-close aria-label="ปิด">×</button></div>
+  <input class="qu-input qu-forum-search" type="search" placeholder="⌕ ค้นหาฟอรั่มปลายทาง…" aria-label="ค้นหาฟอรั่มปลายทาง">
+  <div class="qu-forum-scroll">${featuredHtml}${sections}${extraHtml}</div>
+  <div class="qu-modal-actions"><button type="button" class="btn ghost" data-thread-move-close>ยกเลิก</button></div>
+ </section>`;
+ document.body.appendChild(wrap);
+ const close=()=>wrap.remove();
+ wrap.addEventListener('click',async ev=>{
+  if(ev.target===wrap||ev.target.closest('[data-thread-move-close]')){close();return}
+  const choice=ev.target.closest('[data-move-forum-id]');
+  if(!choice)return;
+  const dest=choice.dataset.moveForumId,target=forums.find(f=>f.id===dest);
+  if(!target||dest===t.forumId)return;
+  close();
+  if(!await ask(`ยืนยันย้ายกระทู้ “${t.title}” หรือไม่?\nจาก: ${current?.name||'ไม่ทราบฟอรั่ม'}\nไป: ${target.name}\n\nกระทู้และโพสต์ตอบกลับจะยังอยู่ครบ เพียงเปลี่ยนฟอรั่มที่จัดเก็บ`))return;
+  if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');
+  const latest=DB.get('threads').find(x=>x.id===id),latestTarget=DB.get('forums').find(x=>x.id===dest);
+  if(!latest||!latestTarget)return toast('ไม่พบกระทู้หรือฟอรั่มปลายทางแล้ว กรุณาลองใหม่','bad');
+  if(latest.characterBio)return toast('กระทู้ประวัติตัวละครต้องอยู่ในฟอรั่มประวัติตัวละคร','bad');
+  if(latest.forumId===dest)return toast('กระทู้นี้อยู่ในฟอรั่มปลายทางอยู่แล้ว','bad');
+  update('threads',id,thread=>{thread.forumId=dest});
+  toast('ย้ายกระทู้ไปยัง “'+latestTarget.name+'” แล้ว');
+  go('thread/'+id);
+ });
+ const search=wrap.querySelector('.qu-forum-search');
+ search.addEventListener('input',()=>{
+  const q=search.value.trim().toLocaleLowerCase();
+  wrap.querySelectorAll('.qu-forum-choice').forEach(item=>{item.hidden=!!q&&!((item.dataset.forumName||'').toLocaleLowerCase().includes(q)||(item.textContent||'').toLocaleLowerCase().includes(q))});
+  wrap.querySelectorAll('.qu-forum-group').forEach(group=>{const choices=group.querySelectorAll('.qu-forum-choice');group.hidden=choices.length>0&&![...choices].some(item=>!item.hidden)});
+ });
+ wrap.addEventListener('keydown',ev=>{if(ev.key==='Escape')close()});
+ search.focus();
+}
+
 function pinThread(id){if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');update('threads',id,t=>t.pinned=!t.pinned);render()}
 async function deleteThread(id){if(!hasAdminPermission('manage_threads')||!await ask('ลบกระทู้นี้และโพสต์ทั้งหมด?'))return;DB.set('threads',DB.get('threads').filter(t=>t.id!==id));DB.set('posts',DB.get('posts').filter(p=>p.threadId!==id));toast('ลบกระทู้แล้ว');go('threads')}
 async function deletePost(id){if(!hasAdminPermission('manage_posts')||!await ask('ลบโพสต์นี้?'))return;DB.set('posts',DB.get('posts').filter(p=>p.id!==id));render()}
