@@ -1687,6 +1687,7 @@ const CLOUD_COLLECTIONS=['users','characters','posts','threads','forums','catego
 const CLOUD_AUTH_DOMAIN='starlight.invalid';
 let supaClient=null, cloudProfile=null, cloudReady=false, cloudApplying=false, cloudQueue=Promise.resolve(), cloudChannel=null;
 let cloudFirstAdminUsername=null;
+let forumOrderSyncInProgress=false, cloudSyncErrorVersion=0;
 let MAIL_CACHE={ownerId:'',inbox:[],sent:[],loaded:{},loading:{},error:{}};
 try{
  if(window.supabase&&typeof window.supabase.createClient==='function'){
@@ -1722,6 +1723,7 @@ function cloudSyncCollection(collection,oldValue,newValue){
    if(error)throw error;
   }
  }).catch(err=>{
+  cloudSyncErrorVersion++;
   console.error('Cloud sync failed for '+collection,err);
   toast('ซิงก์ข้อมูลไม่สำเร็จ: '+(err?.message||'ตรวจสอบสิทธิ์/ฐานข้อมูล'),'bad');
  });
@@ -1823,7 +1825,8 @@ function cloudHasActiveEditingWork(){
  return false;
 }
 async function cloudRefresh(renderAfter=true){
- if(!supaClient||!cloudReady||cloudApplying)return;
+ // A forum reorder updates several records; do not let realtime refresh restore a half-written order.
+ if(!supaClient||!cloudReady||cloudApplying||forumOrderSyncInProgress)return;
  try{
   const rows=await cloudFetchRows();
   if(!rows.length)return;
@@ -4718,13 +4721,38 @@ function openForumEditor(id,catId){
 }
 async function addForum(catId){openForumEditor('',catId)}
 function editForum(id){const f=DB.get('forums').find(x=>x.id===id);if(f)openForumEditor(id,f.catId)}
-function moveForum(id,delta){
- if(!hasAdminPermission('manage_forums'))return;
+async function moveForum(id,delta){
+ if(!hasAdminPermission('manage_forums'))return toast('ไม่มีสิทธิ์จัดการฟอรั่ม','bad');
+ if(forumOrderSyncInProgress)return toast('กำลังบันทึกลำดับฟอรั่ม กรุณารอสักครู่');
  const forums=DB.get('forums'),f=forums.find(x=>x.id===id);if(!f)return;
  const siblings=forums.filter(x=>x.catId===f.catId).sort((a,b)=>(Number(a.order)||9999)-(Number(b.order)||9999));
  const from=siblings.findIndex(x=>x.id===id),to=from+delta;if(from<0||to<0||to>=siblings.length)return;
- [siblings[from],siblings[to]]=[siblings[to],siblings[from]];siblings.forEach((x,i)=>x.order=i+1);
- DB.set('forums',forums);toast('เปลี่ยนลำดับฟอรั่มแล้ว');render();
+ [siblings[from],siblings[to]]=[siblings[to],siblings[from]];
+ siblings.forEach((x,i)=>x.order=i+1);
+ const errorVersionBefore=cloudSyncErrorVersion;
+ forumOrderSyncInProgress=true;
+ DB.set('forums',forums);
+ render();
+ // Local-only mode can finish immediately. With cloud enabled, wait for every order write
+ // before allowing realtime refresh to replace the just-saved list.
+ if(!supaClient||!cloudReady){
+  forumOrderSyncInProgress=false;
+  toast('เปลี่ยนลำดับฟอรั่มแล้ว');
+  return;
+ }
+ try{
+  await cloudQueue;
+  const syncFailed=cloudSyncErrorVersion>errorVersionBefore;
+  forumOrderSyncInProgress=false;
+  await cloudRefresh(false);
+  render();
+  if(syncFailed)return; // cloudSyncCollection already displayed the specific sync error.
+  toast('เปลี่ยนลำดับฟอรั่มแล้ว');
+ }catch(err){
+  forumOrderSyncInProgress=false;
+  console.error('Forum order save failed:',err);
+  toast('บันทึกลำดับฟอรั่มไม่สำเร็จ: '+(err?.message||'กรุณาลองอีกครั้ง'),'bad');
+ }
 }
 async function deleteForum(id){if(!hasAdminPermission('manage_forums')||!await ask('ลบฟอรั่มนี้? กระทู้เก่าจะยังอยู่แต่ไม่แสดงในรายการฟอรั่ม'))return;DB.set('forums',DB.get('forums').filter(f=>f.id!==id));render()}
 
