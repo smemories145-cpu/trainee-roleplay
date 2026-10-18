@@ -2971,7 +2971,7 @@ function legacyHtml(s){
   [/\[size=(\d+)\]([\s\S]*?)\[\/size\]/gi,'<span style="font-size:$1px">$2</span>'],
   [/\[url=(https?:[^\]]+)\]([\s\S]*?)\[\/url\]/gi,'<a href="$1">$2</a>'],
   [/\[url\](https?:[\s\S]*?)\[\/url\]/gi,'<a href="$1">$1</a>'],
-  [/\[img\](https?:[^\[]+)\[\/img\]/gi,'<img src="$1">'],
+   [/\[(?:img(?:=(\d{1,3})(?:%)?)?)\](https?:[^\[]+)\[\/img\]/gi,(_,size,url)=>'<img src="'+url.trim()+'" style="width:'+(size?Math.max(10,Math.min(100,Number(size))):100)+'%;max-width:100%;height:auto">'],
   [/\[youtube\]([\w-]{11})\[\/youtube\]/gi,'<iframe src="https://www.youtube-nocookie.com/embed/$1" width="100%" height="315" allowfullscreen frameborder="0"></iframe>'],
   [/\[quote\]([\s\S]*?)\[\/quote\]/gi,'<blockquote>$1</blockquote>'],
   [/\[code\]([\s\S]*?)\[\/code\]/gi,(_,code)=>'<pre><code>'+esc(code)+'</code></pre>'],
@@ -3883,7 +3883,7 @@ function insertEditorSourceBlock(ed,value,css='',type='html'){
 }
 function editorHtmlFragmentToBBCode(value){
  return String(value||'')
-  .replace(/<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>/gi,'[img]$1[/img]')
+  .replace(/<img\b([^>]*)>/gi,(tag,attrs)=>{const sm=attrs.match(/\bsrc\s*=\s*(["'])(.*?)\1/i)||attrs.match(/\bsrc\s*=\s*([^\s>]+)/i);const src=sm?(sm[2]??sm[1]??''):'';if(!src)return tag;const st=(attrs.match(/\bstyle\s*=\s*(["'])([\s\S]*?)\1/i)||[])[2]||'';const wm=st.match(/(?:^|;)\s*width\s*:\s*(\d+(?:\.\d+)?)\s*%/i)||attrs.match(/\bwidth\s*=\s*["'](\d+(?:\.\d+)?)%["']/i);const pct=wm?Math.max(10,Math.min(100,Number(wm[1]))):null;return pct!==null?'[img='+pct+'%]'+src+'[/img]':'[img]'+src+'[/img]';})
   .replace(/<br\s*\/?>/gi,'[br]')
   .replace(/<hr\s*\/?>/gi,'[hr]')
   .replace(/<\/?strong\b[^>]*>/gi,m=>/^<\//.test(m)?'[/b]':'[b]')
