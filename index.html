@@ -3097,9 +3097,7 @@ function insertEditorPaste(ed,html,css=''){
  area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);saveSel();
 }
 function editorCssDocument(html,css){
- return '<!doctype html><html lang="th"><head><meta charset="utf-8"><style>'+cleanEditorCss(css)+'</style>
-
-</head><body>'+sanitize(html)+'</body></html>';
+ return '<!doctype html><html lang="th"><head><meta charset="utf-8"><style>'+cleanEditorCss(css)+'</style>\n</head><body>'+sanitize(html)+'</body></html>';
 }
 function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
