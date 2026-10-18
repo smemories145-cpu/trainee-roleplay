@@ -4012,7 +4012,7 @@ function phoneImage(url){
  return '<span class="phone-msg-avatar"><img loading="lazy" src="'+esc(url)+'" alt="" referrerpolicy="no-referrer"></span>';
 }
 function phoneTitleForNotification(n){
- const types={message:'ข้อความใหม่',mention:'มีคนกล่าวถึงคุณ',group_invite:'คำเชิญเข้ากลุ่ม',group_joined:'สมาชิกเข้าร่วมกลุ่ม',group_left:'สมาชิกออกจากกลุ่ม',group_removed:'ถูกนำออกจากกลุ่ม',group_archived:'กลุ่มถูกเก็บเข้าคลัง',group_owner:'คุณได้รับสิทธิ์เจ้าของกลุ่ม',item_received:'ได้รับไอเทม',item_sent:'ส่งไอเทมแล้ว'};
+ const types={message:'ข้อความใหม่',mention:'มีคนกล่าวถึงคุณ',group_invite:'คำเชิญเข้ากลุ่ม',group_joined:'สมาชิกเข้าร่วมกลุ่ม',group_left:'สมาชิกออกจากกลุ่ม',group_removed:'ถูกนำออกจากกลุ่ม',group_archived:'กลุ่มถูกเก็บเข้าคลัง',group_owner:'คุณได้รับสิทธิ์เจ้าของกลุ่ม',item_received:'ได้รับไอเทม',item_sent:'ส่งไอเทมแล้ว',mail_received:'จดหมายใหม่',bank_deposit:'ฝากเงินเข้าธนาคาร',bank_withdraw:'ถอนเงินจากธนาคาร',bank_transfer_sent:'โอนเงินแล้ว',bank_transfer_received:'ได้รับเงินโอน'};
  return types[n.kind]||'แจ้งเตือนจาก STARLIGHT';
 }
 function phoneLockAlertMarkup(){
@@ -4050,7 +4050,7 @@ function phoneStartPolling(){
  PHONE_POLL_TIMER=setInterval(async()=>{
   const panel=document.getElementById('phoneFloatWindow');
   if(!panel||panel.hidden||!phoneUnlocked||!me())return;
-  const c=getActiveChar(me());if(c)phoneTouchPresence(c.id);
+  const c=getActiveChar(me());if(c){phoneTouchPresence(c.id);phoneLoadLockAlerts(c.id);phoneSyncMailUnread()}
   if(phoneFloatCurrentApp==='conversation'&&PHONE_OPEN_CONVERSATION_ID)await loadPhoneChatThread();
   else if(phoneFloatCurrentApp==='chat'||phoneFloatCurrentApp==='groupchat')await loadPhoneConversations(phoneFloatCurrentApp);
   else if(phoneFloatCurrentApp==='notifications')await loadPhoneNotifications();
@@ -4339,8 +4339,8 @@ async function loadPhoneNotifications(){
   PHONE_NOTIFICATIONS=Array.isArray(data)?data:[];
   phoneUpdateNotificationCount(PHONE_NOTIFICATIONS);
   if(root)root.innerHTML=PHONE_NOTIFICATIONS.length?PHONE_NOTIFICATIONS.map(n=>{
-   const icons={message:'💬',mention:'＠',group_invite:'👥',group_joined:'👋',group_left:'↗',group_removed:'🚫',group_archived:'📦',group_owner:'👑',item_received:'🎁',item_sent:'📨'};
-   const p=n.payload||{},summary=p.item_name?(String(p.quantity||1)+' × '+p.item_name):p.group_name||p.conversation_name||'';
+   const icons={message:'💬',mention:'＠',group_invite:'👥',group_joined:'👋',group_left:'↗',group_removed:'🚫',group_archived:'📦',group_owner:'👑',item_received:'🎁',item_sent:'📨',mail_received:'✉️',bank_deposit:'🏦',bank_withdraw:'🏦',bank_transfer_sent:'↗',bank_transfer_received:'↙'};
+   const p=n.payload||{},summary=p.item_name?(String(p.quantity||1)+' × '+p.item_name):p.group_name||p.conversation_name||(p.amount!==undefined?bankMoney(p.amount)+(Number(p.fee)?' · ค่าธรรมเนียม '+bankMoney(p.fee):''):'')||(p.subject?'หัวข้อ: '+p.subject:'');
    return '<div class="phone-notification-row '+(!n.is_read?'unread':'')+'"><div class="phone-notification-icon">'+(icons[n.kind]||'✦')+'</div><div class="phone-notification-main"><b>'+esc(phoneTitleForNotification(n))+'</b><small>'+esc(n.actor_name||'STARLIGHT')+(summary?' · '+esc(summary):'')+' · '+esc(phoneDateTime(n.created_at))+'</small><div class="row" style="gap:6px;margin-top:7px">'+(n.conversation_id?'<button class="btn sm ghost" onclick="phoneOpenNotificationConversation(\''+n.conversation_id+'\')">เปิดแชต/กลุ่ม</button>':'')+(!n.is_read?'<button class="btn sm ghost" onclick="phoneMarkNotificationRead('+n.id+')">อ่านแล้ว</button>':'')+'</div></div></div>';
   }).join(''):'<div class="phone-msg-muted">ยังไม่มีการแจ้งเตือน</div>';
  }catch(e){if(root)root.innerHTML=phoneFeatureError(e)}
@@ -4599,6 +4599,25 @@ async function phoneSaveAdminSettings(event){
 async function phoneReviewReport(id,action){
  let note='';if(action==='dismissed'){note=await askText('หมายเหตุการปิดรายงาน (ไม่บังคับ):','');if(note===null)return}
  try{await phoneBankRpc('site_phone_admin_report_action',{p_report_id:id,p_action:action,p_note:note||''});toast(action==='reviewed'?'ทำเครื่องหมายตรวจแล้ว':'ปิดรายงานแล้ว');await loadPhoneAdmin()}catch(e){toast('ดำเนินการไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+
+
+let PHONE_LAST_MAIL_UNREAD_COUNT=null;
+function phoneSyncMailUnread(){
+ const u=me();if(!u)return;
+ const cache=mailCacheFor(u.id);
+ if(!cache.loaded.inbox)return;
+ const unread=(cache.inbox||[]).filter(m=>!(m.readAt||m.read_at)).length;
+ PHONE_APP_UNREAD.mail=unread;
+ if(PHONE_LAST_MAIL_UNREAD_COUNT!==null&&unread>PHONE_LAST_MAIL_UNREAD_COUNT)phonePulseLauncher();
+ PHONE_LAST_MAIL_UNREAD_COUNT=unread;
+}
+async function phoneOpenNotificationTarget(appId){
+ if(!getActiveChar(me()))return;
+ if(appId==='mail'){PHONE_CURRENT_MAIL_FOLDER='inbox';await loadPhoneMail('inbox');return openPhoneFloatApp('mail')}
+ if(appId==='bank')return openPhoneFloatApp('bank');
+ if(appId==='item-transfer')return openPhoneFloatApp('item-transfer');
+ return openPhoneFloatApp(appId);
 }
 
 /* ================= ROUTER ================= */
