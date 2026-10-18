@@ -3649,6 +3649,8 @@ function pagePhone(appId){
   main=phoneMailMarkup(PHONE_CURRENT_MAIL_FOLDER);after=()=>loadPhoneMail(PHONE_CURRENT_MAIL_FOLDER);
  }else if(appId==='mail-view'){
   main=phoneMailDetailMarkup();
+ }else if(appId==='mail-compose'){
+  main=phoneMailComposeMarkup();
  }else if(appId==='contacts'){
   main=phoneContactsMarkup();after=()=>loadPhoneContacts();
  }else if(appId==='item-transfer'){
@@ -4411,6 +4413,163 @@ async function loadPhoneItemTransferHistory(){
   const data=await phoneBankRpc('site_phone_transfer_history',{p_character_id:c.id});PHONE_TRANSFER_HISTORY=Array.isArray(data)?data:[];
   root.innerHTML='<h3 style="margin-top:0">ประวัติส่ง/รับไอเทม</h3>'+(PHONE_TRANSFER_HISTORY.length?PHONE_TRANSFER_HISTORY.map(x=>'<div class="phone-mini-history-row"><div><b>'+(x.direction==='sent'?'ส่งให้ '+esc(x.recipient_name):'ได้รับจาก '+esc(x.sender_name))+'</b><small>'+esc(x.item_name)+' × '+esc(x.quantity)+(x.note?' · '+esc(x.note):'')+' · '+esc(phoneDateTime(x.created_at))+'</small></div><span>'+(x.direction==='sent'?'↗':'↙')+'</span></div>').join(''):'<div class="phone-msg-muted">ยังไม่มีประวัติส่งหรือรับไอเทม</div>');
  }catch(e){root.innerHTML=phoneFeatureError(e)}
+}
+
+
+/* ================= PHONE MAIL, SHOP, JOBS, EVENTS, INVENTORY, PROFILE, ADMIN ================= */
+function phoneMailMarkup(folder){
+ const u=me();if(!u)return '<div class="phone-not-ready">กรุณาเข้าสู่ระบบ</div>';
+ const cache=mailCacheFor(u.id),items=cache[folder]||[];
+ let html=phoneAppBack('จดหมาย');
+ html+='<div class="row between" style="gap:8px;margin-bottom:12px"><div class="row" style="gap:6px"><button class="btn sm '+(folder==='inbox'?'':'ghost')+'" onclick="phoneSwitchMailFolder(\'inbox\')">กล่องเข้า</button><button class="btn sm '+(folder==='sent'?'':'ghost')+'" onclick="phoneSwitchMailFolder(\'sent\')">ส่งแล้ว</button></div><button class="btn sm" onclick="openPhoneFloatApp(\'mail-compose\')">＋ เขียน</button></div>';
+ if(cache.loading[folder])html+='<div class="phone-msg-muted">กำลังเปิดคลังจดหมาย…</div>';
+ else if(cache.error[folder])html+=phoneFeatureError(cache.error[folder])+'<button class="btn sm" onclick="loadPhoneMail(\''+folder+'\')">ลองอีกครั้ง</button>';
+ else if(!items.length)html+='<div class="phone-msg-card"><b>'+(folder==='inbox'?'ยังไม่มีจดหมายเข้า':'ยังไม่มีจดหมายที่ส่ง')+'</b><p class="phone-msg-muted">เขียนจดหมายหาสมาชิกผ่านบัญชีเว็บไซต์ได้ที่นี่</p></div>';
+ else html+='<div class="phone-msg-list">'+items.map(m=>{
+  const other=folder==='inbox'?(m.senderUsername||m.sender_username||'สมาชิก'):(m.recipientUsername||m.recipient_username||'ผู้รับ');
+  return '<button class="phone-msg-conv" onclick="phoneOpenMailMessage(\''+esc(m.id)+'\',\''+folder+'\')"><span class="phone-msg-avatar">✉️</span><span class="phone-msg-conv-main"><span class="phone-msg-conv-title">'+(folder==='inbox'&&!m.readAt?'● ':'')+esc(m.subject||'(ไม่มีหัวข้อ)')+'</span><span class="phone-msg-preview">'+esc(other)+' · '+esc(String(m.body||'').slice(0,100))+'</span></span><small class="phone-msg-time">'+esc(phoneShortTime(m.createdAt||m.created_at))+'</small></button>';
+ }).join('')+'</div>';
+ return html;
+}
+function phoneMailComposeMarkup(){
+ const users=DB.get('users').filter(x=>x.id!==me()?.id);
+ return phoneAppBack('เขียนจดหมาย')+'<form class="phone-msg-form" onsubmit="doPhoneSendMail(event)"><label>ผู้รับ</label><input list="phoneMailRecipientList" name="to" required maxlength="80" placeholder="ชื่อบัญชีสมาชิก"><datalist id="phoneMailRecipientList">'+users.map(u=>'<option value="'+esc(u.username)+'"></option>').join('')+'</datalist><label>หัวข้อ</label><input name="subject" required maxlength="120" value="'+esc(PHONE_MAIL_COMPOSE?.subject||'')+'" placeholder="หัวข้อจดหมาย"><label>ข้อความ</label><textarea name="body" required maxlength="12000" rows="7" placeholder="เขียนข้อความที่นี่…"></textarea><button class="btn" type="submit">ส่งจดหมาย ✉️</button><button type="button" class="btn ghost" onclick="openPhoneFloatApp(\'mail\')">ยกเลิก</button></form>';
+}
+async function loadPhoneMail(folder){
+ const u=me();if(!u)return;
+ const cache=mailCacheFor(u.id),need=!cache.loaded[folder]&&!cache.loading[folder];
+ if(need){
+  await loadMailFolder(folder,u.id);
+  if(phoneFloatCurrentApp==='mail')openPhoneFloatApp('mail');
+ }
+}
+function phoneSwitchMailFolder(folder){PHONE_CURRENT_MAIL_FOLDER=folder;openPhoneFloatApp('mail')}
+async function phoneOpenMailMessage(id,folder){
+ const u=me();if(!u)return;
+ const cache=mailCacheFor(u.id);
+ let m=(cache[folder]||[]).find(x=>x.id===id);
+ if(!m){await loadPhoneMail(folder);m=(mailCacheFor(u.id)[folder]||[]).find(x=>x.id===id)}
+ if(!m)return toast('ไม่พบจดหมายฉบับนี้','bad');
+ if(folder==='inbox'&&!m.readAt&&!m.read_at){
+  try{
+   if(cloudReady)await phoneBankRpc('site_mail_mark_read',{p_mail_id:id});
+   else{m.readAt=Date.now();const all=DB.get('mail'),saved=all.find(x=>x.id===id);if(saved)saved.readAt=m.readAt;DB.set('mail',all)}
+   m.readAt=Date.now();
+  }catch(e){}
+ }
+ PHONE_MAIL_DETAIL={id:id,folder:folder};PHONE_CURRENT_MAIL_FOLDER=folder;openPhoneFloatApp('mail-view');
+}
+function phoneMailDetailMarkup(){
+ const u=me();if(!u||!PHONE_MAIL_DETAIL)return phoneMailMarkup(PHONE_CURRENT_MAIL_FOLDER);
+ const cache=mailCacheFor(u.id),m=(cache[PHONE_MAIL_DETAIL.folder]||[]).find(x=>x.id===PHONE_MAIL_DETAIL.id);
+ if(!m)return '<div class="phone-not-ready">ไม่พบจดหมาย</div>';
+ const folder=PHONE_MAIL_DETAIL.folder,other=folder==='inbox'?(m.senderUsername||m.sender_username||'สมาชิก'):(m.recipientUsername||m.recipient_username||'ผู้รับ');
+ return phoneAppBack('อ่านจดหมาย')+'<div class="phone-msg-card"><div class="phone-eyebrow">'+(folder==='inbox'?'INBOX':'SENT')+'</div><h3 style="margin:7px 0">'+esc(m.subject||'(ไม่มีหัวข้อ)')+'</h3><div class="phone-msg-muted">'+(folder==='inbox'?'จาก ':'ถึง ')+esc(other)+' · '+esc(phoneDateTime(m.createdAt||m.created_at))+'</div><div style="white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;font-size:.86rem">'+esc(m.body||'')+'</div><div class="row" style="gap:7px;flex-wrap:wrap">'+(folder==='inbox'?'<button class="btn sm" onclick="phoneReplyToMail(\''+esc(m.id)+'\',\''+folder+'\')">ตอบกลับ</button>':'')+'<button class="btn sm bad" onclick="phoneDeleteMailMessage(\''+esc(m.id)+'\',\''+folder+'\')">ลบ</button><button class="btn sm ghost" onclick="phoneSwitchMailFolder(\''+folder+'\')">กลับกล่องจดหมาย</button></div></div>';
+}
+let PHONE_MAIL_COMPOSE=null;
+function phoneReplyToMail(id,folder){
+ const u=me();if(!u)return;
+ const m=(mailCacheFor(u.id)[folder]||[]).find(x=>x.id===id);if(!m)return;
+ PHONE_MAIL_COMPOSE={to:folder==='inbox'?(m.senderUsername||m.sender_username||''):(m.recipientUsername||m.recipient_username||''),subject:'RE: '+String(m.subject||''),threadId:m.threadId||m.thread_id||m.id};
+ openPhoneFloatApp('mail-compose');
+}
+async function doPhoneSendMail(event){
+ event.preventDefault();const u=me(),form=event.currentTarget;if(!u)return;
+ const fd=new FormData(form),to=String(fd.get('to')||'').trim(),subject=String(fd.get('subject')||'').trim(),body=String(fd.get('body')||'').trim();
+ const recipient=DB.get('users').find(x=>String(x.username||'').toLowerCase()===to.toLowerCase());
+ if(!recipient)return toast('ไม่พบชื่อผู้รับ กรุณาเลือกบัญชีสมาชิกจากรายการ','bad');
+ if(recipient.id===u.id)return toast('ไม่สามารถส่งจดหมายให้ตัวเองได้','bad');
+ if(!subject||!body)return toast('กรุณากรอกหัวข้อและข้อความ','bad');
+ if(subject.length>120||body.length>12000)return toast('ข้อความยาวเกินกว่าที่กำหนด','bad');
+ const activeChar=getActiveChar(u);
+ try{
+  if(cloudReady){
+   await phoneBankRpc('site_mail_send',{p_mail:{id:uid(),recipientId:recipient.id,subject,body,senderCharacterId:activeChar?.id||'',threadId:PHONE_MAIL_COMPOSE?.threadId||''}});
+   MAIL_CACHE={ownerId:u.id,inbox:[],sent:[],loaded:{},loading:{},error:{}};
+  }else{
+   const all=DB.get('mail'),id=uid(),threadId=PHONE_MAIL_COMPOSE?.threadId||id;
+   all.push({id,threadId,senderId:u.id,senderUsername:u.username,recipientId:recipient.id,recipientUsername:recipient.username,subject,body,createdAt:Date.now(),readAt:null,senderDeleted:false,recipientDeleted:false});DB.set('mail',all);
+   MAIL_CACHE={ownerId:u.id,inbox:[],sent:[],loaded:{},loading:{},error:{}};
+  }
+  PHONE_MAIL_COMPOSE=null;PHONE_CURRENT_MAIL_FOLDER='sent';toast('ส่งจดหมายแล้ว ✉️');openPhoneFloatApp('mail');
+ }catch(e){toast('ส่งจดหมายไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneDeleteMailMessage(id,folder){
+ const u=me();if(!u||!await ask('ลบจดหมายออกจากกล่องของคุณหรือไม่? อีกฝ่ายยังมีสำเนาของตัวเอง'))return;
+ try{
+  if(cloudReady)await phoneBankRpc('site_mail_delete',{p_mail_id:id,p_folder:folder});
+  else{const all=DB.get('mail'),m=all.find(x=>x.id===id);if(m){if(folder==='inbox')m.recipientDeleted=true;else m.senderDeleted=true;DB.set('mail',all)}}
+  const cache=mailCacheFor(u.id);cache.loaded[folder]=false;cache.loading[folder]=false;PHONE_MAIL_DETAIL=null;toast('ลบจดหมายแล้ว');openPhoneFloatApp('mail');
+ }catch(e){toast('ลบจดหมายไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+
+function phoneInventoryMarkup(c){
+ if(!c)return '<div class="phone-not-ready">เลือกตัวละครที่อนุมัติแล้วก่อนเปิดกระเป๋า</div>';
+ const items=DB.get('items'),inv=(c.inv||[]).map(x=>({...x,item:items.find(i=>i.id===x.iid)})).filter(x=>x.item),grouped=new Map();
+ inv.forEach(x=>{if(!grouped.has(x.iid))grouped.set(x.iid,{item:x.item,count:0});grouped.get(x.iid).count++});
+ let html=phoneAppBack('กระเป๋าไอเทม')+'<div class="phone-home-card"><div class="phone-eyebrow">INVENTORY</div><h2 style="margin:5px 0">'+esc(c.stageName||c.name)+'</h2><div class="phone-msg-muted">'+inv.length+' ชิ้น · '+grouped.size+' ประเภท</div></div>';
+ html+=grouped.size?'<div class="phone-msg-list">'+Array.from(grouped.values()).map(x=>'<div class="phone-contact-card">'+(x.item.img&&/^https?:\/\//i.test(x.item.img)?phoneImage(x.item.img):'<span class="phone-msg-avatar">🎁</span>')+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(x.item.name)+'</div><div class="phone-contact-meta">'+esc(x.item.cat||'ไอเทม')+' · '+x.count+' ชิ้น</div></div><span class="badge">'+(x.item.transferable===false?'ส่งต่อไม่ได้':'ส่งต่อได้')+'</span></div>').join('')+'</div>':'<div class="phone-msg-card"><b>กระเป๋ายังว่างอยู่</b><p class="phone-msg-muted">ซื้อไอเทมได้จากแอปร้านค้า</p><button class="btn" onclick="openPhoneFloatApp(\'shop\')">เปิดร้านค้า</button></div>';
+ return html;
+}
+function phoneShopMarkup(c){
+ const items=DB.get('items')||[];let html=phoneAppBack('ร้านค้า');
+ if(c)html+='<div class="phone-home-card"><div class="phone-eyebrow">CASH WALLET</div><div class="phone-balance">'+bankMoney(c.won)+'</div><div class="phone-msg-muted">'+esc(c.stageName||c.name)+'</div></div>';
+ html+=items.length?'<div class="phone-msg-list">'+items.map(i=>{
+  const owned=c&&(c.inv||[]).some(x=>x.iid===i.id);
+  return '<div class="phone-contact-card">'+(i.img&&/^https?:\/\//i.test(i.img)?phoneImage(i.img):'<span class="phone-msg-avatar">🛍️</span>')+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(i.name)+'</div><div class="phone-contact-meta">'+esc(i.cat||'ไอเทม')+' · '+bankMoney(i.price)+' · '+(Number(i.stock)===0?'สินค้าหมด':Number(i.stock)>0?'เหลือ '+esc(i.stock):'ไม่จำกัด')+'</div><div class="phone-msg-muted">'+esc(i.desc||'')+'</div></div><button class="btn sm '+(owned?'ghost':'')+'" '+(!c||Number(i.stock)===0||((c.won||0)<i.price)?'disabled':'')+' onclick="phoneBuyItem(\''+esc(i.id)+'\')">'+(owned?'ซื้อเพิ่ม':'ซื้อ')+'</button></div>';
+ }).join('')+'</div>':'<div class="phone-not-ready">ยังไม่มีสินค้าในร้านค้า</div>';
+ return html;
+}
+async function phoneBuyItem(itemId){
+ const c=getActiveChar(me()),item=DB.get('items').find(x=>x.id===itemId);if(!c||!item)return;
+ if(item.stock===0)return toast('สินค้าหมดแล้ว','bad');if((c.won||0)<item.price)return toast('เงินสดไม่เพียงพอ','bad');
+ if(!await ask('ซื้อ '+item.name+' ราคา '+bankMoney(item.price)+' ให้ '+(c.stageName||c.name)+' หรือไม่?'))return;
+ try{
+  if(cloudReady){const {error}=await supaClient.rpc('site_buy_item',{p_character_id:c.id,p_item_id:itemId});if(error)throw error;await cloudRefresh(false)}
+  else{addWon(c.id,-item.price,'ซื้อ: '+item.name);update('characters',c.id,o=>{o.inv=[...(o.inv||[]),{id:uid(),iid:itemId,at:Date.now()}]});if(item.stock>0)update('items',itemId,x=>x.stock--)}
+  toast('ซื้อสำเร็จแล้ว');openPhoneFloatApp('shop');
+ }catch(e){toast('ซื้อไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+function phoneProfileMarkup(c){
+ if(!c)return '<div class="phone-not-ready">ยังไม่มีตัวละครที่อนุมัติ</div>';
+ let html=phoneAppBack('โปรไฟล์ตัวละคร');
+ html+='<div class="phone-msg-card" style="text-align:center;padding:20px">'+avatar(c,82)+'<h2 style="margin:10px 0 2px">'+esc(c.stageName||c.name)+'</h2><div class="phone-msg-muted">'+esc(c.name)+' · '+esc(STAGES[c.stage]?.n||'')+'</div><div class="row" style="justify-content:center;margin-top:13px;gap:7px"><span class="badge">EXP '+esc(c.exp||0)+'</span><span class="badge">เงินสด '+bankMoney(c.won)+'</span></div><div class="phone-msg-muted" style="margin-top:13px;white-space:pre-wrap">'+esc(c.personality||c.bio||'')+'</div><button class="btn ghost" style="width:100%;margin-top:14px" onclick="go(\'char/'+c.id+'\')">เปิดโปรไฟล์เต็ม</button></div>';
+ return html;
+}
+function phoneJobsMarkup(c){
+ if(!c)return '<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติก่อนเข้าร่วมงาน</div>';
+ const left=(c.lastSalary||0)+SALARY_CD-Date.now(),salaryReady=left<=0,practiceLeft=(c.lastPractice||0)+PRACTICE_CD-Date.now(),cap=statCap(c.stage);
+ let html=phoneAppBack('งานพิเศษและฝึกฝน')+'<div class="phone-home-card"><div class="phone-eyebrow">DAILY PAY</div><div class="phone-balance">'+bankMoney(salaryOf(c.stage))+'</div><div class="phone-msg-muted">เงินเดือนตามระดับ · '+esc(STAGES[c.stage]?.n||'')+'</div><div class="phone-msg-muted" style="margin-top:7px">'+(salaryReady?'พร้อมรับเงินเดือน':'รับได้อีกใน '+fmtLeft(left))+'</div><button class="btn" style="width:100%;margin-top:10px" '+(!salaryReady?'disabled':'')+' onclick="phoneClaimSalary(\''+c.id+'\')">'+(salaryReady?'รับเงินเดือน':'ยังไม่ถึงเวลารับเงินเดือน')+'</button></div>';
+ html+='<div class="phone-msg-card"><h3 style="margin-top:0">ฝึกทักษะประจำวัน</h3><p class="phone-msg-muted">'+(practiceLeft>0?'กลับมาฝึกได้อีกใน '+fmtLeft(practiceLeft):'เลือกทักษะที่จะฝึกเพื่อรับ EXP และพัฒนาตัวละคร')+'</p><div class="phone-msg-list">'+STATS.map(st=>'<div class="row between" style="gap:7px"><div class="phone-contact-info"><b>'+st.e+' '+esc(st.n)+'</b><div class="phone-contact-meta">ระดับ '+esc((c.stats||{})[st.k]||0)+'/'+cap+'</div></div><button class="btn sm ghost" '+(practiceLeft>0||((c.stats||{})[st.k]||0)>=cap?'disabled':'')+' onclick="phonePractice(\''+c.id+'\',\''+st.k+'\')">ฝึก</button></div>').join('')+'</div></div>';
+ return html;
+}
+async function phoneClaimSalary(id){await claimSalary(id);await cloudRefresh(false);openPhoneFloatApp('jobs')}
+async function phonePractice(id,key){await practice(id,key);await cloudRefresh(false);openPhoneFloatApp('jobs')}
+function phoneEventsMarkup(){
+ const threads=DB.get('threads').filter(t=>['event','notice'].includes(t.type)&&t.status!=='deleted').sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)).slice(0,40);
+ let html=phoneAppBack('กิจกรรมและประกาศ')+'<div class="phone-msg-muted" style="margin-bottom:12px">ประกาศและกิจกรรมที่เผยแพร่ในฟอรั่ม STARLIGHT RP</div>';
+ html+=threads.length?'<div class="phone-msg-list">'+threads.map(t=>'<button class="phone-msg-conv" onclick="go(\'thread/'+esc(t.id)+'\')"><span class="phone-msg-avatar">'+(t.type==='event'?'🌟':'📢')+'</span><span class="phone-msg-conv-main"><span class="phone-msg-conv-title">'+esc(t.title)+'</span><span class="phone-msg-preview">'+esc(String(t.plot||t.body||'').replace(/<[^>]*>/g,' ').slice(0,140))+'</span></span><span class="phone-msg-time">'+esc(phoneShortTime(t.updatedAt||t.createdAt))+'</span></button>').join('')+'</div>':'<div class="phone-msg-card"><b>ยังไม่มีประกาศใหม่</b><p class="phone-msg-muted">ประกาศและอีเวนต์จะแสดงตรงนี้เมื่อมีการสร้างกระทู้ประเภทประกาศหรืออีเวนต์</p><button class="btn ghost" onclick="go(\'threads\')">ไปที่ฟอรั่ม</button></div>';
+ return html;
+}
+async function phoneAdminMarkup(){
+ return phoneAppBack('ดูแลระบบโทรศัพท์')+'<div id="phoneAdminRoot" class="phone-msg-card"><div class="phone-msg-muted">กำลังโหลดการตั้งค่าและรายงาน…</div></div>';
+}
+async function loadPhoneAdmin(){
+ const root=document.getElementById('phoneAdminRoot');if(!root)return;
+ try{
+  const [settings,reports]=await Promise.all([phoneBankRpc('site_phone_admin_settings',{}),phoneBankRpc('site_phone_admin_reports',{})]);
+  const s=settings||{},rs=Array.isArray(reports)?reports:[];
+  root.innerHTML='<h3 style="margin-top:0">⚙️ ตั้งค่าระบบข้อความ</h3><form class="phone-msg-form" onsubmit="phoneSaveAdminSettings(event)"><label>จำนวนสมาชิกสูงสุดในกลุ่ม (รวมเจ้าของ)</label><input name="maxGroupMembers" type="number" min="2" max="200" step="1" required value="'+esc(s.max_group_members||30)+'"><label>ค่าธรรมเนียมยกเลิกข้อความหลัง 5 นาที (วอน)</label><input name="unsendFee" type="number" min="0" max="9000000000000000" step="1" required value="'+esc(s.unsend_fee??100)+'"><button class="btn" type="submit">บันทึกการตั้งค่า</button></form><h3 style="margin-top:20px">🛡️ ข้อความที่ถูกรายงาน</h3><p class="phone-msg-muted">ผู้ดูแลเห็นเนื้อหาข้อความเฉพาะรายการที่สมาชิกส่งรายงาน</p>'+(rs.length?rs.map(r=>'<div class="phone-admin-report"><div class="row between"><b>'+esc(r.sender_name)+' → รายงานโดย '+esc(r.reporter_name)+'</b><small class="phone-msg-muted">#'+esc(r.report_id)+'</small></div><p class="phone-msg-muted">เหตุผล: '+esc(r.reason)+'</p><div class="phone-admin-report-content">'+esc(r.body||'')+(r.image_url?'\nรูปภาพ: '+esc(r.image_url):'')+'</div><div class="phone-msg-muted">'+esc(phoneDateTime(r.reported_at))+'</div><div class="row" style="gap:7px;margin-top:8px"><button class="btn sm" onclick="phoneReviewReport('+r.report_id+',\'reviewed\')">ตรวจแล้ว</button><button class="btn sm ghost" onclick="phoneReviewReport('+r.report_id+',\'dismissed\')">ปิดรายงาน</button></div></div>').join(''):'<div class="phone-msg-muted">ไม่มีรายงานที่รอตรวจ</div>');
+ }catch(e){root.innerHTML=phoneFeatureError(e)}
+}
+async function phoneSaveAdminSettings(event){
+ event.preventDefault();const d=new FormData(event.currentTarget),max=Number(d.get('maxGroupMembers')),fee=Number(d.get('unsendFee'));
+ if(!Number.isSafeInteger(max)||max<2||max>200||!Number.isSafeInteger(fee)||fee<0)return toast('ค่าตั้งค่าไม่ถูกต้อง','bad');
+ try{await phoneBankRpc('site_phone_admin_update_settings',{p_max_group_members:max,p_unsend_fee:fee});toast('บันทึกการตั้งค่าโทรศัพท์แล้ว');await loadPhoneAdmin()}catch(e){toast('บันทึกไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneReviewReport(id,action){
+ let note='';if(action==='dismissed'){note=await askText('หมายเหตุการปิดรายงาน (ไม่บังคับ):','');if(note===null)return}
+ try{await phoneBankRpc('site_phone_admin_report_action',{p_report_id:id,p_action:action,p_note:note||''});toast(action==='reviewed'?'ทำเครื่องหมายตรวจแล้ว':'ปิดรายงานแล้ว');await loadPhoneAdmin()}catch(e){toast('ดำเนินการไม่สำเร็จ: '+(e.message||e),'bad')}
 }
 
 /* ================= ROUTER ================= */
