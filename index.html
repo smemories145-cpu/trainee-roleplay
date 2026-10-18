@@ -3785,6 +3785,104 @@ async function doSaveProfile(e){
  loadSettings();toast('บันทึกการตั้งค่าบัญชีแล้ว');render();refreshCommunityPresence();
 }
 
+
+/* ================= COMMUNITY PRESENCE ================= */
+let presenceSnapshot=null,presenceError='',presenceBusy=false,presenceStarted=false;
+function presenceSessionId(){
+ let id=store.getItem('sa_presence_session')||'';
+ if(!/^[A-Za-z0-9-]{16,80}$/.test(id)){
+  try{id=window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():''}catch(e){id=''}
+  if(!id)id='presence-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+'-'+Math.random().toString(36).slice(2);
+  store.setItem('sa_presence_session',id);
+ }
+ return id;
+}
+function presenceSafeColor(value,fallback='#d6d6dc'){
+ return typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value)?value:fallback;
+}
+function presenceMemberColor(user,activeCharacter){
+ if(user&&isAdmin())return '#e5c879';
+ const color=activeCharacter&&STAGES&&STAGES[activeCharacter.stage]?STAGES[activeCharacter.stage].c:'';
+ return presenceSafeColor(color,'#d6d6dc');
+}
+function renderCommunityPresence(){
+ const root=document.getElementById('communityPresence');if(!root)return;
+ if(!presenceSnapshot){
+  if(presenceError){
+   root.innerHTML='<div class="presence-error"><b>ยังโหลดสถานะชุมชนไม่ได้</b><span>'+esc(presenceError)+'</span><p style="margin:8px 0 0">หากเพิ่งติดตั้งระบบนี้ ให้ตรวจว่ารันไฟล์ <code>online-presence-migration.sql</code> ใน Supabase SQL Editor แล้ว</p></div>';
+  }else{
+   root.innerHTML='<div class="presence-error"><b>กำลังเชื่อมต่อสถานะชุมชน…</b><span>กำลังตรวจสอบผู้ใช้งานล่าสุด</span></div>';
+  }
+  return;
+ }
+ const data=presenceSnapshot||{};
+ const onlineMembers=Math.max(0,Number(data.members_online)||0);
+ const hiddenMembers=Math.max(0,Number(data.hidden_members)||0);
+ const visitors=Math.max(0,Number(data.visitors_online)||0);
+ const totalMembers=Math.max(0,Number(data.total_members)||0);
+ const activeTotal=onlineMembers+hiddenMembers+visitors;
+ const people=Array.isArray(data.online_today)?data.online_today:[];
+ const groups=ONLINE_GROUPS.map(group=>{
+  const members=people.filter(person=>(person.online_group||'human')===group.id);
+  const names=members.length?members.map(person=>{
+   const color=presenceSafeColor(person.display_color);
+   const href='#profile/'+encodeURIComponent(String(person.app_user_id||''));
+   return '<a class="presence-name" href="'+esc(href)+'" style="--presence-user-color:'+color+'" title="ดูลโปรไฟล์ '+esc(person.username||'สมาชิก')+'">'+esc(person.username||'สมาชิก')+'</a>';
+  }).join(''):'<span class="presence-empty">ยังไม่มีสมาชิกในหมวดนี้</span>';
+  return '<section class="presence-group"><div class="presence-group-heading"><span class="presence-group-icon" aria-hidden="true">'+group.icon+'</span><b>'+esc(group.label)+'</b><span class="presence-group-count">'+members.length+'</span></div><div class="presence-names">'+names+'</div></section>';
+ }).join('');
+ root.innerHTML=
+  '<div class="presence-shell">'+
+   '<div class="presence-top"><div class="presence-top-copy"><span class="presence-eyebrow">COMMUNITY / ACTIVITY</span><h2>ผู้ใช้งานล่าสุด</h2><p class="presence-head-count"><b>'+activeTotal+'</b> ผู้ใช้งานที่ออนไลน์ภายใน 5 นาทีที่ผ่านมา</p><p class="presence-head-meta">สมาชิก '+onlineMembers+' คน · '+hiddenMembers+' ซ่อนตัว · '+visitors+' ผู้เยี่ยมชม · สมาชิกทั้งหมด '+totalMembers+' คน</p></div>'+
+   '<div class="presence-counters"><span class="presence-counter"><i class="presence-live-dot"></i><b>'+onlineMembers+'</b> สมาชิกออนไลน์</span><span class="presence-counter"><b>'+hiddenMembers+'</b> ซ่อนตัว</span><span class="presence-counter"><b>'+visitors+'</b> ผู้เยี่ยมชม</span></div></div>'+
+   '<div class="presence-divider"></div>'+
+   '<div class="presence-today"><div class="presence-today-heading"><div><h3>ผู้ใช้ออนไลน์วันนี้</h3><p>รายชื่อสมาชิกที่ใช้งานวันนี้ โดยชื่อจะแสดงตามสีระดับขั้นของตัวละครที่กำลังใช้</p></div><span class="presence-today-total">'+people.length+' สมาชิกที่แสดงชื่อ</span></div>'+
+   '<div class="presence-groups">'+groups+'</div></div>'+
+   '<div class="presence-footnote">อัปเดตอัตโนมัติทุก 1 นาที · นับผู้ใช้งานล่าสุดในช่วง 5 นาที · เวลาอ้างอิงประเทศไทย</div>'+
+  '</div>';
+}
+async function refreshCommunityPresence(){
+ if(presenceBusy||document.hidden)return;
+ if(!supaClient){
+  presenceError='เชื่อมต่อ Supabase ไม่สำเร็จ';
+  renderCommunityPresence();return;
+ }
+ presenceBusy=true;
+ try{
+  const user=me(),prefs=user?.prefs||{};
+  const activeCharacter=user?getActiveChar(user):null;
+  const onlineGroup=isAdmin()?'webmaster':(prefs.onlineGroup||'human');
+  const displayColor=presenceMemberColor(user,activeCharacter);
+  const {data:heartbeat,error:heartbeatError}=await supaClient.rpc('site_presence_heartbeat',{
+   p_session_id:presenceSessionId(),
+   p_hidden:!!(user&&prefs.hideOnline),
+   p_online_group:onlineGroup,
+   p_display_color:displayColor
+  });
+  if(heartbeatError)throw heartbeatError;
+  if(!heartbeat||heartbeat.ok!==true)throw new Error('ฐานข้อมูลไม่ยืนยันการอัปเดตสถานะออนไลน์');
+  const {data,error}=await supaClient.rpc('site_presence_summary');
+  if(error)throw error;
+  if(!data||data.ok!==true)throw new Error('ฐานข้อมูลไม่สามารถส่งสรุปสถานะออนไลน์ได้');
+  presenceSnapshot=data;presenceError='';
+ }catch(error){
+  console.error('Community presence refresh failed:',error);
+  presenceError=error?.message||String(error)||'เกิดข้อผิดพลาดในการอ่านสถานะชุมชน';
+ }finally{
+  presenceBusy=false;
+  renderCommunityPresence();
+ }
+}
+function startPresenceTracking(){
+ if(presenceStarted)return;
+ presenceStarted=true;
+ renderCommunityPresence();
+ refreshCommunityPresence();
+ window.setInterval(()=>{if(!document.hidden)refreshCommunityPresence()},60000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshCommunityPresence()});
+ window.addEventListener('focus',()=>{if(!document.hidden)refreshCommunityPresence()});
+}
+
 /* ================= AUTH ================= */
 function pageRegister(){
  if(me())return go('mychars');
@@ -4828,6 +4926,7 @@ async function startApp(){
   if(cloudFirstAdminUsername)cloudShowFirstAdminSetup(cloudFirstAdminUsername);
  }catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
  if(store.temp)toast('โหมดพรีวิว: ข้อมูลจะหายเมื่อรีเฟรช — เปิดไฟล์ในเบราว์เซอร์โดยตรงเพื่อบันทึกถาวร','bad');
+ startPresenceTracking();
 }
 startApp();
 </script>
