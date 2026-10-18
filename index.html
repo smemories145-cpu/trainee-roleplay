@@ -2297,7 +2297,12 @@ nav{
 }
 .ed .ed-area .html-source-block:focus{outline:0}
 .ed .ed-area .html-source-block code{font:inherit;white-space:inherit}
-</style></head>
+</style><style id="starlightReplySubjectRemoval20261019">
+/* Starlight reply form cleanup: only the original thread uses a title field. */
+#reply-composer #replySubject,#reply-composer input[name="postSubject"]{display:none!important}
+#reply-composer .topic-field-row:has(#replySubject),#reply-composer .topic-field-row:has(input[name="postSubject"]){display:none!important}
+</style>
+</head>
 <body>
 <nav id="nav"></nav>
 <main id="app"></main>
@@ -5420,6 +5425,13 @@ function render(){
   if(p==='phone'||p==='bankadmin'){
    pageHome();openPhoneFloatApp(p==='bankadmin'?'bankadmin':(param||'home'));
   }else (routes[p]||pageHome)(param,sub);
+  /* Reply posts do not have their own title: remove any stale subject field left by cached/legacy markup. */
+  document.querySelectorAll('#reply-composer .topic-field-row').forEach(row=>{
+   const subjectInput=row.querySelector('input[name="postSubject"],#replySubject');
+   const subjectLabel=row.querySelector('label[for="replySubject"],.topic-field-label');
+   const labelText=(subjectLabel?.textContent||'').trim();
+   if(subjectInput||labelText==='หัวข้อโพสต์:'||labelText==='หัวข้อโพสต์')row.remove();
+  });
   window.scrollTo(0,0);
  }catch(e){
   console.error('Page render failed:',e);
