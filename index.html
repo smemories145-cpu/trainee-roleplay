@@ -2140,19 +2140,19 @@ const ADMIN_PERMISSION_OPTIONS=[
  {key:'manage_settings',label:'ตั้งค่าเว็บไซต์',desc:'เปลี่ยนชื่อเว็บ ธีม ข้อความหน้าแรก และ CSS'}
 ];
 const ONLINE_GROUPS=[
- {id:'webmaster',label:'เว็บมาสเตอร์',icon:'👑'},
- {id:'demon_king',label:'ราชันย์ปีศาจ',icon:'👹'},
- {id:'eden_council',label:'สมาชิกสภาแห่งเอเดียน',icon:'🏛️'},
- {id:'race_representative',label:'ตัวแทนเผ่าพันธุ์',icon:'🛡️'},
- {id:'npc',label:'NPC',icon:'🎭'},
- {id:'human',label:'มนุษย์',icon:'🧑'},
- {id:'witch',label:'พ่อมดแม่มด',icon:'🔮'},
- {id:'vampire',label:'แวมไพร์',icon:'🧛'},
- {id:'werewolf',label:'มนุษย์หมาป่า',icon:'🐺'},
- {id:'nature',label:'เผ่าธรรมชาติ',icon:'🌿'},
- {id:'patient',label:'ผู้ป่วย',icon:'🩺'},
- {id:'spirit',label:'วิญญาณ',icon:'👻'}
+ {id:'applicant',stage:0,label:'ผู้สมัครออดิชั่น',icon:'🌟'},
+ {id:'trainee_d',stage:1,label:'เด็กฝึกระดับ D',icon:'D'},
+ {id:'trainee_c',stage:2,label:'เด็กฝึกระดับ C',icon:'C'},
+ {id:'trainee_b',stage:3,label:'เด็กฝึกระดับ B',icon:'B'},
+ {id:'trainee_a',stage:4,label:'เด็กฝึกระดับ A',icon:'A'},
+ {id:'pre_debut',stage:5,label:'เตรียมเดบิวต์',icon:'🎙️'},
+ {id:'rookie_artist',stage:6,label:'ศิลปินหน้าใหม่',icon:'✨'},
+ {id:'superstar',stage:7,label:'ซูเปอร์สตาร์',icon:'👑'}
 ];
+const presenceGroupForStage=stage=>{
+ const n=Number.isInteger(Number(stage))?Number(stage):0;
+ return ONLINE_GROUPS[Math.max(0,Math.min(ONLINE_GROUPS.length-1,n))]||ONLINE_GROUPS[0];
+};
 const hasAdminPermission=key=>{if(isAdmin())return true;const u=me();return !!(u&&u.role==='admin'&&Array.isArray(u.permissions)&&u.permissions.includes(key));};
 const canAccessAdminPanel=()=>isAdmin()||ADMIN_PERMISSION_OPTIONS.some(p=>hasAdminPermission(p.key));
 const canCode=()=>S.allowPlayerCode||isAdmin();
@@ -3732,7 +3732,6 @@ function pageProfile(uidVal){
 }
 function pageSettings(){
  const u=me();if(!u)return go('login');const prefs=u.prefs||{};
- const onlineGroupOptions=ONLINE_GROUPS.filter(g=>g.id!=='webmaster'||isAdmin()).map(g=>'<option value="'+g.id+'" '+((prefs.onlineGroup||'human')===g.id?'selected':'')+'>'+g.icon+' '+g.label+'</option>').join('');
  app(`<form class="card user-settings-card" style="max-width:620px;margin:30px auto" onsubmit="doSaveProfile(event)">
   <div class="user-settings-head"><span class="qu-modal-kicker">ACCOUNT SETTINGS</span><h2>⚙️ ตั้งค่าบัญชีผู้ใช้</h2><p class="mut">ตั้งค่าข้อมูลส่วนตัวและรูปแบบการใช้งานของคุณ</p></div>
   <div class="user-settings-avatar-row">${avatar(u,68)}<div><b>${esc(u.username)}</b><div class="mut">บัญชีผู้ใช้ · ${u.role==='admin'?'ผู้ดูแลระบบ':'สมาชิก'}</div></div></div>
@@ -3743,7 +3742,7 @@ function pageSettings(){
    <label class="user-pref-choice"><input type="checkbox" name="reduceMotion" ${prefs.reduceMotion?'checked':''}><span><b>ลดภาพเคลื่อนไหว</b><small>ลดการเปลี่ยนภาพและแอนิเมชันในหน้าเว็บ</small></span></label>
   </div>
   <div class="user-pref-box"><h3>👥 สถานะชุมชน</h3>
-   ${isAdmin()?'<p class="mut">👑 บัญชีแอดมินหลักจะแสดงในหมวดเว็บมาสเตอร์โดยอัตโนมัติ</p>':'<label>กลุ่มที่แสดงในรายชื่อออนไลน์วันนี้</label><select name="onlineGroup">'+onlineGroupOptions+'</select><small class="mut">เลือกหมวดที่ต้องการให้ชื่อของคุณปรากฏด้านล่างสุดของเว็บ</small>'}
+   <p class="mut">ชื่อของคุณจะถูกจัดเข้าหมวดตามระดับตัวละครที่กำลังใช้อยู่โดยอัตโนมัติ: ผู้สมัครออดิชั่น → เด็กฝึก D–A → เตรียมเดบิวต์ → ศิลปินหน้าใหม่ → ซูเปอร์สตาร์</p>
    <label class="user-pref-choice"><input type="checkbox" name="hideOnline" ${prefs.hideOnline?'checked':''}><span><b>ซ่อนสถานะออนไลน์</b><small>ชื่อของคุณจะไม่แสดงในรายชื่อผู้ใช้ออนไลน์วันนี้ แต่จำนวนผู้ซ่อนตัวจะนับสถานะของคุณอยู่</small></span></label>
   </div>
   <div class="user-pref-box"><h3>🔐 เปลี่ยนรหัสผ่าน</h3><p class="mut">ปล่อยว่างไว้หากไม่ต้องการเปลี่ยน</p>
@@ -3761,7 +3760,7 @@ async function doSaveProfile(e){
  if(pw&&pw.length<6)return toast('รหัสผ่านต้องมีอย่างน้อย 6 ตัว','bad');
  if(pw!==pw2)return toast('รหัสผ่านใหม่ไม่ตรงกัน','bad');
  const users=DB.get('users');if(users.some(x=>x.id!==u.id&&String(x.username).toLowerCase()===username.toLowerCase()))return toast('ชื่อนี้ถูกใช้แล้ว','bad');
- const prefs={...(u.prefs||{}),compactMode:E.compactMode.checked,reduceMotion:E.reduceMotion.checked,hideOnline:!!E.hideOnline?.checked,onlineGroup:E.onlineGroup?.value||(isAdmin()?'webmaster':(u.prefs?.onlineGroup||'human'))};
+ const prefs={...(u.prefs||{}),compactMode:E.compactMode.checked,reduceMotion:E.reduceMotion.checked,hideOnline:!!E.hideOnline?.checked};delete prefs.onlineGroup;
  if(supaClient&&cloudReady){
   // The standard user record path already saves avatar/preferences/password. Only username changes need the additional profile RPC because login uses username@starlight.invalid.
   if(username!==u.username){
@@ -3804,8 +3803,8 @@ function presenceSafeColor(value,fallback='#d6d6dc'){
  return typeof value==='string'&&/^#[0-9a-f]{6}$/i.test(value)?value:fallback;
 }
 function presenceMemberColor(user,activeCharacter){
- if(user&&isAdmin())return '#e5c879';
- const color=activeCharacter&&STAGES&&STAGES[activeCharacter.stage]?STAGES[activeCharacter.stage].c:'';
+ const rank=presenceGroupForStage(activeCharacter?.stage);
+ const color=STAGES&&STAGES[rank.stage]?STAGES[rank.stage].c:'';
  return presenceSafeColor(color,'#d6d6dc');
 }
 function renderCommunityPresence(){
@@ -3854,7 +3853,7 @@ async function refreshCommunityPresence(){
  try{
   const user=me(),prefs=user?.prefs||{};
   const activeCharacter=user?getActiveChar(user):null;
-  const onlineGroup=isAdmin()?'webmaster':(prefs.onlineGroup||'human');
+  const onlineGroup=presenceGroupForStage(activeCharacter?.stage).id;
   const displayColor=presenceMemberColor(user,activeCharacter);
   const {data:heartbeat,error:heartbeatError}=await supaClient.rpc('site_presence_heartbeat',{
    p_session_id:presenceSessionId(user),
