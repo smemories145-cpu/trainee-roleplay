@@ -4592,11 +4592,23 @@ async function phoneAdminMarkup(){
 }
 async function loadPhoneAdmin(){
  const root=document.getElementById('phoneAdminRoot');if(!root)return;
- try{
-  const [settings,reports]=await Promise.all([phoneBankRpc('site_phone_admin_settings',{}),phoneBankRpc('site_phone_admin_reports',{})]);
-  const s=settings||{},rs=Array.isArray(reports)?reports:[];
-  root.innerHTML='<h3 style="margin-top:0">⚙️ ตั้งค่าระบบข้อความ</h3><form class="phone-msg-form" onsubmit="phoneSaveAdminSettings(event)"><label>จำนวนสมาชิกสูงสุดในกลุ่ม (รวมเจ้าของ)</label><input name="maxGroupMembers" type="number" min="2" max="200" step="1" required value="'+esc(s.max_group_members||30)+'"><label>ค่าธรรมเนียมยกเลิกข้อความหลัง 5 นาที (วอน)</label><input name="unsendFee" type="number" min="0" max="9000000000000000" step="1" required value="'+esc(s.unsend_fee??100)+'"><button class="btn" type="submit">บันทึกการตั้งค่า</button></form><h3 style="margin-top:20px">🛡️ ข้อความที่ถูกรายงาน</h3><p class="phone-msg-muted">ผู้ดูแลเห็นเนื้อหาข้อความเฉพาะรายการที่สมาชิกส่งรายงาน</p>'+(rs.length?rs.map(r=>'<div class="phone-admin-report"><div class="row between"><b>'+esc(r.sender_name)+' → รายงานโดย '+esc(r.reporter_name)+'</b><small class="phone-msg-muted">#'+esc(r.report_id)+'</small></div><p class="phone-msg-muted">เหตุผล: '+esc(r.reason)+'</p><div class="phone-admin-report-content">'+esc(r.body||'')+(r.image_url?'\nรูปภาพ: '+esc(r.image_url):'')+'</div><div class="phone-msg-muted">'+esc(phoneDateTime(r.reported_at))+'</div><div class="row" style="gap:7px;margin-top:8px"><button class="btn sm" onclick="phoneReviewReport('+r.report_id+',\'reviewed\')">ตรวจแล้ว</button><button class="btn sm ghost" onclick="phoneReviewReport('+r.report_id+',\'dismissed\')">ปิดรายงาน</button></div></div>').join(''):'<div class="phone-msg-muted">ไม่มีรายงานที่รอตรวจ</div>');
- }catch(e){root.innerHTML=phoneFeatureError(e)}
+ const settingsPromise=phoneBankRpc('site_phone_admin_settings',{}).then(data=>({ok:true,data})).catch(error=>({ok:false,error}));
+ const reportsPromise=phoneBankRpc('site_phone_admin_reports',{}).then(data=>({ok:true,data})).catch(error=>({ok:false,error}));
+ const [settingsResult,reportsResult]=await Promise.all([settingsPromise,reportsPromise]);
+ let html='';
+ if(settingsResult.ok){
+  const s=settingsResult.data||{};
+  html+='<h3 style="margin-top:0">⚙️ ตั้งค่าระบบข้อความ</h3><form class="phone-msg-form" onsubmit="phoneSaveAdminSettings(event)"><label>จำนวนสมาชิกสูงสุดในกลุ่ม (รวมเจ้าของ)</label><input name="maxGroupMembers" type="number" min="2" max="200" step="1" required value="'+esc(s.max_group_members||30)+'"><label>ค่าธรรมเนียมยกเลิกข้อความหลัง 5 นาที (วอน)</label><input name="unsendFee" type="number" min="0" max="9000000000000000" step="1" required value="'+esc(s.unsend_fee??100)+'"><button class="btn" type="submit">บันทึกการตั้งค่า</button></form>';
+ }else{
+  html+='<div class="phone-not-ready"><b>ไม่มีสิทธิ์ตั้งค่าระบบโทรศัพท์</b><p>'+esc(settingsResult.error.message||String(settingsResult.error))+'</p></div>';
+ }
+ if(reportsResult.ok){
+  const rs=Array.isArray(reportsResult.data)?reportsResult.data:[];
+  html+='<h3 style="margin-top:20px">🛡️ ข้อความที่ถูกรายงาน</h3><p class="phone-msg-muted">ผู้ดูแลเห็นเนื้อหาข้อความเฉพาะรายการที่สมาชิกส่งรายงาน</p>'+(rs.length?rs.map(r=>'<div class="phone-admin-report"><div class="row between"><b>'+esc(r.sender_name)+' → รายงานโดย '+esc(r.reporter_name)+'</b><small class="phone-msg-muted">#'+esc(r.report_id)+'</small></div><p class="phone-msg-muted">เหตุผล: '+esc(r.reason)+'</p><div class="phone-admin-report-content">'+esc(r.body||'')+(r.image_url?'\nรูปภาพ: '+esc(r.image_url):'')+'</div><div class="phone-msg-muted">'+esc(phoneDateTime(r.reported_at))+'</div><div class="row" style="gap:7px;margin-top:8px"><button class="btn sm" onclick="phoneReviewReport('+r.report_id+',\'reviewed\')">ตรวจแล้ว</button><button class="btn sm ghost" onclick="phoneReviewReport('+r.report_id+',\'dismissed\')">ปิดรายงาน</button></div></div>').join(''):'<div class="phone-msg-muted">ไม่มีรายงานที่รอตรวจ</div>');
+ }else{
+  html+='<div class="phone-not-ready"><b>ไม่มีสิทธิ์ตรวจรายงานข้อความ</b><p>'+esc(reportsResult.error.message||String(reportsResult.error))+'</p></div>';
+ }
+ root.innerHTML=html;
 }
 async function phoneSaveAdminSettings(event){
  event.preventDefault();const d=new FormData(event.currentTarget),max=Number(d.get('maxGroupMembers')),fee=Number(d.get('unsendFee'));
