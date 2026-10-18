@@ -3903,6 +3903,12 @@ function edGet(ed){
  const area=ed.querySelector('.ed-area'),source=ed.querySelector('.ed-source-area');
  if(!area)return{mode:'rich',content:''};
  if(ed.dataset.htmlSource==='1')return{mode:'html',content:String(source?.value||'').trim()};
+ /* Browsers split multiline plain-text pastes into DIV/P nodes inside contenteditable.
+    Detect announcement BBCode from the visible text before treating those nodes as rich HTML. */
+ const pastedPaperText=String(area.innerText||area.textContent||'').replace(/\u00a0/g,' ').trim();
+ if(/\[paper\][\s\S]*?\[\/paper\]/i.test(pastedPaperText)||/\[bpaper\][\s\S]*?\[\/bpaper\]/i.test(pastedPaperText)){
+  return{mode:'bbcode',content:pastedPaperText};
+ }
  if(!area.children.length){
   const text=area.textContent||'',pasted=getEditorHtmlSource(text);
   if(pasted){
