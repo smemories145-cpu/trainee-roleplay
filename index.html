@@ -3972,6 +3972,302 @@ function renderPhoneFloatContent(appId,html){
  if(launcher){launcher.classList.add('is-open');launcher.setAttribute('aria-expanded','true')}
 }
 
+
+/* ================= PHONE CORE + CHAT AND GROUP MESSAGING ================= */
+let PHONE_OPEN_CONVERSATION_ID='';
+let PHONE_OPEN_CONVERSATION_KIND='dm';
+let PHONE_CURRENT_CONVERSATION=null;
+let PHONE_CONVERSATIONS=[];
+let PHONE_CONVERSATION_MESSAGES=[];
+let PHONE_CONTACTS=[];
+let PHONE_BLOCKED=[];
+let PHONE_DIRECTORY_SEARCH='';
+let PHONE_NOTIFICATIONS=[];
+let PHONE_TRANSFER_HISTORY=[];
+let PHONE_SELECTED_MAIL=null;
+let PHONE_CURRENT_MAIL_FOLDER='inbox';
+let PHONE_PRIVACY={hide_presence:false,hide_last_seen:false};
+let PHONE_LOCK_ALERTS=[];
+let PHONE_LAST_UNREAD_COUNT=null;
+let PHONE_APP_UNREAD={chat:0,groupchat:0,notifications:0,mail:0};
+let PHONE_POLL_TIMER=null;
+let PHONE_LAST_TOUCH=0;
+let PHONE_MESSAGE_BUSY=false;
+let PHONE_ITEM_TRANSFER_BUSY=false;
+let PHONE_MAIL_DETAIL=null;
+
+function phoneShortTime(value){try{return value?new Date(value).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}catch(e){return ''}}
+function phoneDateTime(value){try{return value?new Date(value).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):''}catch(e){return ''}}
+function phoneFeatureError(error){
+ const message=error&&error.message?error.message:String(error||'ยังไม่ทราบสาเหตุ');
+ return '<div class="phone-not-ready"><b>เชื่อมต่อระบบไม่สำเร็จ</b><p>'+esc(message)+'</p><p>ตรวจว่าได้ติดตั้ง <code>supabase/phone-messaging-migration.sql</code> ใน Supabase SQL Editor และเข้าสู่ระบบออนไลน์แล้ว</p><a href="https://github.com/smemories145-cpu/trainee-roleplay/blob/main/supabase/phone-messaging-migration.sql" target="_blank" rel="noopener">เปิดไฟล์ติดตั้งระบบโทรศัพท์</a></div>';
+}
+function phoneAppBack(title){
+ return '<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="openPhoneFloatApp(\'home\')">← หน้าแรก</button><div><div class="phone-eyebrow">STARLIGHT PHONE</div><b>'+esc(title)+'</b></div></div>';
+}
+function phoneImage(url){
+ if(!url||!/^https?:\/\//i.test(String(url)))return '<span class="phone-msg-avatar">✦</span>';
+ return '<span class="phone-msg-avatar"><img loading="lazy" src="'+esc(url)+'" alt="" referrerpolicy="no-referrer"></span>';
+}
+function phoneTitleForNotification(n){
+ const types={message:'ข้อความใหม่',mention:'มีคนกล่าวถึงคุณ',group_invite:'คำเชิญเข้ากลุ่ม',group_joined:'สมาชิกเข้าร่วมกลุ่ม',group_left:'สมาชิกออกจากกลุ่ม',group_removed:'ถูกนำออกจากกลุ่ม',group_archived:'กลุ่มถูกเก็บเข้าคลัง',group_owner:'คุณได้รับสิทธิ์เจ้าของกลุ่ม',item_received:'ได้รับไอเทม',item_sent:'ส่งไอเทมแล้ว'};
+ return types[n.kind]||'แจ้งเตือนจาก STARLIGHT';
+}
+function phoneLockAlertMarkup(){
+ if(!PHONE_LOCK_ALERTS.length)return '<div id="phoneLockAlerts"><div class="phone-lock-alert"><b>STARLIGHT SYSTEM</b><span>ไม่มีการแจ้งเตือนใหม่</span></div></div>';
+ return '<div id="phoneLockAlerts">'+PHONE_LOCK_ALERTS.map(n=>'<div class="phone-lock-alert"><b>'+esc(n.sender||'STARLIGHT SYSTEM')+'</b><span>'+esc(n.kind||'การแจ้งเตือน')+'</span></div>').join('')+'</div>';
+}
+function phoneUpdateNotificationCount(notifications){
+ const unread=(notifications||[]).filter(n=>!n.is_read).length;
+ PHONE_APP_UNREAD.notifications=unread;
+ if(PHONE_LAST_UNREAD_COUNT!==null&&unread>PHONE_LAST_UNREAD_COUNT)phonePulseLauncher();
+ PHONE_LAST_UNREAD_COUNT=unread;
+}
+function phonePulseLauncher(){
+ const button=document.getElementById('phoneFloatLauncher');if(!button)return;
+ button.classList.remove('phone-phone-vibrate');void button.offsetWidth;button.classList.add('phone-phone-vibrate');
+ try{if(navigator&&typeof navigator.vibrate==='function')navigator.vibrate(65)}catch(e){}
+ setTimeout(()=>button.classList.remove('phone-phone-vibrate'),1000);
+}
+async function phoneLoadLockAlerts(characterId){
+ if(!characterId||!cloudReady)return;
+ try{
+  const data=await phoneBankRpc('site_phone_list_notifications',{p_character_id:characterId});
+  PHONE_NOTIFICATIONS=Array.isArray(data)?data:[];
+  PHONE_LOCK_ALERTS=PHONE_NOTIFICATIONS.filter(n=>!n.is_read).slice(0,3).map(n=>({sender:n.actor_name||'STARLIGHT SYSTEM',kind:phoneTitleForNotification(n)}));
+  phoneUpdateNotificationCount(PHONE_NOTIFICATIONS);
+  const node=document.getElementById('phoneLockAlerts');if(node)node.innerHTML=phoneLockAlertMarkup().replace(/^<div id="phoneLockAlerts">|<\/div>$/g,'');
+ }catch(e){}
+}
+async function phoneTouchPresence(characterId){
+ if(!characterId||!cloudReady||!supaClient||Date.now()-PHONE_LAST_TOUCH<30000)return;
+ PHONE_LAST_TOUCH=Date.now();try{await phoneBankRpc('site_phone_touch_presence',{p_character_id:characterId})}catch(e){}
+}
+function phoneStartPolling(){
+ if(PHONE_POLL_TIMER)return;
+ PHONE_POLL_TIMER=setInterval(async()=>{
+  const panel=document.getElementById('phoneFloatWindow');
+  if(!panel||panel.hidden||!phoneUnlocked||!me())return;
+  const c=getActiveChar(me());if(c)phoneTouchPresence(c.id);
+  if(phoneFloatCurrentApp==='conversation'&&PHONE_OPEN_CONVERSATION_ID)await loadPhoneChatThread();
+  else if(phoneFloatCurrentApp==='chat'||phoneFloatCurrentApp==='groupchat')await loadPhoneConversations(phoneFloatCurrentApp);
+  else if(phoneFloatCurrentApp==='notifications')await loadPhoneNotifications();
+  else if(phoneFloatCurrentApp==='mail')await loadPhoneMail(PHONE_CURRENT_MAIL_FOLDER);
+ },18000);
+}
+function phoneAppHomeHtml(c,u){
+ const apps=[
+  ['bank','🏦','ธนาคาร','บัญชีและธุรกรรม'],['chat','💬','แชตส่วนตัว','ข้อความ'],['groupchat','👥','แชตกลุ่ม','สนทนาเป็นกลุ่ม'],
+  ['mail','✉️','จดหมาย','กล่องจดหมาย'],['contacts','📇','รายชื่อ','ค้นหาตัวละคร'],['item-transfer','🎁','ส่งไอเทม','มอบสิ่งของ'],
+  ['notifications','🔔','แจ้งเตือน','กิจกรรมล่าสุด'],['shop','🛍️','ร้านค้า','สินค้า'],['jobs','💼','งานพิเศษ','ฝึกฝนและรายได้'],
+  ['events','🌟','กิจกรรม','ข่าวและประกาศ'],['inventory','🎒','กระเป๋า','สิ่งของของตัวละคร'],['profile','🪪','โปรไฟล์','ข้อมูลตัวละคร'],
+  ['phone-settings','⚙️','ความเป็นส่วนตัว','บล็อกและสถานะ']
+ ];
+ let html='<div class="phone-home-welcome"><div class="phone-eyebrow">STARLIGHT · PERSONAL DEVICE</div><h2>สวัสดี, '+esc(c?(c.stageName||c.name):u.username)+'</h2><div class="mut" style="font-size:.78rem">พื้นที่ส่วนตัวของตัวละคร</div></div>';
+ if(c)html+='<div class="phone-home-card"><div class="phone-eyebrow">CASH WALLET</div><div class="phone-balance">'+bankMoney(c.won)+'</div><div class="mut" style="font-size:.72rem">เงินสดของตัวละคร · แยกจากยอดเงินธนาคาร</div></div>';
+ if(!c)html+='<div class="phone-not-ready">ยังไม่มีตัวละครที่อนุมัติ กรุณาสร้างหรือเลือกตัวละครก่อนใช้งานแอป</div>';
+ html+='<div class="phone-app-grid">'+apps.map(x=>phoneTile(x[1],x[2],x[3],x[0])).join('');
+ if(isAdmin()||hasAdminPermission('manage_economy'))html+=phoneTile('🧾','จัดการธนาคาร','ค่าธรรมเนียมและธุรกรรม','bankadmin');
+ if(isAdmin()||hasAdminPermission('manage_posts'))html+=phoneTile('🛡️','ดูแลโทรศัพท์','รายงานและการตั้งค่า','phoneadmin');
+ html+='</div><p class="phone-msg-muted" style="text-align:center;margin-top:17px">✦ STARLIGHT RP · PRIVATE SPACE</p>';
+ return html;
+}
+function phoneConversationListShell(kind){
+ const isGroup=kind==='groupchat';
+ let html=phoneAppBack(isGroup?'แชตกลุ่ม':'แชตส่วนตัว');
+ html+='<div class="phone-msg-toolbar"><div class="phone-msg-muted">'+(isGroup?'สร้างกลุ่ม เชิญสมาชิก และจัดการห้อง':'ส่งข้อความถึงตัวละครที่ผ่านอนุมัติได้ทันที')+'</div><button class="btn sm ghost" onclick="loadPhoneConversations(\''+kind+'\')">↻</button></div>';
+ if(isGroup)html+='<form class="phone-msg-form" onsubmit="doPhoneCreateGroup(event)"><b>＋ สร้างกลุ่มใหม่</b><input name="name" maxlength="80" required placeholder="ชื่อกลุ่ม"><input name="description" maxlength="500" placeholder="คำอธิบายกลุ่ม (ไม่บังคับ)"><input name="image" type="url" placeholder="URL รูปกลุ่ม (ไม่บังคับ)"><button class="btn" type="submit">สร้างกลุ่ม</button></form><h3 class="phone-section-title" style="margin-top:18px">คำเชิญเข้ากลุ่ม</h3><div id="phoneGroupInvites"><div class="phone-msg-muted">กำลังโหลดคำเชิญ…</div></div>';
+ html+='<h3 class="phone-section-title" style="margin-top:16px">'+(isGroup?'ห้องกลุ่ม':'บทสนทนา')+'</h3><div id="phoneConversationListBody" class="phone-msg-list"><div class="phone-msg-muted">กำลังโหลด…</div></div>';
+ if(!isGroup)html+='<button class="btn ghost" style="width:100%;margin-top:12px" onclick="openPhoneFloatApp(\'contacts\')">＋ เริ่มแชตกับตัวละคร</button>';
+ return html;
+}
+function phoneConversationRow(x){
+ const isGroup=x.kind==='group',state=x.is_closed?' · เก็บเข้าคลัง':x.left_at?' · ออกจากกลุ่ม':'',unread=Number(x.unread_count)||0,when=phoneShortTime(x.last_message_at);
+ const icon=x.image_url&&/^https?:\/\//i.test(x.image_url)?phoneImage(x.image_url):'<span class="phone-msg-avatar">'+(isGroup?'👥':'✦')+'</span>';
+ return '<button type="button" class="phone-msg-conv" onclick="openPhoneConversation(\''+String(x.id).replace(/'/g,'')+'\',\''+x.kind+'\')">'+icon+'<span class="phone-msg-conv-main"><span class="phone-msg-conv-title">'+esc(x.title||'บทสนทนา')+(isGroup&&x.is_owner?'<small class="badge">เจ้าของ</small>':'')+(isGroup&&x.is_closed?'<small class="badge">คลัง</small>':'')+'</span><span class="phone-msg-preview">'+esc(x.last_message||x.description||'ยังไม่มีข้อความ')+esc(state)+'</span></span><span style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><small class="phone-msg-time">'+esc(when)+'</small>'+(unread?'<span class="phone-msg-unread">'+(unread>99?'99+':unread)+'</span>':'')+'</span></button>'+(isGroup&&!x.is_closed&&!x.left_at&&x.is_owner?'<button class="btn sm ghost" style="margin:-3px 0 5px 53px" onclick="openPhoneGroupManager(\''+String(x.id).replace(/'/g,'')+'\')">⚙ จัดการกลุ่ม · '+(Number(x.member_count)||0)+' คน</button>':'');
+}
+async function loadPhoneConversations(kind){
+ const c=getActiveChar(me()),root=document.getElementById('phoneConversationListBody');if(!c||!root)return;
+ root.innerHTML='<div class="phone-msg-muted">กำลังโหลดบทสนทนา…</div>';
+ try{
+  const data=await phoneBankRpc('site_phone_list_conversations',{p_character_id:c.id});
+  PHONE_CONVERSATIONS=Array.isArray(data)?data:[];
+  const isGroup=kind==='groupchat',list=PHONE_CONVERSATIONS.filter(x=>isGroup?x.kind==='group':x.kind==='dm');
+  PHONE_APP_UNREAD[kind]=list.reduce((sum,x)=>sum+(Number(x.unread_count)||0),0);
+  root.innerHTML=list.length?list.map(phoneConversationRow).join(''):'<div class="phone-msg-card"><b>'+(isGroup?'ยังไม่มีกลุ่ม':'ยังไม่มีแชต')+'</b><p class="phone-msg-muted">'+(isGroup?'สร้างกลุ่มใหม่ด้านบน หรือรับคำเชิญจากสมาชิก':'เริ่มต้นบทสนทนาได้จากแอปรายชื่อ')+'</p></div>';
+  if(isGroup)await loadPhoneGroupInvites(c.id);
+ }catch(e){root.innerHTML=phoneFeatureError(e)}
+}
+async function loadPhoneGroupInvites(characterId){
+ const root=document.getElementById('phoneGroupInvites');if(!root)return;
+ try{
+  const data=await phoneBankRpc('site_phone_list_invites',{p_character_id:characterId});
+  root.innerHTML=data.length?data.map(i=>'<div class="phone-group-invite"><b>'+esc(i.group_name)+'</b><div class="phone-msg-muted">เชิญโดย '+esc(i.inviter_name)+' · '+esc(i.member_count)+' สมาชิก</div><div class="row" style="margin-top:8px;gap:6px"><button class="btn sm" onclick="phoneRespondGroupInvite(\''+i.id+'\',true)">รับคำเชิญ</button><button class="btn sm ghost" onclick="phoneRespondGroupInvite(\''+i.id+'\',false)">ปฏิเสธ</button></div></div>').join(''):'<div class="phone-msg-muted">ไม่มีคำเชิญที่รอตอบรับ</div>';
+ }catch(e){root.innerHTML=phoneFeatureError(e)}
+}
+async function phoneRespondGroupInvite(inviteId,accept){
+ const c=getActiveChar(me());if(!c)return;
+ try{await phoneBankRpc('site_phone_group_invite_response',{p_character_id:c.id,p_invite_id:inviteId,p_accept:!!accept});toast(accept?'เข้าร่วมกลุ่มแล้ว':'ปฏิเสธคำเชิญแล้ว');await loadPhoneGroupInvites(c.id);await loadPhoneConversations('groupchat')}
+ catch(e){toast('ดำเนินการกับคำเชิญไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function doPhoneCreateGroup(event){
+ event.preventDefault();const c=getActiveChar(me());if(!c)return;
+ const d=new FormData(event.currentTarget);
+ try{const x=await phoneBankRpc('site_phone_create_group',{p_character_id:c.id,p_name:String(d.get('name')||''),p_description:String(d.get('description')||''),p_image_url:String(d.get('image')||'')});toast('สร้างกลุ่มแล้ว');openPhoneConversation(x.conversation_id,'group')}
+ catch(e){toast('สร้างกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+function openPhoneConversation(id,kind){
+ PHONE_OPEN_CONVERSATION_ID=id;PHONE_OPEN_CONVERSATION_KIND=kind||'dm';PHONE_CURRENT_CONVERSATION=PHONE_CONVERSATIONS.find(x=>x.id===id)||null;openPhoneFloatApp('conversation');
+}
+function phoneConversationThreadShell(){
+ const x=PHONE_CURRENT_CONVERSATION||PHONE_CONVERSATIONS.find(c=>c.id===PHONE_OPEN_CONVERSATION_ID)||{};
+ const isGroup=x.kind==='group'||PHONE_OPEN_CONVERSATION_KIND==='group',back=isGroup?'groupchat':'chat';
+ let html='<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="openPhoneFloatApp(\''+back+'\')">← กลับ</button><div style="min-width:0;flex:1"><div class="phone-eyebrow">'+(isGroup?'GROUP CHAT':'PRIVATE CHAT')+'</div><b style="overflow-wrap:anywhere">'+esc(x.title||'บทสนทนา')+'</b></div><button class="btn sm ghost" onclick="loadPhoneChatThread()">↻</button></div>';
+ if(x.is_closed)html+='<div class="phone-not-ready" style="margin-bottom:10px">ห้องนี้ถูกเก็บเข้าคลังแล้ว อ่านประวัติได้ แต่ส่งข้อความใหม่ไม่ได้</div>';
+ if(isGroup&&x.pinned_message_id)html+='<div class="phone-pinned-banner">📌 มีข้อความปักหมุดในห้องนี้ <button class="phone-chat-action" onclick="phoneFocusPinnedMessage()">ดูข้อความ</button></div>';
+ html+='<div id="phoneChatMessages" class="phone-chat-stream"><div class="phone-msg-muted">กำลังโหลดข้อความ…</div></div>';
+ html+='<form id="phoneChatSendForm" class="phone-msg-form" onsubmit="doPhoneSendMessage(event)"><textarea name="body" maxlength="4000" placeholder="พิมพ์ข้อความ… ใช้ @ชื่อในกลุ่มเพื่อกล่าวถึง" rows="2"></textarea><input name="image_url" type="url" placeholder="URL รูปภาพ (ไม่บังคับ)"><div class="row between" style="gap:8px"><small class="phone-msg-muted">เก็บเป็นข้อความธรรมดา · ไม่ประมวลผล HTML</small><button class="btn" type="submit">ส่งข้อความ ↑</button></div></form>';
+ html+='<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn sm ghost" onclick="phoneMuteCurrentConversation()">🔕 ปิดเสียง/กล่าวถึง</button>';
+ if(!isGroup&&x.other_character_id)html+='<button class="btn sm ghost" onclick="phoneBlockCurrentDM()">🚫 บล็อกตัวละคร</button>';
+ if(isGroup&&!x.is_closed&&x.is_owner)html+='<button class="btn sm ghost" onclick="openPhoneGroupManager(\''+String(x.id||PHONE_OPEN_CONVERSATION_ID).replace(/'/g,'')+'\')">⚙ จัดการกลุ่ม</button>';
+ if(isGroup&&!x.is_closed&&!x.is_owner)html+='<button class="btn sm ghost" onclick="phoneLeaveCurrentGroup()">ออกจากกลุ่ม</button>';
+ html+='</div><p class="phone-msg-muted" style="margin-top:10px">แตะ “อ่านแล้ว” เพื่อดูว่าใครอ่านข้อความ หรือรายงานข้อความที่ไม่เหมาะสม</p>';
+ return html;
+}
+async function loadPhoneChatThread(){
+ const c=getActiveChar(me()),root=document.getElementById('phoneChatMessages');if(!c||!root||!PHONE_OPEN_CONVERSATION_ID)return;
+ try{
+  const [conversations,messages]=await Promise.all([
+   phoneBankRpc('site_phone_list_conversations',{p_character_id:c.id}),
+   phoneBankRpc('site_phone_get_messages',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID,p_limit:100})
+  ]);
+  PHONE_CONVERSATIONS=Array.isArray(conversations)?conversations:PHONE_CONVERSATIONS;
+  PHONE_CURRENT_CONVERSATION=PHONE_CONVERSATIONS.find(x=>x.id===PHONE_OPEN_CONVERSATION_ID)||PHONE_CURRENT_CONVERSATION;
+  PHONE_CONVERSATION_MESSAGES=Array.isArray(messages)?messages:[];
+  if(!document.getElementById('phoneChatMessages'))return;
+  root.innerHTML=PHONE_CONVERSATION_MESSAGES.length?PHONE_CONVERSATION_MESSAGES.map(phoneMessageMarkup).join(''):'<div class="phone-msg-card"><b>เริ่มบทสนทนา</b><p class="phone-msg-muted">ส่งข้อความแรกได้เลย</p></div>';
+  const conv=PHONE_CURRENT_CONVERSATION;if(conv)PHONE_OPEN_CONVERSATION_KIND=conv.kind;
+  await phoneBankRpc('site_phone_mark_read',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID});
+  if(root.isConnected)root.scrollTop=root.scrollHeight;
+ }catch(e){root.innerHTML=phoneFeatureError(e)}
+}
+function phoneMessageMarkup(m){
+ const conv=PHONE_CURRENT_CONVERSATION||{},isGroup=conv.kind==='group';
+ const avatarHtml=m.sender_avatar&&/^https?:\/\//i.test(m.sender_avatar)?'<span class="phone-chat-avatar"><img loading="lazy" src="'+esc(m.sender_avatar)+'" alt="" referrerpolicy="no-referrer"></span>':'<span class="phone-chat-avatar" style="display:grid;place-items:center">✦</span>';
+ const body=m.revoked?'<i>ข้อความถูกยกเลิก</i>':esc(m.body||'');
+ const image=m.image_url&&/^https?:\/\//i.test(m.image_url)?'<a href="'+esc(m.image_url)+'" target="_blank" rel="noopener noreferrer"><img class="phone-chat-image" loading="lazy" src="'+esc(m.image_url)+'" alt="รูปภาพในข้อความ" referrerpolicy="no-referrer"></a>':'';
+ let actions='';
+ if(!m.revoked){
+  if(!m.is_mine)actions+='<button class="phone-chat-action" onclick="phoneReportMessage(\''+m.id+'\')">รายงาน</button>';
+  if(m.is_mine)actions+='<button class="phone-chat-action" onclick="phoneUnsendMessage(\''+m.id+'\')">ยกเลิกข้อความ</button>';
+  actions+='<button class="phone-chat-action" onclick="phoneHideMessage(\''+m.id+'\')">ลบสำหรับฉัน</button><button class="phone-chat-action" onclick="phoneShowMessageReaders(\''+m.id+'\')">อ่านแล้ว</button>';
+  if(isGroup&&conv.is_owner)actions+='<button class="phone-chat-action" onclick="phonePinMessage(\''+m.id+'\','+(m.is_pinned?'false':'true')+')">'+(m.is_pinned?'เลิกปักหมุด':'ปักหมุด')+'</button>';
+ }
+ return '<div id="phone-message-'+esc(m.id)+'" class="phone-chat-row '+(m.is_mine?'mine':'')+'">'+avatarHtml+'<div style="min-width:0;max-width:100%"><div class="phone-chat-bubble">'+(!m.is_mine?'<div class="phone-chat-sender">'+esc(m.sender_name)+(m.is_pinned?' · 📌 ปักหมุด':'')+'</div>':'')+'<div class="phone-chat-body">'+body+'</div>'+image+'</div><div class="phone-chat-meta">'+esc(phoneShortTime(m.created_at))+(m.is_mine?'<span>· ส่งแล้ว</span>':'')+(m.is_pinned?'<span>· 📌</span>':'')+'</div>'+(actions?'<div class="phone-chat-actions">'+actions+'</div>':'')+'</div></div>';
+}
+async function doPhoneSendMessage(event){
+ event.preventDefault();if(PHONE_MESSAGE_BUSY)return;
+ const c=getActiveChar(me()),form=event.currentTarget;if(!c||!PHONE_OPEN_CONVERSATION_ID)return;
+ const fd=new FormData(form),body=String(fd.get('body')||''),image=String(fd.get('image_url')||'').trim();
+ if(!body.trim()&&!image)return toast('พิมพ์ข้อความหรือใส่ URL รูปภาพก่อน','bad');
+ if(image&&!/^https?:\/\/\S+$/i.test(image))return toast('ลิงก์รูปภาพต้องเป็น HTTP หรือ HTTPS','bad');
+ PHONE_MESSAGE_BUSY=true;
+ try{await phoneBankRpc('site_phone_send_message',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID,p_body:body,p_image_url:image,p_request_id:bankRequestId()});form.reset();await loadPhoneChatThread()}
+ catch(e){toast('ส่งข้อความไม่สำเร็จ: '+(e.message||e),'bad')}finally{PHONE_MESSAGE_BUSY=false}
+}
+async function phoneHideMessage(id){
+ const c=getActiveChar(me());if(!c)return;
+ try{await phoneBankRpc('site_phone_hide_message',{p_character_id:c.id,p_message_id:id});await loadPhoneChatThread()}catch(e){toast('ลบสำหรับฉันไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneUnsendMessage(id){
+ const c=getActiveChar(me());if(!c||!await ask('ยกเลิกข้อความนี้สำหรับทุกคน? ภายใน 5 นาทีไม่มีค่าธรรมเนียม หลังจากนั้นจะหักเงินสดตามที่ตั้งไว้โดยแอดมิน'))return;
+ try{const result=await phoneBankRpc('site_phone_unsend_message',{p_character_id:c.id,p_message_id:id});toast((Number(result.fee)||0)>0?'ยกเลิกข้อความแล้ว · หักค่าธรรมเนียม '+bankMoney(result.fee):'ยกเลิกข้อความแล้ว');await loadPhoneChatThread()}catch(e){toast('ยกเลิกข้อความไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneReportMessage(id){
+ const c=getActiveChar(me());if(!c)return;
+ const reason=await askText('เหตุผลที่รายงานข้อความนี้:','ข้อความไม่เหมาะสม');if(reason===null)return;
+ try{await phoneBankRpc('site_phone_report_message',{p_character_id:c.id,p_message_id:id,p_reason:reason});toast('ส่งรายงานให้ผู้ดูแลแล้ว')}catch(e){toast('รายงานไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneShowMessageReaders(id){
+ const c=getActiveChar(me());if(!c)return;
+ try{const readers=await phoneBankRpc('site_phone_message_readers',{p_character_id:c.id,p_message_id:id});await ask(readers.length?'อ่านข้อความแล้วโดย:\n'+readers.map(x=>x.name+' · '+phoneDateTime(x.read_at)).join('\n'):'ยังไม่มีสมาชิกอื่นอ่านข้อความนี้')}catch(e){toast('ดูสถานะอ่านไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phonePinMessage(id,pin){
+ const c=getActiveChar(me());if(!c||!PHONE_OPEN_CONVERSATION_ID)return;
+ try{await phoneBankRpc('site_phone_group_pin_message',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID,p_message_id:pin?id:null});toast(pin?'ปักหมุดข้อความแล้ว':'เลิกปักหมุดแล้ว');await loadPhoneChatThread()}catch(e){toast('จัดการข้อความปักหมุดไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+function phoneFocusPinnedMessage(){const id=PHONE_CURRENT_CONVERSATION&&PHONE_CURRENT_CONVERSATION.pinned_message_id,el=id&&document.getElementById('phone-message-'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});else toast('ข้อความปักหมุดไม่ได้อยู่ในชุดข้อความล่าสุด','bad')}
+async function phoneMuteCurrentConversation(){
+ const c=getActiveChar(me()),conv=PHONE_CURRENT_CONVERSATION;if(!c||!conv)return;
+ try{await phoneBankRpc('site_phone_group_toggle_preferences',{p_character_id:c.id,p_conversation_id:conv.id,p_muted:!conv.is_muted,p_mentions_enabled:conv.mentions_enabled!==false});toast(!conv.is_muted?'ปิดเสียงห้องแล้ว':'เปิดเสียงห้องแล้ว');await loadPhoneChatThread()}catch(e){toast('เปลี่ยนการตั้งค่าไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneBlockCurrentDM(){
+ const c=getActiveChar(me()),other=PHONE_CURRENT_CONVERSATION&&PHONE_CURRENT_CONVERSATION.other_character_id;if(!c||!other)return;
+ if(!await ask('บล็อกตัวละครนี้หรือไม่? จะบล็อกทั้งแชตส่วนตัวและจดหมายระหว่างตัวละครนี้ ประวัติเดิมจะยังอยู่'))return;
+ try{await phoneBankRpc('site_phone_block',{p_character_id:c.id,p_blocked_character_id:other});toast('บล็อกตัวละครแล้ว');openPhoneFloatApp('chat')}catch(e){toast('บล็อกไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneStartDM(otherId){
+ const c=getActiveChar(me());if(!c)return toast('ต้องเลือกตัวละครที่อนุมัติแล้วก่อน','bad');
+ try{const result=await phoneBankRpc('site_phone_open_dm',{p_character_id:c.id,p_other_character_id:otherId});PHONE_OPEN_CONVERSATION_ID=result.conversation_id;PHONE_OPEN_CONVERSATION_KIND='dm';PHONE_CURRENT_CONVERSATION=null;openPhoneConversation(result.conversation_id,'dm')}
+ catch(e){toast('เริ่มแชตไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneLeaveCurrentGroup(){
+ const c=getActiveChar(me()),conv=PHONE_CURRENT_CONVERSATION;if(!c||!conv||!await ask('ออกจากกลุ่มนี้หรือไม่? ประวัติข้อความก่อนออกจะยังอยู่ในคลังส่วนตัว'))return;
+ try{await phoneBankRpc('site_phone_group_leave',{p_character_id:c.id,p_conversation_id:conv.id});toast('ออกจากกลุ่มแล้ว');openPhoneFloatApp('groupchat')}catch(e){toast('ออกจากกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function openPhoneGroupManager(conversationId){
+ const c=getActiveChar(me());if(!c)return;
+ document.getElementById('phoneGroupManager')?.remove();
+ try{
+  const [members,invites,list]=await Promise.all([
+   phoneBankRpc('site_phone_group_members',{p_character_id:c.id,p_conversation_id:conversationId}),
+   phoneBankRpc('site_phone_group_sent_invites',{p_character_id:c.id,p_conversation_id:conversationId}),
+   phoneBankRpc('site_phone_list_conversations',{p_character_id:c.id})
+  ]);
+  PHONE_CONVERSATIONS=Array.isArray(list)?list:PHONE_CONVERSATIONS;
+  const conv=PHONE_CONVERSATIONS.find(x=>x.id===conversationId);if(!conv)throw new Error('ไม่พบกลุ่มนี้');
+  const isOwner=!!conv.is_owner,active=(members||[]).filter(x=>!x.left_at),ids=new Set(active.map(x=>x.character_id));
+  const available=DB.get('characters').filter(x=>x.status==='approved'&&!ids.has(x.id)&&x.id!==c.id);
+  let html='<div id="phoneGroupManager" class="phone-settings-overlay"><section class="phone-settings-modal"><div class="row between"><div><div class="phone-eyebrow">GROUP CONTROL</div><h3>'+esc(conv.title||'จัดการกลุ่ม')+'</h3><p class="phone-msg-muted">'+(isOwner?'คุณเป็นเจ้าของกลุ่ม':'ตั้งค่าส่วนตัวของสมาชิก')+'</p></div><button class="btn sm ghost" onclick="document.getElementById(\'phoneGroupManager\')?.remove()">×</button></div><h4>สมาชิกในกลุ่ม</h4><div class="phone-msg-list">'+(members||[]).map(m=>'<div class="phone-contact-card">'+phoneImage(m.avatar)+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(m.name)+(m.is_owner?' · เจ้าของ':'')+(m.is_me?' · คุณ':'')+'</div><div class="phone-contact-meta">'+(m.left_at?'ออกจากกลุ่ม '+esc(phoneDateTime(m.left_at)):'เข้าร่วม '+esc(phoneDateTime(m.joined_at)))+'</div></div>'+(isOwner&&!m.left_at&&!m.is_owner?'<div class="phone-contact-actions"><button class="btn sm ghost phone-action-small" onclick="phoneGroupTransferOwner(\''+conversationId+'\',\''+m.character_id+'\')">โอนสิทธิ์</button><button class="btn sm ghost phone-action-small" onclick="phoneGroupRemoveMember(\''+conversationId+'\',\''+m.character_id+'\')">นำออก</button></div>':'')+'</div>').join('')+'</div>';
+  if(isOwner&&!conv.is_closed){
+   html+='<h4 style="margin-top:16px">เชิญสมาชิก</h4><form class="phone-msg-form" onsubmit="doPhoneGroupInvite(event,\''+conversationId+'\')"><select name="target" required><option value="">เลือกตัวละคร…</option>'+available.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.stageName||x.name)+'</option>').join('')+'</select><button class="btn" type="submit">ส่งคำเชิญ</button></form>';
+   html+='<h4 style="margin-top:16px">คำเชิญที่ยังรอตอบรับ</h4>'+(invites.length?invites.map(i=>'<div class="phone-contact-card"><div class="phone-contact-info"><div class="phone-contact-name">'+esc(i.name)+'</div><div class="phone-contact-meta">ยังไม่ได้ตอบรับ</div></div><button class="btn sm ghost" onclick="phoneCancelGroupInvite(\''+conversationId+'\',\''+i.id+'\')">ยกเลิก</button></div>').join(''):'<div class="phone-msg-muted">ไม่มีคำเชิญค้างอยู่</div>');
+   html+='<h4 style="margin-top:16px">รายละเอียดกลุ่ม</h4><form class="phone-msg-form" onsubmit="phoneSaveGroupDetails(event,\''+conversationId+'\')"><label>ชื่อกลุ่ม</label><input name="name" maxlength="80" required value="'+esc(conv.title||'')+'"><label>คำอธิบาย</label><textarea name="description" maxlength="500" rows="2">'+esc(conv.description||'')+'</textarea><label>URL รูปกลุ่ม</label><input name="image" type="url" value="'+esc(conv.image_url||'')+'"><button class="btn" type="submit">บันทึกรายละเอียด</button></form><button class="btn sm ghost" style="margin-top:12px" onclick="phoneGroupClose(\''+conversationId+'\')">เก็บกลุ่มเข้าคลัง</button>';
+  }else if(!conv.is_closed)html+='<button class="btn ghost" style="margin-top:12px" onclick="phoneLeaveSpecificGroup(\''+conversationId+'\')">ออกจากกลุ่ม</button>';
+  html+='<button class="btn ghost" style="width:100%;margin-top:12px" onclick="document.getElementById(\'phoneGroupManager\')?.remove()">ปิด</button></section></div>';
+  document.getElementById('phoneFloatPanelBody')?.insertAdjacentHTML('beforeend',html);
+ }catch(e){toast('เปิดจัดการกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function doPhoneGroupInvite(event,id){
+ event.preventDefault();const c=getActiveChar(me()),target=new FormData(event.currentTarget).get('target');if(!c||!target)return;
+ try{await phoneBankRpc('site_phone_group_invite',{p_character_id:c.id,p_conversation_id:id,p_invited_character_id:String(target)});toast('ส่งคำเชิญแล้ว');await openPhoneGroupManagerRefresh(id)}catch(e){toast('ส่งคำเชิญไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function openPhoneGroupManagerRefresh(id){document.getElementById('phoneGroupManager')?.remove();await openPhoneGroupManager(id)}
+async function phoneCancelGroupInvite(convId,inviteId){
+ const c=getActiveChar(me());if(!c)return;
+ try{await phoneBankRpc('site_phone_group_cancel_invite',{p_character_id:c.id,p_invite_id:inviteId});toast('ยกเลิกคำเชิญแล้ว');await openPhoneGroupManagerRefresh(convId)}catch(e){toast('ยกเลิกคำเชิญไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneGroupTransferOwner(convId,targetId){
+ const c=getActiveChar(me());if(!c||!await ask('โอนสิทธิ์เจ้าของกลุ่มให้ตัวละครนี้?'))return;
+ try{await phoneBankRpc('site_phone_group_transfer_owner',{p_character_id:c.id,p_conversation_id:convId,p_new_owner_character_id:targetId});toast('โอนสิทธิ์เจ้าของกลุ่มแล้ว');document.getElementById('phoneGroupManager')?.remove();await loadPhoneConversations('groupchat')}catch(e){toast('โอนสิทธิ์ไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneGroupRemoveMember(convId,targetId){
+ const c=getActiveChar(me());if(!c||!await ask('นำตัวละครนี้ออกจากกลุ่มหรือไม่?'))return;
+ try{await phoneBankRpc('site_phone_group_remove_member',{p_character_id:c.id,p_conversation_id:convId,p_target_character_id:targetId});toast('นำสมาชิกออกแล้ว');await openPhoneGroupManagerRefresh(convId);await loadPhoneConversations('groupchat')}catch(e){toast('นำสมาชิกออกไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneLeaveSpecificGroup(id){
+ const c=getActiveChar(me());if(!c||!await ask('ออกจากกลุ่มนี้หรือไม่?'))return;
+ try{await phoneBankRpc('site_phone_group_leave',{p_character_id:c.id,p_conversation_id:id});toast('ออกจากกลุ่มแล้ว');document.getElementById('phoneGroupManager')?.remove();openPhoneFloatApp('groupchat')}catch(e){toast('ออกจากกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneGroupClose(id){
+ const c=getActiveChar(me());if(!c||!await ask('เก็บกลุ่มเข้าคลังหรือไม่? สมาชิกจะอ่านข้อความเดิมได้ แต่ส่งข้อความใหม่ไม่ได้'))return;
+ try{await phoneBankRpc('site_phone_group_close',{p_character_id:c.id,p_conversation_id:id});toast('เก็บกลุ่มเข้าคลังแล้ว');document.getElementById('phoneGroupManager')?.remove();openPhoneFloatApp('groupchat')}catch(e){toast('เก็บกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneSaveGroupDetails(event,id){
+ event.preventDefault();const c=getActiveChar(me());if(!c)return;const d=new FormData(event.currentTarget);
+ try{await phoneBankRpc('site_phone_group_update',{p_character_id:c.id,p_conversation_id:id,p_name:String(d.get('name')||''),p_description:String(d.get('description')||''),p_image_url:String(d.get('image')||'')});toast('บันทึกรายละเอียดกลุ่มแล้ว');await openPhoneGroupManagerRefresh(id);await loadPhoneConversations('groupchat')}catch(e){toast('บันทึกกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+
 /* ================= ROUTER ================= */
 const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
  chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editbio:pageEditCharacterBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
