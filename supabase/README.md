@@ -70,7 +70,7 @@ The phone screen and bank RPCs are in the front end and the `site_bank_*` databa
 - Cash balances stay in `characters.won`; bank balances are stored separately.
 - Deposit, withdrawal and transfer are server-side, transactional RPCs with a unique request ID and a transaction log. Transfer is bank-account-to-bank-account only.
 - Fees start at 0% and can be configured by an administrator with `manage_economy` permission (or site admin) from the bank administration page.
-- The migration does not create private chat, group chat, item transfer or notifications yet; those app tiles are a phone shell for subsequent implementation.
+- Banking is installed by this file. Private chat, group chat, email integration, item transfer, read receipts, notifications and phone administration are installed by the separate `supabase/phone-messaging-migration.sql` file described below.
 - Do not add a Supabase service-role key to the public website.
 
 
