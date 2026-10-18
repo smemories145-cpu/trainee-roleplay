@@ -11,6 +11,14 @@ The website uses GitHub Pages for the front end and Supabase for shared records 
 
 This creates the shared records table, account profile table, access rules, authentication trigger, and server-validated RPCs. The browser publishable key is used by the front end; do not put a secret/service-role key into the website.
 
+## Disable the legacy cash-transfer path
+
+The old profile-page transfer control and `site_transfer` RPC have been removed. Character cash balances remain unchanged, but characters can no longer transfer cash directly to each other through the legacy path.
+
+For an existing Supabase project, open **Supabase Dashboard → SQL Editor**, then run the complete `supabase/remove-legacy-cash-transfer.sql` file from this repository. This drops the old RPC from the live database and refreshes the PostgREST schema cache. Updating GitHub files alone cannot remove a function that is already installed in Supabase.
+
+New inter-character transfers must be implemented through the bank-account system only. Do not restore or re-grant `site_transfer`.
+
 ## Fix: character biography thread RPC not found
 
 If posting a character archive shows `Could not find the function public.site_create_character_bio_thread(p_thread) in the schema cache`, or after you deploy new custom-HTML archive mode, apply the latest RPC migration below.
