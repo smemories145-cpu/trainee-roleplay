@@ -1949,7 +1949,7 @@ begin
   if p_deposit_fee_bps not between 0 and 10000
      or p_withdrawal_fee_bps not between 0 and 10000
      or p_transfer_fee_bps not between 0 and 10000 then
-    raise exception 'Each fee must be between 0% and 100%';
+    raise exception 'Each fee must be between 0%% and 100%%';
   end if;
 
   update public.site_bank_settings
