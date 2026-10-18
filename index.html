@@ -409,7 +409,7 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 .phone-lock-alert{width:100%;text-align:left;border:1px solid #ffffff20;background:#ffffff0c;border-radius:16px;padding:14px 16px;margin-bottom:12px}
 .phone-lock-alert b{display:block;font-size:.82rem}.phone-lock-alert span{display:block;font-size:.73rem;color:#aaa8b1;margin-top:4px}
 .phone-unlock-btn{margin-top:auto;width:100%;border:1px solid #ffffff42;background:#ffffff12;color:#fff;border-radius:999px;padding:13px 18px;letter-spacing:.5px}
-.phone-bottom-home{height:24px;width:96px;border-radius:20px;background:color-mix(in srgb,var(--mut) 55%,transparent);margin:0 auto 7px;flex-shrink:0}
+.phone-bottom-home{height:24px;width:96px;border:0;padding:0;border-radius:20px;background:color-mix(in srgb,var(--mut) 55%,transparent);margin:0 auto 7px;flex-shrink:0;display:block;cursor:pointer;appearance:none}
 .phone-back{padding:6px 10px!important}
 .phone-section-title{font-size:1rem;margin:4px 0 12px}
 .phone-account-card{border:1px solid color-mix(in srgb,var(--pri) 30%,var(--line));border-radius:20px;padding:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 12%,var(--card)),var(--card) 75%);margin-bottom:14px}
@@ -474,18 +474,12 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 .phone-float-launcher-label{font-size:.52rem;letter-spacing:1.3px;opacity:.82}
 .phone-float-window{position:fixed;z-index:100101;right:76px;bottom:16px;width:min(430px,calc(100vw - 24px));height:min(760px,calc(100dvh - 24px));min-height:300px;border:1px solid color-mix(in srgb,var(--pri) 35%,var(--line));border-radius:25px;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);color:var(--txt);box-shadow:0 25px 90px #0009;pointer-events:auto;isolation:isolate}
 .phone-float-window[hidden]{display:none!important}
-.phone-float-window-head{height:48px;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px 8px 16px;background:linear-gradient(110deg,color-mix(in srgb,var(--pri) 13%,var(--card)),var(--card));border-bottom:1px solid var(--line);cursor:grab;touch-action:none;user-select:none}
-.phone-float-window-head:active{cursor:grabbing}
-.phone-float-window-title{font-size:.76rem;letter-spacing:1.1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.phone-float-window-subtitle{font-size:.64rem;color:var(--mut);margin-top:1px;letter-spacing:.4px}
-.phone-float-window-controls{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.phone-float-control{width:29px;height:29px;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--txt);display:grid;place-items:center;cursor:pointer;font-size:1rem;line-height:1}
-.phone-float-control:hover{border-color:var(--pri)}
 .phone-float-window-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;background:var(--bg)}
 .phone-float-window-body .phone-page{width:100%;max-width:none;margin:0;padding:0;height:100%}
 .phone-float-window-body .phone-frame{width:100%;height:100%;min-height:0;margin:0;border:0;border-radius:0;box-shadow:none}
 .phone-float-window-body .phone-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:17px 16px 24px}
 .phone-float-window-body .phone-status,.phone-float-window-body .phone-appbar,.phone-float-window-body .phone-bottom-home{flex-shrink:0}
+.phone-float-window-body .phone-status{cursor:grab;touch-action:none;user-select:none}
 .phone-float-window-body .phone-lock{overflow:auto}
 .phone-float-window-body .phone-admin-page{max-width:none;margin:0;padding:12px 12px 24px}
 .phone-float-window-body .phone-admin-form{grid-template-columns:1fr}
@@ -495,7 +489,6 @@ body.personal-theme-active .rules{border-left-color:var(--warn)}
 .phone-float-window-body .phone-account-balance{overflow-wrap:anywhere}
 .phone-float-window-body .phone-bank-actions{grid-template-columns:1fr}
 .phone-float-window-body .phone-placeholder{min-height:330px}
-.phone-float-window-hint{height:5px;min-height:5px;width:74px;border-radius:99px;background:color-mix(in srgb,var(--mut) 55%,transparent);margin:5px auto 7px;flex-shrink:0}
 @media(max-width:560px){
  .phone-float-launcher{width:51px;height:61px;border-radius:19px 0 0 19px}
  .phone-float-window{left:auto;right:8px;top:auto;bottom:8px;width:min(430px,calc(100vw - 16px));height:min(740px,calc(100dvh - 16px));min-height:0;border-radius:22px}
@@ -3704,7 +3697,7 @@ function pagePhone(appId){
   const app=titles[appId]||['✦','แอปพลิเคชัน',''];
   main=phoneAppBack(app[1])+'<div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+app[0]+'</div><h2>'+esc(app[1])+'</h2><p class="phone-msg-muted">'+esc(app[2])+'</p><button class="btn ghost" onclick="openPhoneFloatApp(\'home\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
  }
- renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">✦ STARLIGHT</span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
+ renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-content">'+main+'</div><button type="button" class="phone-bottom-home" aria-label="กลับสู่หน้าหลักโทรศัพท์" title="กลับหน้าหลัก" onclick="openPhoneFloatApp(&quot;home&quot;)"></button></div></div>');
  if(after&&phoneUnlocked)after();
  phoneStartPolling();
 }
@@ -3909,15 +3902,13 @@ function ensurePhoneFloatUI(){
  root=document.createElement('div');root.id='phoneFloatRoot';
  root.innerHTML='<button type="button" id="phoneFloatLauncher" class="phone-float-launcher" aria-label="เปิดโทรศัพท์ STARLIGHT" aria-controls="phoneFloatWindow" aria-expanded="false" onclick="handlePhoneLauncherClick()"><span class="phone-float-launcher-icon">✦</span><span class="phone-float-launcher-label">PHONE</span></button>'+
   '<section id="phoneFloatWindow" class="phone-float-window" role="dialog" aria-label="โทรศัพท์ STARLIGHT" aria-modal="false" hidden>'+
-   '<header id="phoneFloatDragHandle" class="phone-float-window-head"><div style="min-width:0"><div id="phoneFloatWindowTitle" class="phone-float-window-title">✦ STARLIGHT PHONE</div><div class="phone-float-window-subtitle">ลากตรงนี้เพื่อย้ายหน้าต่าง</div></div><div class="phone-float-window-controls"><button type="button" class="phone-float-control" aria-label="ย่อโทรศัพท์" title="ย่อ" onclick="minimizePhoneFloat()">−</button><button type="button" class="phone-float-control" aria-label="ปิดหน้าต่างโทรศัพท์" title="ปิด" onclick="closePhoneFloat()">×</button></div></header>'+
-   '<div id="phoneFloatPanelBody" class="phone-float-window-body"></div><div class="phone-float-window-hint"></div></section>';
+   '<div id="phoneFloatPanelBody" class="phone-float-window-body"></div></section>';
  document.body.appendChild(root);
  const launcher=document.getElementById('phoneFloatLauncher');
  const panel=document.getElementById('phoneFloatWindow');
- const handle=document.getElementById('phoneFloatDragHandle');
  phoneFloatApplySaved(launcher,'sa_phone_float_launcher_pos');
  launcher.addEventListener('pointerdown',e=>phoneFloatStartDrag(e,'launcher'));
- handle.addEventListener('pointerdown',e=>phoneFloatStartDrag(e,'window'));
+  panel.addEventListener('pointerdown',e=>{if(e.target.closest('.phone-status'))phoneFloatStartDrag(e,'window')});
  document.addEventListener('pointermove',phoneFloatMove,{passive:false});
  document.addEventListener('pointerup',phoneFloatFinishDrag);
  document.addEventListener('pointercancel',phoneFloatFinishDrag);
