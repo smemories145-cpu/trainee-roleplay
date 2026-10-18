@@ -2194,6 +2194,16 @@ nav#nav .links .me-pill.starlight-account-pill .starlight-account-amount{
  }
 }
 @media(prefers-reduced-motion:reduce){.phone-app-tile:hover .phone-app-icon{transform:none!important}}
+</style><style id="starlightSitePerformancePolish">
+/* Reduce scroll-time GPU work without changing the site's layout or stored data. */
+body{background-attachment:scroll!important}
+nav{
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+ background-color:rgba(12,10,16,.96)!important;
+}
+img{content-visibility:auto}
+img.av,img.phone-line-icon{content-visibility:visible}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -2735,7 +2745,7 @@ function characterBioNotice(c){
 }
 function canPost(c,t,u){return c&&u&&(isAdmin()||c.ownerId===u.id)&&(!characterBioExpired(c)||isAdmin())&&c.status==='approved'&&c.stage>=t.minStage&&c.stage<=t.maxStage&&(!t.agencyId||c.agencyId===t.agencyId)}
 function avatar(o,s=48){
- if(o?.avatar&&/^https?:\/\//.test(o.avatar))return `<img class="av" style="--s:${s}px" src="${esc(o.avatar)}" onerror="this.style.opacity=.15">`;
+ if(o?.avatar&&/^https?:\/\//.test(o.avatar))return `<img class="av" style="--s:${s}px" src="${esc(o.avatar)}" loading="lazy" decoding="async" fetchpriority="low" onerror="this.style.opacity=.15">`;
  return `<div class="av" style="--s:${s}px${o?.color?';background:'+esc(o.color):''}">${esc((o?.stageName||o?.name||o?.username||'?')[0])}</div>`;
 }
 function agencyBadge(id){const a=agencyOf(id);return a?`<a href="#agency/${a.id}" class="badge" style="--c:${esc(a.color)}">🏢 ${esc(a.name)}</a>`:''}
@@ -2744,7 +2754,7 @@ function forumOptions(sel){return DB.get('forums').map(f=>`<option value="${f.id
 
 /* ================= SANITIZE & RENDER ================= */
 const OK_TAGS=new Set('B STRONG I EM U S STRIKE DEL SUB SUP BR P DIV SPAN H1 H2 H3 H4 BLOCKQUOTE UL OL LI A IMG HR FONT DETAILS SUMMARY TABLE THEAD TBODY TR TD TH CENTER PRE CODE SMALL MARK IFRAME FIGURE FIGCAPTION'.split(' '));
-const OK_ATTR=['style','color','face','size','align','width','height','colspan','rowspan','alt','title','open','allowfullscreen','frameborder','class'];
+const OK_ATTR=['style','color','face','size','align','width','height','colspan','rowspan','alt','title','open','allowfullscreen','frameborder','class','loading','decoding','fetchpriority'];
 function sanitize(html){
  const t=document.createElement('template');t.innerHTML=String(html??'');
  const walk=n=>{[...n.childNodes].forEach(c=>{
@@ -2762,6 +2772,12 @@ function sanitize(html){
    if(k==='target'||k==='rel')continue;
    if(!OK_ATTR.includes(k))c.removeAttribute(a.name);
   }
+  if(tag==='IMG'){
+   if(!c.hasAttribute('loading'))c.setAttribute('loading','lazy');
+   if(!c.hasAttribute('decoding'))c.setAttribute('decoding','async');
+   if(!c.hasAttribute('fetchpriority'))c.setAttribute('fetchpriority','low');
+  }
+  if(tag==='IFRAME'&&!c.getAttribute('loading'))c.setAttribute('loading','lazy');
   if(tag==='IFRAME'&&!c.getAttribute('src')){c.remove();return}
   walk(c);
  })};
