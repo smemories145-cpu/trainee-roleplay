@@ -4536,7 +4536,7 @@ function phoneMailDetailMarkup(){
   const sentByMe=m.senderId===u.id||m.sender_app_user_id===u.id;
   const who=sentByMe?'ฉัน':(m.senderUsername||m.sender_username||'สมาชิก');
   return '<div class="phone-chat-row '+(sentByMe?'mine':'')+'"><span class="phone-chat-avatar" style="display:grid;place-items:center">✉️</span><div style="min-width:0;max-width:100%"><div class="phone-chat-bubble"><div class="phone-chat-sender">'+esc(who)+' · '+esc(phoneDateTime(m.createdAt||m.created_at))+'</div><div class="phone-chat-body">'+esc(m.body||'')+'</div></div></div></div>';
- }).join('')+'</div><div class="row" style="gap:7px;flex-wrap:wrap"><button class="btn sm" onclick="phoneReplyToMail(\''+esc(messages[messages.length-1].id)+'\',\''+folder+'\')">↩ ตอบกลับในเธรดนี้</button><button class="btn sm ghost" onclick="phoneSwitchMailFolder(\''+folder+'\')">กลับกล่องจดหมาย</button><button class="btn sm ghost" onclick="phoneDeleteMailThread(\\''+folder+'\\',\\''+esc(PHONE_MAIL_DETAIL.threadId)+'\\')">ลบเธรดนี้จากกล่องของฉัน</button></div></div>';
+ }).join('')+'</div><div class="row" style="gap:7px;flex-wrap:wrap"><button class="btn sm" onclick="phoneReplyToMail(\''+esc(messages[messages.length-1].id)+'\',\''+folder+'\')">↩ ตอบกลับในเธรดนี้</button><button class="btn sm ghost" onclick="phoneSwitchMailFolder(\''+folder+'\')">กลับกล่องจดหมาย</button><button class="btn sm ghost" onclick="phoneDeleteMailThread(\''+folder+'\',\''+esc(PHONE_MAIL_DETAIL.threadId)+'\')">ลบเธรดนี้จากกล่องของฉัน</button></div></div>';
  return html;
 }
 let PHONE_MAIL_COMPOSE=null;
