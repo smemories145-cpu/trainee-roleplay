@@ -1261,6 +1261,15 @@ create index if not exists site_presence_last_seen_idx
 create index if not exists site_presence_member_last_seen_idx
   on public.site_presence(member_last_seen desc);
 
+-- Move records from the earlier example roleplay categories into the lowest rank
+-- until the member's browser sends a fresh heartbeat with their actual character stage.
+update public.site_presence
+set member_online_group = 'applicant'
+where member_online_group not in (
+  'applicant','trainee_d','trainee_c','trainee_b',
+  'trainee_a','pre_debut','rookie_artist','superstar'
+);
+
 alter table public.site_presence enable row level security;
 revoke all on table public.site_presence from anon, authenticated;
 
