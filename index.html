@@ -3674,7 +3674,7 @@ function pagePhone(appId){
  }else{
   const titles={groupchat:['👥','แชตกลุ่ม','กลุ่ม'],chat:['💬','แชตส่วนตัว','ข้อความ']};
   const app=titles[appId]||['✦','แอปพลิเคชัน',''];
-  main=phoneAppBack(app[1])+'<div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+app[0]+'</div><h2>'+esc(app[1])+'</h2><p class="phone-msg-muted">'+esc(app[2])+'</p><button class="btn ghost" onclick="openPhoneFloatApp(\\'home\\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
+  main=phoneAppBack(app[1])+'<div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+app[0]+'</div><h2>'+esc(app[1])+'</h2><p class="phone-msg-muted">'+esc(app[2])+'</p><button class="btn ghost" onclick="openPhoneFloatApp(\'home\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
  }
  renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">✦ STARLIGHT</span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
  if(after&&phoneUnlocked)after();
