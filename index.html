@@ -4161,7 +4161,8 @@ function phoneConversationThreadShell(){
  html+='<div id="phoneChatMessages" class="phone-chat-stream"><div class="phone-msg-muted">กำลังโหลดข้อความ…</div></div>';
  html+='<form id="phoneChatSendForm" class="phone-msg-form" onsubmit="doPhoneSendMessage(event)"><textarea name="body" maxlength="4000" placeholder="พิมพ์ข้อความ… ใช้ @ชื่อในกลุ่มเพื่อกล่าวถึง" rows="2"></textarea><input name="image_url" type="url" placeholder="URL รูปภาพ (ไม่บังคับ)"><div class="row between" style="gap:8px"><small class="phone-msg-muted">เก็บเป็นข้อความธรรมดา · ไม่ประมวลผล HTML</small><button class="btn" type="submit">ส่งข้อความ ↑</button></div></form>';
  if(isGroup&&!x.is_closed)html+='<div style="margin:8px 0"><button type="button" class="btn sm ghost" onclick="phoneShowMentionPicker()">＠ กล่าวถึงสมาชิก</button><div id="phoneMentionPicker"></div></div>';
- html+='<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn sm ghost" onclick="phoneMuteCurrentConversation()">🔕 ปิดเสียง/กล่าวถึง</button>';
+ html+='<div class="row" style="gap:7px;flex-wrap:wrap;margin-top:9px"><button class="btn sm ghost" onclick="phoneMuteCurrentConversation()">'+(x.is_muted?'🔔 เปิดเสียงห้อง':'🔕 ปิดเสียงห้อง')+'</button>';
+ if(isGroup&&!x.is_closed)html+='<button class="btn sm ghost" onclick="phoneToggleMentionsCurrentConversation()">'+(x.mentions_enabled===false?'＠ เปิดการแจ้งเตือนกล่าวถึง':'＠ ปิดการแจ้งเตือนกล่าวถึง')+'</button>';
  if(!isGroup&&x.other_character_id)html+='<button class="btn sm ghost" onclick="phoneBlockCurrentDM()">🚫 บล็อกตัวละคร</button>';
  if(isGroup&&!x.is_closed&&x.is_owner)html+='<button class="btn sm ghost" onclick="openPhoneGroupManager(\''+String(x.id||PHONE_OPEN_CONVERSATION_ID).replace(/'/g,'')+'\')">⚙ จัดการกลุ่ม</button>';
  if(isGroup&&!x.is_closed&&!x.is_owner)html+='<button class="btn sm ghost" onclick="phoneLeaveCurrentGroup()">ออกจากกลุ่ม</button>';
@@ -4231,6 +4232,16 @@ async function phonePinMessage(id,pin){
  try{await phoneBankRpc('site_phone_group_pin_message',{p_character_id:c.id,p_conversation_id:PHONE_OPEN_CONVERSATION_ID,p_message_id:pin?id:null});toast(pin?'ปักหมุดข้อความแล้ว':'เลิกปักหมุดแล้ว');await loadPhoneChatThread()}catch(e){toast('จัดการข้อความปักหมุดไม่สำเร็จ: '+(e.message||e),'bad')}
 }
 function phoneFocusPinnedMessage(){const id=PHONE_CURRENT_CONVERSATION&&PHONE_CURRENT_CONVERSATION.pinned_message_id,el=id&&document.getElementById('phone-message-'+id);if(el)el.scrollIntoView({behavior:'smooth',block:'center'});else toast('ข้อความปักหมุดไม่ได้อยู่ในชุดข้อความล่าสุด','bad')}
+async function phoneToggleMentionsCurrentConversation(){
+ const c=getActiveChar(me()),conv=PHONE_CURRENT_CONVERSATION;if(!c||!conv||conv.kind!=='group')return;
+ const enabled=conv.mentions_enabled===false;
+ try{
+  await phoneBankRpc('site_phone_group_toggle_preferences',{p_character_id:c.id,p_conversation_id:conv.id,p_muted:!!conv.is_muted,p_mentions_enabled:enabled});
+  conv.mentions_enabled=enabled;
+  toast(enabled?'เปิดการแจ้งเตือน @กล่าวถึง แล้ว':'ปิดการแจ้งเตือน @กล่าวถึง แล้ว');
+  await loadPhoneChatThread();
+ }catch(e){toast('เปลี่ยนการตั้งค่าไม่สำเร็จ: '+(e.message||e),'bad')}
+}
 async function phoneMuteCurrentConversation(){
  const c=getActiveChar(me()),conv=PHONE_CURRENT_CONVERSATION;if(!c||!conv)return;
  try{await phoneBankRpc('site_phone_group_toggle_preferences',{p_character_id:c.id,p_conversation_id:conv.id,p_muted:!conv.is_muted,p_mentions_enabled:conv.mentions_enabled!==false});toast(!conv.is_muted?'ปิดเสียงห้องแล้ว':'เปิดเสียงห้องแล้ว');await loadPhoneChatThread()}catch(e){toast('เปลี่ยนการตั้งค่าไม่สำเร็จ: '+(e.message||e),'bad')}
@@ -4525,7 +4536,7 @@ function phoneMailDetailMarkup(){
   const sentByMe=m.senderId===u.id||m.sender_app_user_id===u.id;
   const who=sentByMe?'ฉัน':(m.senderUsername||m.sender_username||'สมาชิก');
   return '<div class="phone-chat-row '+(sentByMe?'mine':'')+'"><span class="phone-chat-avatar" style="display:grid;place-items:center">✉️</span><div style="min-width:0;max-width:100%"><div class="phone-chat-bubble"><div class="phone-chat-sender">'+esc(who)+' · '+esc(phoneDateTime(m.createdAt||m.created_at))+'</div><div class="phone-chat-body">'+esc(m.body||'')+'</div></div></div></div>';
- }).join('')+'</div><div class="row" style="gap:7px;flex-wrap:wrap"><button class="btn sm" onclick="phoneReplyToMail(\''+esc(messages[messages.length-1].id)+'\',\''+folder+'\')">↩ ตอบกลับในเธรดนี้</button><button class="btn sm ghost" onclick="phoneSwitchMailFolder(\''+folder+'\')">กลับกล่องจดหมาย</button></div></div>';
+ }).join('')+'</div><div class="row" style="gap:7px;flex-wrap:wrap"><button class="btn sm" onclick="phoneReplyToMail(\''+esc(messages[messages.length-1].id)+'\',\''+folder+'\')">↩ ตอบกลับในเธรดนี้</button><button class="btn sm ghost" onclick="phoneSwitchMailFolder(\''+folder+'\')">กลับกล่องจดหมาย</button><button class="btn sm ghost" onclick="phoneDeleteMailThread(\\''+folder+'\\',\\''+esc(PHONE_MAIL_DETAIL.threadId)+'\\')">ลบเธรดนี้จากกล่องของฉัน</button></div></div>';
  return html;
 }
 let PHONE_MAIL_COMPOSE=null;
@@ -4561,7 +4572,27 @@ async function doPhoneSendMail(event){
   PHONE_MAIL_COMPOSE=null;PHONE_CURRENT_MAIL_FOLDER='sent';toast('ส่งจดหมายแล้ว ✉️');openPhoneFloatApp('mail');
  }catch(e){toast('ส่งจดหมายไม่สำเร็จ: '+(e.message||e),'bad')}
 }
-async function phoneDeleteMailMessage(id,folder){
+async async function phoneDeleteMailThread(folder,threadId){
+ const u=me();if(!u||!PHONE_MAIL_DETAIL)return;
+ const cache=mailCacheFor(u.id),items=(cache[folder]||[]).filter(m=>String(m.threadId||m.thread_id||m.id)===String(threadId));
+ if(!items.length)return toast('ไม่พบเธรดในกล่องนี้','bad');
+ if(!await ask('ลบเธรดนี้ออกจากกล่องของคุณหรือไม่? อีกฝ่ายจะยังเก็บสำเนาของตัวเองไว้'))return;
+ try{
+  if(cloudReady){
+   const results=await Promise.allSettled(items.map(m=>phoneBankRpc('site_mail_delete',{p_mail_id:m.id,p_folder:folder})));
+   const failed=results.filter(r=>r.status==='rejected');
+   cache.loaded[folder]=false;cache.loading[folder]=false;PHONE_MAIL_DETAIL=null;
+   await loadMailFolder(folder,u.id);
+   if(failed.length)throw new Error('ลบได้บางข้อความ ('+(items.length-failed.length)+'/'+items.length+') กรุณาเปิดกล่องอีกครั้งเพื่อตรวจสอบ');
+  }else{
+   const all=DB.get('mail'),ids=new Set(items.map(m=>m.id));
+   all.forEach(m=>{if(ids.has(m.id)){if(folder==='inbox')m.recipientDeleted=true;else m.senderDeleted=true}});
+   DB.set('mail',all);cache.loaded[folder]=false;cache.loading[folder]=false;PHONE_MAIL_DETAIL=null;
+  }
+  toast('ลบเธรดออกจากกล่องของคุณแล้ว');openPhoneFloatApp('mail');
+ }catch(e){toast('ลบเธรดไม่สำเร็จ: '+(e.message||e),'bad');openPhoneFloatApp('mail')}
+}
+function phoneDeleteMailMessage(id,folder){
  const u=me();if(!u||!await ask('ลบจดหมายออกจากกล่องของคุณหรือไม่? อีกฝ่ายยังมีสำเนาของตัวเอง'))return;
  try{
   if(cloudReady)await phoneBankRpc('site_mail_delete',{p_mail_id:id,p_folder:folder});
