@@ -2945,6 +2945,8 @@ function sanitize(html){
 function legacyHtml(s){
  let h=String(s??'');
  [
+  [/\[paper\]([\\s\\S]*?)\[\/paper\]/gi,(_,body)=>'<div style="box-sizing:border-box;width:100%;max-width:100%;margin:16px auto;padding:clamp(22px,4vw,44px);background:#fffdf7;color:#30291f;border:1px solid #d8c7a4;box-shadow:0 10px 28px #0002;font-family:\'Sarabun\',\'Noto Sans Thai\',serif;font-size:clamp(17px,1.2vw,21px);line-height:1.85;overflow-wrap:anywhere"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #d8c6a0;padding-bottom:12px;margin-bottom:22px;color:#806b48;font:700 11px/1.5 Arial,sans-serif;letter-spacing:2px"><span>STARLIGHT RP</span><span>OFFICIAL NOTICE</span></div><div style="text-align:center;color:#a28753;font-size:24px;letter-spacing:7px;margin:0 0 14px">✦ ✧ ✦</div><div style="min-height:40px">'+body+'</div><div style="border-top:1px solid #d8c6a0;margin-top:28px;padding-top:12px;text-align:center;color:#8b7958;font:10px/1.6 Arial,sans-serif;letter-spacing:2px">✦ END OF ANNOUNCEMENT ✦</div></div>'],
+  [/\[bpaper\]([\\s\\S]*?)\[\/bpaper\]/gi,(_,body)=>'<div style="box-sizing:border-box;width:100%;max-width:100%;margin:16px auto;padding:clamp(22px,4vw,44px);background:#14161c;color:#eee7d8;border:1px solid #9f8755;box-shadow:0 12px 32px #0005;font-family:\'Sarabun\',\'Noto Sans Thai\',serif;font-size:clamp(17px,1.2vw,21px);line-height:1.85;overflow-wrap:anywhere"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #66583a;padding-bottom:12px;margin-bottom:22px;color:#d4bc7e;font:700 11px/1.5 Arial,sans-serif;letter-spacing:2px"><span>STARLIGHT RP</span><span>BLACK PAPER · NOTICE</span></div><div style="text-align:center;color:#d4bc7e;font-size:24px;letter-spacing:7px;margin:0 0 14px">✦ ◆ ✦</div><div style="min-height:40px">'+body+'</div><div style="border-top:1px solid #66583a;margin-top:28px;padding-top:12px;text-align:center;color:#b4a06f;font:10px/1.6 Arial,sans-serif;letter-spacing:2px">CONFIDENTIAL · OFFICIAL ANNOUNCEMENT</div></div>'],
   [/\[br\]/gi,'<br>'],
   [/\[hr\]/gi,'<hr>'],
   [/\[p\]([\s\S]*?)\[\/p\]/gi,'<p>$1</p>'],
@@ -3857,7 +3859,7 @@ function saveEditorDraft(ed,area,key){
  store.setItem(key,EDITOR_VISUAL_DRAFT_PREFIX+JSON.stringify({html:area.innerHTML,css:ed.dataset.sourceCss||'',source:source?.value||'',sourceMode:ed.dataset.htmlSource==='1'}));
 }
 function isForumMarkupSource(value){
- return /\[(?:\/?(?:b|i|u|s|strike|center|left|right|justify|quote|code|spoiler|br|hr|p|h[1-6]|list)|(?:color|size|url|img|youtube|details|highlight)(?:=[^\]]*)?)\]/i.test(String(value||''));
+ return /\[(?:\/?(?:paper|bpaper|b|i|u|s|strike|center|left|right|justify|quote|code|spoiler|br|hr|p|h[1-6]|list)|(?:color|size|url|img|youtube|details|highlight)(?:=[^\]]*)?)\]/i.test(String(value||''));
 }
 function editorSourceBlockHtml(value,type='html'){
  const cls=type==='bbcode'?'html-source-block bbcode-source-block':'html-source-block';
