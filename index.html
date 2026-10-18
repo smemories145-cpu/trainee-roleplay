@@ -4419,26 +4419,31 @@ async function loadPhoneItemTransferHistory(){
 /* ================= PHONE MAIL, SHOP, JOBS, EVENTS, INVENTORY, PROFILE, ADMIN ================= */
 function phoneMailMarkup(folder){
  const u=me();if(!u)return '<div class="phone-not-ready">กรุณาเข้าสู่ระบบ</div>';
- const cache=mailCacheFor(u.id),items=cache[folder]||[];
+ const cache=mailCacheFor(u.id),items=cache[folder]||[],groups=new Map();
+ for(const m of items){
+  const key=String(m.threadId||m.thread_id||m.id);
+  if(!groups.has(key))groups.set(key,{threadId:key,messages:[],latest:m});
+  const group=groups.get(key);group.messages.push(m);
+  if((m.createdAt||m.created_at||0)>(group.latest.createdAt||group.latest.created_at||0))group.latest=m;
+ }
+ const threads=Array.from(groups.values()).sort((a,b)=>(b.latest.createdAt||b.latest.created_at||0)-(a.latest.createdAt||a.latest.created_at||0));
  let html=phoneAppBack('จดหมาย');
  html+='<div class="row between" style="gap:8px;margin-bottom:12px"><div class="row" style="gap:6px"><button class="btn sm '+(folder==='inbox'?'':'ghost')+'" onclick="phoneSwitchMailFolder(\'inbox\')">กล่องเข้า</button><button class="btn sm '+(folder==='sent'?'':'ghost')+'" onclick="phoneSwitchMailFolder(\'sent\')">ส่งแล้ว</button></div><button class="btn sm" onclick="openPhoneFloatApp(\'mail-compose\')">＋ เขียน</button></div>';
  if(cache.loading[folder])html+='<div class="phone-msg-muted">กำลังเปิดคลังจดหมาย…</div>';
  else if(cache.error[folder])html+=phoneFeatureError(cache.error[folder])+'<button class="btn sm" onclick="loadPhoneMail(\''+folder+'\')">ลองอีกครั้ง</button>';
- else if(!items.length)html+='<div class="phone-msg-card"><b>'+(folder==='inbox'?'ยังไม่มีจดหมายเข้า':'ยังไม่มีจดหมายที่ส่ง')+'</b><p class="phone-msg-muted">เขียนจดหมายหาสมาชิกผ่านบัญชีเว็บไซต์ได้ที่นี่</p></div>';
- else html+='<div class="phone-msg-list">'+items.map(m=>{
-  const other=folder==='inbox'?(m.senderUsername||m.sender_username||'สมาชิก'):(m.recipientUsername||m.recipient_username||'ผู้รับ');
-  return '<button class="phone-msg-conv" onclick="phoneOpenMailMessage(\''+esc(m.id)+'\',\''+folder+'\')"><span class="phone-msg-avatar">✉️</span><span class="phone-msg-conv-main"><span class="phone-msg-conv-title">'+(folder==='inbox'&&!m.readAt?'● ':'')+esc(m.subject||'(ไม่มีหัวข้อ)')+'</span><span class="phone-msg-preview">'+esc(other)+' · '+esc(String(m.body||'').slice(0,100))+'</span></span><small class="phone-msg-time">'+esc(phoneShortTime(m.createdAt||m.created_at))+'</small></button>';
+ else if(!threads.length)html+='<div class="phone-msg-card"><b>'+(folder==='inbox'?'ยังไม่มีจดหมายเข้า':'ยังไม่มีจดหมายที่ส่ง')+'</b><p class="phone-msg-muted">เขียนจดหมายหาสมาชิกผ่านบัญชีเว็บไซต์ได้ที่นี่</p></div>';
+ else html+='<div class="phone-msg-list">'+threads.map(g=>{
+  const m=g.latest,other=folder==='inbox'?(m.senderUsername||m.sender_username||'สมาชิก'):(m.recipientUsername||m.recipient_username||'ผู้รับ');
+  const unread=folder==='inbox'?g.messages.filter(x=>!(x.readAt||x.read_at)).length:0;
+  const subject=m.subject||'(ไม่มีหัวข้อ)';
+  return '<button class="phone-msg-conv" onclick="phoneOpenMailMessage(\''+esc(m.id)+'\',\''+folder+'\')"><span class="phone-msg-avatar">✉️</span><span class="phone-msg-conv-main"><span class="phone-msg-conv-title">'+(unread?'<span class="phone-msg-unread">'+unread+'</span> ':'')+esc(subject)+(g.messages.length>1?' <small class="badge">'+g.messages.length+' ข้อความ</small>':'')+'</span><span class="phone-msg-preview">'+esc(other)+' · '+esc(String(m.body||'').slice(0,100))+'</span></span><small class="phone-msg-time">'+esc(phoneShortTime(m.createdAt||m.created_at))+'</small></button>';
  }).join('')+'</div>';
  return html;
 }
-function phoneMailComposeMarkup(){
- const users=DB.get('users').filter(x=>x.id!==me()?.id);
- return phoneAppBack('เขียนจดหมาย')+'<form class="phone-msg-form" onsubmit="doPhoneSendMail(event)"><label>ผู้รับ</label><input list="phoneMailRecipientList" name="to" required maxlength="80" value="'+esc(PHONE_MAIL_COMPOSE?.to||'')+'" placeholder="ชื่อบัญชีสมาชิก"><datalist id="phoneMailRecipientList">'+users.map(u=>'<option value="'+esc(u.username)+'"></option>').join('')+'</datalist><label>หัวข้อ</label><input name="subject" required maxlength="120" value="'+esc(PHONE_MAIL_COMPOSE?.subject||'')+'" placeholder="หัวข้อจดหมาย"><label>ข้อความ</label><textarea name="body" required maxlength="12000" rows="7" placeholder="เขียนข้อความที่นี่…"></textarea><button class="btn" type="submit">ส่งจดหมาย ✉️</button><button type="button" class="btn ghost" onclick="openPhoneFloatApp(\'mail\')">ยกเลิก</button></form>';
-}
 async function loadPhoneMail(folder){
  const u=me();if(!u)return;
- const cache=mailCacheFor(u.id),need=!cache.loaded[folder]&&!cache.loading[folder];
- if(need){
+ const cache=mailCacheFor(u.id);
+ if(!cache.loaded[folder]&&!cache.loading[folder]){
   await loadMailFolder(folder,u.id);
   if(phoneFloatCurrentApp==='mail')openPhoneFloatApp('mail');
  }
@@ -4450,28 +4455,52 @@ async function phoneOpenMailMessage(id,folder){
  let m=(cache[folder]||[]).find(x=>x.id===id);
  if(!m){await loadPhoneMail(folder);m=(mailCacheFor(u.id)[folder]||[]).find(x=>x.id===id)}
  if(!m)return toast('ไม่พบจดหมายฉบับนี้','bad');
- if(folder==='inbox'&&!m.readAt&&!m.read_at){
-  try{
-   if(cloudReady)await phoneBankRpc('site_mail_mark_read',{p_mail_id:id});
-   else{m.readAt=Date.now();const all=DB.get('mail'),saved=all.find(x=>x.id===id);if(saved)saved.readAt=m.readAt;DB.set('mail',all)}
-   m.readAt=Date.now();
-  }catch(e){}
+ const threadId=String(m.threadId||m.thread_id||m.id);
+ await Promise.all(['inbox','sent'].map(async f=>{
+  const c=mailCacheFor(u.id);if(!c.loaded[f]&&!c.loading[f])await loadMailFolder(f,u.id);
+ }));
+ const currentCache=mailCacheFor(u.id);
+ if(folder==='inbox'){
+  const unread=(currentCache.inbox||[]).filter(x=>String(x.threadId||x.thread_id||x.id)===threadId&&!(x.readAt||x.read_at));
+  for(const entry of unread){
+   try{
+    if(cloudReady){await phoneBankRpc('site_mail_mark_read',{p_mail_id:entry.id});}
+    else{const all=DB.get('mail'),saved=all.find(x=>x.id===entry.id&&x.recipientId===u.id);if(saved)saved.readAt=Date.now();DB.set('mail',all)}
+    entry.readAt=Date.now();
+   }catch(e){}
+  }
  }
- PHONE_MAIL_DETAIL={id:id,folder:folder};PHONE_CURRENT_MAIL_FOLDER=folder;openPhoneFloatApp('mail-view');
+ PHONE_MAIL_DETAIL={threadId:threadId,folder:folder};PHONE_CURRENT_MAIL_FOLDER=folder;openPhoneFloatApp('mail-view');
 }
 function phoneMailDetailMarkup(){
  const u=me();if(!u||!PHONE_MAIL_DETAIL)return phoneMailMarkup(PHONE_CURRENT_MAIL_FOLDER);
- const cache=mailCacheFor(u.id),m=(cache[PHONE_MAIL_DETAIL.folder]||[]).find(x=>x.id===PHONE_MAIL_DETAIL.id);
- if(!m)return '<div class="phone-not-ready">ไม่พบจดหมาย</div>';
- const folder=PHONE_MAIL_DETAIL.folder,other=folder==='inbox'?(m.senderUsername||m.sender_username||'สมาชิก'):(m.recipientUsername||m.recipient_username||'ผู้รับ');
- return phoneAppBack('อ่านจดหมาย')+'<div class="phone-msg-card"><div class="phone-eyebrow">'+(folder==='inbox'?'INBOX':'SENT')+'</div><h3 style="margin:7px 0">'+esc(m.subject||'(ไม่มีหัวข้อ)')+'</h3><div class="phone-msg-muted">'+(folder==='inbox'?'จาก ':'ถึง ')+esc(other)+' · '+esc(phoneDateTime(m.createdAt||m.created_at))+'</div><div style="white-space:pre-wrap;overflow-wrap:anywhere;margin:16px 0;font-size:.86rem">'+esc(m.body||'')+'</div><div class="row" style="gap:7px;flex-wrap:wrap">'+(folder==='inbox'?'<button class="btn sm" onclick="phoneReplyToMail(\''+esc(m.id)+'\',\''+folder+'\')">ตอบกลับ</button>':'')+'<button class="btn sm bad" onclick="phoneDeleteMailMessage(\''+esc(m.id)+'\',\''+folder+'\')">ลบ</button><button class="btn sm ghost" onclick="phoneSwitchMailFolder(\''+folder+'\')">กลับกล่องจดหมาย</button></div></div>';
+ const cache=mailCacheFor(u.id),seen=new Set();
+ const messages=[...(cache.inbox||[]),...(cache.sent||[])].filter(m=>{
+  const key=String(m.threadId||m.thread_id||m.id);
+  if(key!==String(PHONE_MAIL_DETAIL.threadId)||seen.has(String(m.id)))return false;
+  seen.add(String(m.id));return true;
+ }).sort((a,b)=>(a.createdAt||a.created_at||0)-(b.createdAt||b.created_at||0));
+ if(!messages.length)return '<div class="phone-not-ready">ไม่พบเธรดจดหมายนี้</div>';
+ const first=messages[0],folder=PHONE_MAIL_DETAIL.folder;
+ let html=phoneAppBack('เธรดจดหมาย')+'<div class="phone-msg-card"><div class="phone-eyebrow">MAIL THREAD · '+messages.length+' ข้อความ</div><h3 style="margin:7px 0">'+esc(messages[messages.length-1].subject||first.subject||'(ไม่มีหัวข้อ)')+'</h3>';
+ html+='<div class="phone-chat-stream">'+messages.map(m=>{
+  const sentByMe=m.senderId===u.id||m.sender_app_user_id===u.id;
+  const who=sentByMe?'ฉัน':(m.senderUsername||m.sender_username||'สมาชิก');
+  return '<div class="phone-chat-row '+(sentByMe?'mine':'')+'"><span class="phone-chat-avatar" style="display:grid;place-items:center">✉️</span><div style="min-width:0;max-width:100%"><div class="phone-chat-bubble"><div class="phone-chat-sender">'+esc(who)+' · '+esc(phoneDateTime(m.createdAt||m.created_at))+'</div><div class="phone-chat-body">'+esc(m.body||'')+'</div></div></div></div>';
+ }).join('')+'</div><div class="row" style="gap:7px;flex-wrap:wrap"><button class="btn sm" onclick="phoneReplyToMail(\''+esc(messages[messages.length-1].id)+'\',\''+folder+'\')">↩ ตอบกลับในเธรดนี้</button><button class="btn sm ghost" onclick="phoneSwitchMailFolder(\''+folder+'\')">กลับกล่องจดหมาย</button></div></div>';
+ return html;
 }
 let PHONE_MAIL_COMPOSE=null;
 function phoneReplyToMail(id,folder){
  const u=me();if(!u)return;
- const m=(mailCacheFor(u.id)[folder]||[]).find(x=>x.id===id);if(!m)return;
- PHONE_MAIL_COMPOSE={to:folder==='inbox'?(m.senderUsername||m.sender_username||''):(m.recipientUsername||m.recipient_username||''),subject:'RE: '+String(m.subject||''),threadId:m.threadId||m.thread_id||m.id};
- openPhoneFloatApp('mail-compose');
+ const m=[...(mailCacheFor(u.id).inbox||[]),...(mailCacheFor(u.id).sent||[])].find(x=>x.id===id);if(!m)return;
+ const other=m.senderId===u.id?(m.recipientUsername||m.recipient_username||''):(m.senderUsername||m.sender_username||'');
+ PHONE_MAIL_COMPOSE={to:other,subject:'RE: '+String(m.subject||''),threadId:String(m.threadId||m.thread_id||PHONE_MAIL_DETAIL?.threadId||m.id)};
+ PHONE_CURRENT_MAIL_FOLDER=folder;openPhoneFloatApp('mail-compose');
+}
+function phoneMailComposeMarkup(){
+ const users=DB.get('users').filter(x=>x.id!==me()?.id);
+ return phoneAppBack('เขียนจดหมาย')+'<form class="phone-msg-form" onsubmit="doPhoneSendMail(event)"><label>ผู้รับ</label><input list="phoneMailRecipientList" name="to" required maxlength="80" value="'+esc(PHONE_MAIL_COMPOSE?.to||'')+'" placeholder="ชื่อบัญชีสมาชิก"><datalist id="phoneMailRecipientList">'+users.map(u=>'<option value="'+esc(u.username)+'"></option>').join('')+'</datalist><label>หัวข้อ</label><input name="subject" required maxlength="120" value="'+esc(PHONE_MAIL_COMPOSE?.subject||'')+'" placeholder="หัวข้อจดหมาย"><label>ข้อความ</label><textarea name="body" required maxlength="12000" rows="7" placeholder="เขียนข้อความที่นี่…"></textarea><button class="btn" type="submit">ส่งจดหมาย ✉️</button><button type="button" class="btn ghost" onclick="openPhoneFloatApp(\'mail\')">ยกเลิก</button></form>';
 }
 async function doPhoneSendMail(event){
  event.preventDefault();const u=me(),form=event.currentTarget;if(!u)return;
