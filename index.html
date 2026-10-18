@@ -3760,7 +3760,7 @@ async function doBankTransfer(event){
  finally{PHONE_BANK_BUSY=false}
 }
 function pageBankAdmin(){
- if(!(isAdmin()||hasAdminPermission('manage_economy')){
+ if(!(isAdmin()||hasAdminPermission('manage_economy'))){
   renderPhoneFloatContent('bankadmin','<div class="card" style="margin:14px"><h2>🔒 ไม่มีสิทธิ์จัดการธนาคาร</h2><p>หน้านี้ให้เฉพาะแอดมินหรือผู้ที่มีสิทธิ์จัดการเศรษฐกิจ</p><button class="btn ghost" data-app="home" onclick="openPhoneFloatApp(this.dataset.app)">กลับโทรศัพท์</button></div>');return;
  }
  renderPhoneFloatContent('bankadmin','<div class="phone-admin-page"><div class="row between"><div><div class="phone-eyebrow">STARLIGHT BANK · ADMIN</div><h1 style="margin:4px 0">จัดการธนาคาร</h1><p class="mut">ตั้งค่าค่าธรรมเนียมและตรวจสอบประวัติธุรกรรมธนาคาร</p></div><button type="button" class="btn ghost" data-app="home" onclick="openPhoneFloatApp(this.dataset.app)">📱 โทรศัพท์</button></div><div id="bankAdminPanel"><div class="card">กำลังโหลดข้อมูล…</div></div></div>');
