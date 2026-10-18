@@ -1240,9 +1240,7 @@ notify pgrst, 'reload schema';
 
 -- Online presence and daily active member tracking
 -- STARLIGHT RP: recent activity / online today system
--- Run once in Supabase Dashboard > SQL Editor.
 -- The presence table has RLS enabled and no direct client table access. Clients use the RPCs only.
-begin;
 
 create table if not exists public.site_presence (
   session_id text primary key check (session_id ~ '^[A-Za-z0-9-]{16,80}$'),
@@ -1434,4 +1432,3 @@ grant execute on function public.site_presence_heartbeat(text, boolean, text, te
 grant execute on function public.site_presence_summary() to anon, authenticated;
 
 notify pgrst, 'reload schema';
-commit;
