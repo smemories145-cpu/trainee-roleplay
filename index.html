@@ -1635,6 +1635,7 @@ nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
 <body>
 <nav id="nav"></nav>
 <main id="app"></main>
+<section id="communityPresence" aria-label="สถานะผู้ใช้งาน"></section>
 <div id="toast"></div>
 <div id="dlg" hidden></div>
 
@@ -2100,6 +2101,20 @@ const ADMIN_PERMISSION_OPTIONS=[
  {key:'manage_groups',label:'จัดการศิลปินและวง',desc:'จัดสมาชิกวง เปลี่ยนสถานะ และประกาศเดบิวต์'},
  {key:'manage_members',label:'ดูรายชื่อสมาชิก',desc:'เข้าดูรายชื่อและบทบาทสมาชิก โดยไม่สามารถเปลี่ยนสิทธิ์แอดมิน'},
  {key:'manage_settings',label:'ตั้งค่าเว็บไซต์',desc:'เปลี่ยนชื่อเว็บ ธีม ข้อความหน้าแรก และ CSS'}
+];
+const ONLINE_GROUPS=[
+ {id:'webmaster',label:'เว็บมาสเตอร์',icon:'👑'},
+ {id:'demon_king',label:'ราชันย์ปีศาจ',icon:'👹'},
+ {id:'eden_council',label:'สมาชิกสภาแห่งเอเดียน',icon:'🏛️'},
+ {id:'race_representative',label:'ตัวแทนเผ่าพันธุ์',icon:'🛡️'},
+ {id:'npc',label:'NPC',icon:'🎭'},
+ {id:'human',label:'มนุษย์',icon:'🧑'},
+ {id:'witch',label:'พ่อมดแม่มด',icon:'🔮'},
+ {id:'vampire',label:'แวมไพร์',icon:'🧛'},
+ {id:'werewolf',label:'มนุษย์หมาป่า',icon:'🐺'},
+ {id:'nature',label:'เผ่าธรรมชาติ',icon:'🌿'},
+ {id:'patient',label:'ผู้ป่วย',icon:'🩺'},
+ {id:'spirit',label:'วิญญาณ',icon:'👻'}
 ];
 const hasAdminPermission=key=>{if(isAdmin())return true;const u=me();return !!(u&&u.role==='admin'&&Array.isArray(u.permissions)&&u.permissions.includes(key));};
 const canAccessAdminPanel=()=>isAdmin()||ADMIN_PERMISSION_OPTIONS.some(p=>hasAdminPermission(p.key));
@@ -3045,7 +3060,45 @@ function insertEditorPaste(ed,html,css=''){
  area.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);saveSel();
 }
 function editorCssDocument(html,css){
- return '<!doctype html><html lang="th"><head><meta charset="utf-8"><style>'+cleanEditorCss(css)+'</style></head><body>'+sanitize(html)+'</body></html>';
+ return '<!doctype html><html lang="th"><head><meta charset="utf-8"><style>'+cleanEditorCss(css)+'</style>
+<style id="communityPresenceStyles">
+#communityPresence{width:min(100%,1680px);margin:0 auto;padding:0 clamp(12px,2vw,28px) 30px;color:var(--txt)}
+.presence-shell{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:linear-gradient(145deg,color-mix(in srgb,var(--card) 92%,var(--pri) 8%),var(--card));box-shadow:0 14px 34px #0003}
+.presence-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;padding:clamp(17px,2.5vw,25px)}
+.presence-top-copy{min-width:220px;flex:1}
+.presence-eyebrow{display:block;font-size:.66rem;letter-spacing:.17em;color:var(--pri);font-weight:700;margin-bottom:5px}
+.presence-top h2{font-size:1.2rem;margin:0 0 5px}
+.presence-head-count{margin:0;font-size:.9rem;color:var(--txt)}
+.presence-head-count b{font-size:1.35rem;color:var(--pri);margin-right:3px}
+.presence-head-meta{margin:5px 0 0;font-size:.77rem;color:var(--mut);line-height:1.7}
+.presence-counters{display:flex;gap:7px;flex-wrap:wrap;align-items:center;justify-content:flex-end;max-width:100%}
+.presence-counter{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card2);font-size:.76rem;color:var(--mut);white-space:nowrap}
+.presence-counter b{color:var(--txt);font-size:.9rem;font-variant-numeric:tabular-nums}
+.presence-live-dot{width:7px;height:7px;display:inline-block;border-radius:50%;background:#68d6a0;box-shadow:0 0 0 3px #68d6a01f}
+.presence-divider{height:1px;background:var(--line);margin:0 clamp(17px,2.5vw,25px)}
+.presence-today{padding:clamp(17px,2.5vw,25px)}
+.presence-today-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:15px}
+.presence-today-heading h3{font-size:1.02rem;margin:0}
+.presence-today-heading p{font-size:.78rem;color:var(--mut);margin:3px 0 0}
+.presence-today-total{padding:5px 10px;border:1px solid var(--line);border-radius:99px;color:var(--mut);font-size:.75rem;white-space:nowrap}
+.presence-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.presence-group{min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--card2) 80%,transparent)}
+.presence-group-heading{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:.81rem;min-width:0}
+.presence-group-icon{width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--pri) 25%,var(--line));border-radius:7px;background:color-mix(in srgb,var(--pri) 8%,transparent);font-size:.8rem}
+.presence-group-heading b{min-width:0;overflow-wrap:anywhere;font-weight:600}
+.presence-group-count{margin-left:auto;flex:0 0 auto;color:var(--mut);font-size:.68rem;padding:1px 6px;background:var(--card);border-radius:99px}
+.presence-names{display:flex;align-items:flex-start;align-content:flex-start;gap:6px;flex-wrap:wrap;min-height:24px}
+.presence-name{display:inline-flex;align-items:center;max-width:100%;padding:3px 7px;border:1px solid color-mix(in srgb,var(--presence-user-color) 28%,var(--line));border-radius:7px;background:color-mix(in srgb,var(--presence-user-color) 6%,transparent);color:var(--presence-user-color)!important;font-size:.78rem;line-height:1.5;overflow-wrap:anywhere}
+.presence-name:hover{border-color:var(--presence-user-color);background:color-mix(in srgb,var(--presence-user-color) 12%,transparent)}
+.presence-empty{font-size:.75rem;color:var(--mut);opacity:.6}
+.presence-footnote{padding:0 clamp(17px,2.5vw,25px) 14px;text-align:right;color:var(--mut);font-size:.68rem}
+.presence-error{padding:20px;border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line));border-radius:15px;background:var(--card);color:var(--mut);font-size:.84rem}
+.presence-error b{display:block;color:var(--txt);margin-bottom:4px}
+.user-settings-card .user-pref-choice input[type=checkbox]{width:auto;flex:0 0 auto}
+@media(max-width:900px){.presence-groups{grid-template-columns:repeat(2,minmax(0,1fr))}.presence-counters{justify-content:flex-start}}
+@media(max-width:560px){#communityPresence{padding-left:10px;padding-right:10px;padding-bottom:18px}.presence-groups{grid-template-columns:minmax(0,1fr)}.presence-top{gap:12px}.presence-counters{gap:6px}.presence-counter{padding:6px 8px;font-size:.72rem}.presence-group{padding:11px}.presence-footnote{text-align:left}}
+</style>
+</head><body>'+sanitize(html)+'</body></html>';
 }
 function edGet(ed){
  if(!ed)return{mode:'rich',content:''};
@@ -3680,6 +3733,7 @@ function pageProfile(uidVal){
 }
 function pageSettings(){
  const u=me();if(!u)return go('login');const prefs=u.prefs||{};
+ const onlineGroupOptions=ONLINE_GROUPS.filter(g=>g.id!=='webmaster'||isAdmin()).map(g=>'<option value="'+g.id+'" '+((prefs.onlineGroup||'human')===g.id?'selected':'')+'>'+g.icon+' '+g.label+'</option>').join('');
  app(`<form class="card user-settings-card" style="max-width:620px;margin:30px auto" onsubmit="doSaveProfile(event)">
   <div class="user-settings-head"><span class="qu-modal-kicker">ACCOUNT SETTINGS</span><h2>⚙️ ตั้งค่าบัญชีผู้ใช้</h2><p class="mut">ตั้งค่าข้อมูลส่วนตัวและรูปแบบการใช้งานของคุณ</p></div>
   <div class="user-settings-avatar-row">${avatar(u,68)}<div><b>${esc(u.username)}</b><div class="mut">บัญชีผู้ใช้ · ${u.role==='admin'?'ผู้ดูแลระบบ':'สมาชิก'}</div></div></div>
@@ -3688,6 +3742,10 @@ function pageSettings(){
   <div class="user-pref-box"><h3>🪄 ประสบการณ์การใช้งาน</h3>
    <label class="user-pref-choice"><input type="checkbox" name="compactMode" ${prefs.compactMode?'checked':''}><span><b>โหมดกระชับ</b><small>ลดช่องว่างของโพสต์และการ์ด เพื่อให้ดูเนื้อหาได้มากขึ้น</small></span></label>
    <label class="user-pref-choice"><input type="checkbox" name="reduceMotion" ${prefs.reduceMotion?'checked':''}><span><b>ลดภาพเคลื่อนไหว</b><small>ลดการเปลี่ยนภาพและแอนิเมชันในหน้าเว็บ</small></span></label>
+  </div>
+  <div class="user-pref-box"><h3>👥 สถานะชุมชน</h3>
+   ${isAdmin()?'<p class="mut">👑 บัญชีแอดมินหลักจะแสดงในหมวดเว็บมาสเตอร์โดยอัตโนมัติ</p>':'<label>กลุ่มที่แสดงในรายชื่อออนไลน์วันนี้</label><select name="onlineGroup">'+onlineGroupOptions+'</select><small class="mut">เลือกหมวดที่ต้องการให้ชื่อของคุณปรากฏด้านล่างสุดของเว็บ</small>'}
+   <label class="user-pref-choice"><input type="checkbox" name="hideOnline" ${prefs.hideOnline?'checked':''}><span><b>ซ่อนสถานะออนไลน์</b><small>ชื่อของคุณจะไม่แสดงในรายชื่อผู้ใช้ออนไลน์วันนี้ แต่จำนวนผู้ซ่อนตัวจะนับสถานะของคุณอยู่</small></span></label>
   </div>
   <div class="user-pref-box"><h3>🔐 เปลี่ยนรหัสผ่าน</h3><p class="mut">ปล่อยว่างไว้หากไม่ต้องการเปลี่ยน</p>
    <label>รหัสผ่านใหม่</label><input type="password" name="pw" autocomplete="new-password" minlength="6" placeholder="อย่างน้อย 6 ตัว">
@@ -3704,7 +3762,7 @@ async function doSaveProfile(e){
  if(pw&&pw.length<6)return toast('รหัสผ่านต้องมีอย่างน้อย 6 ตัว','bad');
  if(pw!==pw2)return toast('รหัสผ่านใหม่ไม่ตรงกัน','bad');
  const users=DB.get('users');if(users.some(x=>x.id!==u.id&&String(x.username).toLowerCase()===username.toLowerCase()))return toast('ชื่อนี้ถูกใช้แล้ว','bad');
- const prefs={...(u.prefs||{}),compactMode:E.compactMode.checked,reduceMotion:E.reduceMotion.checked};
+ const prefs={...(u.prefs||{}),compactMode:E.compactMode.checked,reduceMotion:E.reduceMotion.checked,hideOnline:!!E.hideOnline?.checked,onlineGroup:E.onlineGroup?.value||(isAdmin()?'webmaster':(u.prefs?.onlineGroup||'human'))};
  if(supaClient&&cloudReady){
   // The standard user record path already saves avatar/preferences/password. Only username changes need the additional profile RPC because login uses username@starlight.invalid.
   if(username!==u.username){
@@ -3724,7 +3782,7 @@ async function doSaveProfile(e){
   if(idx>=0)users[idx]={...users[idx],username,avatar:avatarUrl,pass,prefs};
   DB.set('users',users);
  }
- loadSettings();toast('บันทึกการตั้งค่าบัญชีแล้ว');render();
+ loadSettings();toast('บันทึกการตั้งค่าบัญชีแล้ว');render();refreshCommunityPresence();
 }
 
 /* ================= AUTH ================= */
