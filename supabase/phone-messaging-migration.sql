@@ -610,7 +610,7 @@ begin
  select coalesce(jsonb_agg(jsonb_build_object(
   'character_id',c.contact_character_id,'favorite',c.favorite,'nickname',c.nickname,'created_at',c.created_at,
   'name',coalesce(nullif(r.payload->>'stageName',''),nullif(r.payload->>'name',''),'ตัวละคร'),
-  'avatar',coalesce(r.payload->>'avatar',''),'stage',coalesce(r.payload->>'stage',0),
+  'avatar',coalesce(r.payload->>'avatar',''),'stage',case when coalesce(r.payload->>'stage','') ~ '^[0-9]{1,3}$' then (r.payload->>'stage')::integer else 0 end,
   'status',coalesce(r.payload->>'status','approved'),
   'online',case when coalesce(pr.hide_presence,false) then false else pr.last_seen_at>now()-interval '90 seconds' end,
   'last_seen_at',case when coalesce(pr.hide_last_seen,false) then null else pr.last_seen_at end

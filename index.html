@@ -4108,7 +4108,11 @@ function phoneShortTime(value){try{return value?new Date(value).toLocaleTimeStri
 function phoneDateTime(value){try{return value?new Date(value).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):''}catch(e){return ''}}
 function phoneFeatureError(error){
  const message=error&&error.message?error.message:String(error||'ยังไม่ทราบสาเหตุ');
- return '<div class="phone-not-ready"><b>เชื่อมต่อระบบไม่สำเร็จ</b><p>'+esc(message)+'</p><p>ตรวจว่าได้ติดตั้ง <code>supabase/phone-messaging-migration.sql</code> ใน Supabase SQL Editor และเข้าสู่ระบบออนไลน์แล้ว</p><a href="https://github.com/smemories145-cpu/trainee-roleplay/blob/main/supabase/phone-messaging-migration.sql" target="_blank" rel="noopener">เปิดไฟล์ติดตั้งระบบโทรศัพท์</a></div>';
+ const typeMismatch=/COALESCE types text and integer cannot be matched/i.test(message);
+ const help=typeMismatch
+  ? '<p>ข้อผิดพลาดนี้เกิดจากชนิดข้อมูลใน SQL ให้เปิดไฟล์ซ่อมด้านล่าง คัดลอกทั้งหมดไปรันใน Supabase → SQL Editor</p><a href="https://github.com/smemories145-cpu/trainee-roleplay/blob/main/supabase/fix-phone-contacts-type-mismatch.sql" target="_blank" rel="noopener">เปิดไฟล์ซ่อม SQL รายชื่อเพื่อน</a>'
+  : '<p>ตรวจว่าได้ติดตั้ง <code>supabase/phone-messaging-migration.sql</code> ใน Supabase SQL Editor และเข้าสู่ระบบออนไลน์แล้ว</p><a href="https://github.com/smemories145-cpu/trainee-roleplay/blob/main/supabase/phone-messaging-migration.sql" target="_blank" rel="noopener">เปิดไฟล์ติดตั้งระบบโทรศัพท์</a>';
+ return '<div class="phone-not-ready"><b>เชื่อมต่อระบบไม่สำเร็จ</b><p>'+esc(message)+'</p>'+help+'</div>';
 }
 function phoneAppBack(title){
  return '<div class="phone-backline"><button type="button" class="btn sm ghost phone-back" onclick="openPhoneFloatApp(\'home\')">← หน้าแรก</button><div><div class="phone-eyebrow">STARLIGHT PHONE</div><b>'+esc(title)+'</b></div></div>';
