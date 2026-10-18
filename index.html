@@ -3792,6 +3792,7 @@ async function doSaveBankSettings(event){
 
 /* ================= FLOATING PHONE CONTROLS ================= */
 let phoneFloatCurrentApp='home';
+let phoneFloatWindowPositionApplied=false;
 let phoneFloatDidDrag=false;
 let phoneFloatDragState=null;
 function phoneFloatReadPosition(key){
@@ -3824,7 +3825,6 @@ function ensurePhoneFloatUI(){
  const panel=document.getElementById('phoneFloatWindow');
  const handle=document.getElementById('phoneFloatDragHandle');
  phoneFloatApplySaved(launcher,'sa_phone_float_launcher_pos');
- phoneFloatApplySaved(panel,'sa_phone_float_window_pos');
  launcher.addEventListener('pointerdown',e=>phoneFloatStartDrag(e,'launcher'));
  handle.addEventListener('pointerdown',e=>phoneFloatStartDrag(e,'window'));
  document.addEventListener('pointermove',phoneFloatMove,{passive:false});
@@ -3906,6 +3906,8 @@ function renderPhoneFloatContent(appId,html){
  if(title)title.textContent=titleMap[phoneFloatCurrentApp]||'✦ STARLIGHT PHONE';
  body.innerHTML=html;
  panel.hidden=false;
+ if(!phoneFloatWindowPositionApplied){phoneFloatApplySaved(panel,'sa_phone_float_window_pos');phoneFloatWindowPositionApplied=true}
+ phoneFloatClampStoredPositions();
  if(launcher){launcher.classList.add('is-open');launcher.setAttribute('aria-expanded','true')}
 }
 
