@@ -72,3 +72,18 @@ The phone screen and bank RPCs are in the front end and the `site_bank_*` databa
 - Fees start at 0% and can be configured by an administrator with `manage_economy` permission (or site admin) from the bank administration page.
 - The migration does not create private chat, group chat, item transfer or notifications yet; those app tiles are a phone shell for subsequent implementation.
 - Do not add a Supabase service-role key to the public website.
+
+
+
+## Phone messaging and remaining apps
+
+The floating phone button and app views are included in `index.html`. For existing Supabase installations, run the following files in order from **Supabase Dashboard → SQL Editor**:
+
+1. `supabase/banking-phone-migration.sql` (if it has not already been installed).
+2. `supabase/phone-messaging-migration.sql`.
+
+Use the complete current file from GitHub (open it, choose **Raw**, then copy all), not a previously copied SQL query. Do not rerun `setup.sql` on an existing production database.
+
+The phone migration adds private and group conversations, group invitations and ownership controls, read receipts, message hiding/unsend/reporting, character-level contacts and blocks, online/last-seen privacy, notifications, item transfer with history, email thread IDs, and phone-administration RPCs. It also sends phone notification metadata when bank transactions or private mail arrive. Admins can inspect message bodies only from submitted reports.
+
+The item editor now includes a **transferable** setting; existing items default to transferable unless explicitly set to false. Transactions are performed through validated RPCs; direct table access remains revoked. GitHub Pages deployment does not execute SQL against your Supabase project, so the migrations must be run there once.
