@@ -1878,7 +1878,7 @@ function pagePhone(appId){
   const app=titles[appId]||['✦','แอปพลิเคชัน',''];
   main=phoneAppBack(app[1])+'<div class="phone-placeholder"><div class="phone-placeholder-inner"><div class="phone-placeholder-icon">'+app[0]+'</div><h2>'+esc(app[1])+'</h2><p class="phone-msg-muted">'+esc(app[2])+'</p><button class="btn ghost" onclick="openPhoneFloatApp(\'home\')">กลับหน้าหลักโทรศัพท์</button></div></div>';
  }
- renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">'+starlightMarkSvg()+'<span>STARLIGHT</span></span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><div class="phone-bottom-home"></div></div></div>');
+ renderPhoneFloatContent(appId,'<div class="phone-page"><div class="phone-frame"><div class="phone-status"><span>'+time+'</span><span class="phone-status-icons">✦ ◔ ▰</span></div><div class="phone-appbar"><span class="phone-app-brand">'+starlightMarkSvg()+'<span>STARLIGHT</span></span><span class="phone-app-char">'+esc(c?(c.stageName||c.name):u.username)+'</span></div><div class="phone-content">'+main+'</div><button type="button" class="phone-bottom-home" data-phone-action="home" aria-label="กลับหน้าหลักหรือปิดโทรศัพท์" title="ปัดขึ้นเพื่อกลับหน้าหลัก · แตะเพื่อกลับ/ปิด"></button></div></div>');
  if(after&&phoneUnlocked)after();
  phoneStartPolling();
 }
@@ -2083,9 +2083,31 @@ function ensurePhoneFloatUI(){
  root=document.createElement('div');root.id='phoneFloatRoot';
  root.innerHTML='<button type="button" id="phoneFloatLauncher" class="phone-float-launcher" aria-label="เปิดโทรศัพท์ STARLIGHT" aria-controls="phoneFloatWindow" aria-expanded="false" onclick="handlePhoneLauncherClick()"><span class="phone-float-launcher-icon">'+starlightMarkSvg()+'</span><span class="phone-float-launcher-label">PHONE</span></button>'+
   '<section id="phoneFloatWindow" class="phone-float-window" role="dialog" aria-label="โทรศัพท์ STARLIGHT" aria-modal="false" hidden>'+
-   '<header id="phoneFloatDragHandle" class="phone-float-window-head"><div style="min-width:0"><div id="phoneFloatWindowTitle" class="phone-float-window-title">✦ STARLIGHT PHONE</div><div class="phone-float-window-subtitle">ลากตรงนี้เพื่อย้ายหน้าต่าง</div></div><div class="phone-float-window-controls"><button type="button" class="phone-float-control" aria-label="ย่อโทรศัพท์" title="ย่อ" onclick="minimizePhoneFloat()">−</button><button type="button" class="phone-float-control" aria-label="ปิดหน้าต่างโทรศัพท์" title="ปิด" onclick="closePhoneFloat()">×</button></div></header>'+
-   '<div id="phoneFloatPanelBody" class="phone-float-window-body"></div><button type="button" class="phone-bottom-home" aria-label="กลับหน้าหลักหรือปิดโทรศัพท์" title="แตะเพื่อกลับหน้าหลัก · แตะอีกครั้งเพื่อปิด" onclick="phoneBottomHomeAction()"></button></section>';
+   '<header id="phoneFloatDragHandle" class="phone-float-window-head"><div style="min-width:0"><div id="phoneFloatWindowTitle" class="phone-float-window-title">✦ STARLIGHT PHONE</div><div class="phone-float-window-subtitle">ลากตรงนี้เพื่อย้ายหน้าต่าง</div></div><div class="phone-float-window-controls"><button type="button" class="phone-float-control" aria-label="ย่อโทรศัพท์" title="ย่อ" data-phone-action="minimize">−</button><button type="button" class="phone-float-control" aria-label="ปิดหน้าต่างโทรศัพท์" title="ปิด" data-phone-action="close">×</button></div></header>'+
+   '<div id="phoneFloatPanelBody" class="phone-float-window-body"></div></section>';
  document.body.appendChild(root);
+ if(!root.dataset.phoneActionBound){
+  root.dataset.phoneActionBound='true';
+  root.addEventListener('click',event=>{
+   const control=event.target&&event.target.closest?event.target.closest('[data-phone-action]'):null;
+   if(!control||!root.contains(control))return;
+   const action=control.getAttribute('data-phone-action');
+   event.preventDefault();
+   event.stopPropagation();
+   if(action==='close')closePhoneFloat();
+   else if(action==='minimize')minimizePhoneFloat();
+   else if(action==='home'){
+    if(window.PHONE_HOME_GESTURE_HANDLED){window.PHONE_HOME_GESTURE_HANDLED=false;return}
+    phoneBottomHomeAction();
+   }
+  });
+  document.addEventListener('pointerdown',event=>{
+   const panel=document.getElementById('phoneFloatWindow');
+   const launcher=document.getElementById('phoneFloatLauncher');
+   if(!panel||panel.hidden||panel.contains(event.target)||launcher&&launcher.contains(event.target))return;
+   closePhoneFloat();
+  },true);
+ }
  if(!root.dataset.escapeCloseBound){
   root.dataset.escapeCloseBound='true';
   document.addEventListener('keydown',e=>{
@@ -2160,11 +2182,12 @@ function minimizePhoneFloat(){
  const panel=document.getElementById('phoneFloatWindow'),launcher=document.getElementById('phoneFloatLauncher');
  if(panel){panel.hidden=true;panel.setAttribute('aria-hidden','true')}
  if(launcher){launcher.classList.remove('is-open');launcher.setAttribute('aria-expanded','false')}
+ if(typeof ROUTE!=='undefined'&&(ROUTE==='phone'||ROUTE.startsWith('phone/')||ROUTE==='bankadmin')){
+  ROUTE='home';
+  try{if(location.hash.slice(1)!=='home')history.replaceState(null,'','#home')}catch(e){}
+ }
 }
-function closePhoneFloat(){
- minimizePhoneFloat();
- if(typeof ROUTE!=='undefined'&&(ROUTE==='phone'||ROUTE.startsWith('phone/')||ROUTE==='bankadmin')){ROUTE='home';try{history.replaceState(null,'','#home')}catch(e){}}
-}
+function closePhoneFloat(){minimizePhoneFloat()}
 function phoneBottomHomeAction(){
  if(!phoneUnlocked){closePhoneFloat();return}
  if(phoneFloatCurrentApp!=='home'){openPhoneFloatApp('home');return}
@@ -2188,6 +2211,20 @@ function renderPhoneFloatContent(appId,html){
  const title=document.getElementById('phoneFloatWindowTitle');
  if(title)title.textContent=titleMap[phoneFloatCurrentApp]||'✦ STARLIGHT PHONE';
  body.innerHTML=html;
+ const homeIndicator=body.querySelector('[data-phone-action="home"]');
+ if(homeIndicator&&!homeIndicator.dataset.gestureBound){
+  homeIndicator.dataset.gestureBound='true';
+  homeIndicator.addEventListener('pointerdown',event=>{window.PHONE_HOME_GESTURE={pointerId:event.pointerId,x:event.clientX,y:event.clientY}},{passive:true});
+  homeIndicator.addEventListener('pointerup',event=>{
+   const start=window.PHONE_HOME_GESTURE;window.PHONE_HOME_GESTURE=null;
+   if(!start||start.pointerId!==event.pointerId)return;
+   const dy=event.clientY-start.y,dx=event.clientX-start.x;
+   if(dy<-24&&Math.abs(dy)>Math.abs(dx)){
+    window.PHONE_HOME_GESTURE_HANDLED=true;event.preventDefault();openPhoneFloatApp('home');
+    setTimeout(()=>{window.PHONE_HOME_GESTURE_HANDLED=false},350);
+   }
+  });
+ }
  panel.hidden=false;panel.setAttribute('aria-hidden','false');
  if(!phoneFloatWindowPositionApplied){phoneFloatApplySaved(panel,'sa_phone_float_window_pos');phoneFloatWindowPositionApplied=true}
  phoneFloatClampStoredPositions();
@@ -4447,54 +4484,3 @@ function pageAdmin(tab,sub,sub2){
 function approveChar(id){if(!hasAdminPermission('manage_character_review'))return toast('ไม่มีสิทธิ์อนุมัติตัวละคร','bad');update('characters',id,c=>{c.status='approved';c.reason=''});toast('อนุมัติตัวละครแล้ว');render()}
 async function rejectChar(id){if(!hasAdminPermission('manage_character_review'))return toast('ไม่มีสิทธิ์ปฏิเสธตัวละคร','bad');const r=await askText('เหตุผลที่ไม่อนุมัติ (ผู้เล่นจะเห็นข้อความนี้):');if(r===null)return;update('characters',id,c=>{c.status='rejected';c.reason=r});toast('ไม่อนุมัติแล้ว');render()}
 function setStage(id,d){if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการระดับตัวละคร','bad');const c=update('characters',id,c=>{c.stage=Math.max(0,Math.min(STAGES.length-1,c.stage+d))});toast(`${c.stageName||c.name} → ${STAGES[c.stage].n}`);render()}
-async function giveExp(id){if(!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการ EXP','bad');const r=await askText('จำนวน EXP (ใส่ค่าลบเพื่อหัก):','10');if(r===null)return;const v=parseInt(r);if(isNaN(v))return toast('กรุณาใส่ตัวเลข','bad');update('characters',id,c=>c.exp=Math.max(0,c.exp+v));toast('อัปเดต EXP แล้ว');render()}
-function toggleThread(id){if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');update('threads',id,t=>t.status=t.status==='open'?'closed':'open');render()}
-function pinThread(id){if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');update('threads',id,t=>t.pinned=!t.pinned);render()}
-async function deleteThread(id){if(!hasAdminPermission('manage_threads')||!await ask('ลบกระทู้นี้และโพสต์ทั้งหมด?'))return;DB.set('threads',DB.get('threads').filter(t=>t.id!==id));DB.set('posts',DB.get('posts').filter(p=>p.threadId!==id));toast('ลบกระทู้แล้ว');go('threads')}
-async function deletePost(id){if(!hasAdminPermission('manage_posts')||!await ask('ลบโพสต์นี้?'))return;DB.set('posts',DB.get('posts').filter(p=>p.id!==id));render()}
-function toggleAdmin(id){if(!isAdmin())return toast('มีเพียงแอดมินหลักที่กำหนดสิทธิ์แอดมินได้','bad');openAdminPermissions(id)}
-async function deleteChar(id){
- const u=me(),c=DB.get('characters').find(x=>x.id===id);
- if(!c||!(isAdmin()||hasAdminPermission('manage_characters')||(c.ownerId===u?.id&&c.status!=='approved'))||!await ask('ลบตัวละครนี้ตัวนี้?'))return;
- DB.set('characters',DB.get('characters').filter(x=>x.id!==id));
- const gs=DB.get('groups');gs.forEach(g=>g.members=g.members.filter(m=>m.charId!==id));DB.set('groups',gs);
- toast('ลบตัวละครแล้ว');go('mychars');
-}
-
-/* ================= RICH EDITOR ACTIONS =================
-   Use delegated events because the editor forms are rendered dynamically
-   into #app. This avoids inline-handler scope and stale-form issues. */
-document.addEventListener('click',function(e){
- const button=e.target&&e.target.closest?e.target.closest('[data-editor-action]'):null;
- if(!button)return;
- const action=button.dataset.editorAction;
- if(action==='announcement'){
-  e.preventDefault();
-  insertPostAnnouncement(button);
-  return;
- }
- if(action==='toggle-html'){
-  e.preventDefault();
-  toggleEditorSource(button);
-  return;
- }
- if(action==='preview'){
-  e.preventDefault();
-  preview(button.closest('form'));
- }
-});
-
-/* ================= START ================= */
-async function startApp(){
- try{
-  await cloudBootstrap();migrate();render();
-  if(cloudReady&&me())loadMailFolder('inbox',me().id);
-  if(cloudFirstAdminUsername)cloudShowFirstAdminSetup(cloudFirstAdminUsername);
- }catch(e){console.error(e);document.getElementById('app').innerHTML=`<div class="card" style="border-color:var(--bad)"><h2>เกิดข้อผิดพลาดในการโหลด</h2><p>${esc(e.message)}</p><button class="btn" onclick="exportData()">⬇ สำรองข้อมูลก่อน</button></div>`}
- if(store.temp)toast('โหมดพรีวิว: ข้อมูลจะหายเมื่อรีเฟรช — เปิดไฟล์ในเบราว์เซอร์โดยตรงเพื่อบันทึกถาวร','bad');
- startPresenceTracking();
-}
-startApp();
-</script>
-</body>
-</html>
