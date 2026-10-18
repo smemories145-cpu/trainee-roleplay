@@ -2275,6 +2275,21 @@ nav{
  display:block;width:100%;max-width:100%;min-width:0;white-space:inherit;
  overflow-wrap:inherit;word-break:inherit;
 }
+</style><style id="starlightDirectEditableSourceNoCodeBox2026">
+.ed .ed-area{width:100%;max-width:100%;min-width:0;box-sizing:border-box;overflow-x:hidden;overflow-y:auto}
+.ed .ed-area .html-source-block{
+ display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+ margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;color:inherit!important;box-shadow:none!important;
+ font:inherit!important;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;
+ overflow-x:hidden;tab-size:2;
+}
+#reply-composer .ed-area .html-source-block,.reply-composer .ed-area .html-source-block{
+ margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;color:inherit!important;
+}
+.ed .ed-area .html-source-block:focus{outline:0}
+.ed .ed-area .html-source-block code{font:inherit;white-space:inherit}
 </style></head>
 <body>
 <nav id="nav"></nav>
@@ -3409,7 +3424,7 @@ function edFocus(id){
 function htmlSourceSelection(ed){
  const sel=window.getSelection();if(!ed||!sel||!sel.rangeCount)return null;
  const range=sel.getRangeAt(0),node=range.startContainer;
- const pre=(node.nodeType===1?node:node.parentElement)?.closest('pre.html-source-block');
+ const pre=(node.nodeType===1?node:node.parentElement)?.closest('.html-source-block');
  if(!pre||!ed.contains(pre)||!pre.contains(range.endContainer))return null;
  const offset=(container,pos)=>{const r=document.createRange();r.selectNodeContents(pre);r.setEnd(container,pos);return r.toString().length};
  const a=offset(range.startContainer,range.startOffset),b=offset(range.endContainer,range.endOffset);
@@ -3516,7 +3531,7 @@ function setEditorSourceMode(ed,sourceMode){
  const bar=ed.querySelector('.ed-bar'),toggle=ed.querySelector('[data-editor-action="toggle-html"]');
  if(sourceMode){
   if(ed.dataset.htmlSource!=='1'){
-   const savedCode=area.querySelector('pre.html-source-block');
+   const savedCode=area.querySelector('.html-source-block');
    const isBBCode=!!savedCode?.classList.contains('bbcode-source-block');
    let html=savedCode?(savedCode.textContent||''):(area.innerHTML||'');
    const css=ed.dataset.sourceCss||'';
@@ -3681,7 +3696,7 @@ function edParseInlineHTML(area){
  for(const node of nodes){
   const raw=node.nodeValue||'';
   if(!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw))continue;
-  if(node.parentElement?.closest('pre,code,script,style'))continue;
+  if(node.parentElement?.closest('pre,code,script,style,.html-source-block'))continue;
   const frag=document.createElement('template');
   frag.innerHTML=sanitize(raw);
   if(!frag.content.childNodes.length)continue;
@@ -3770,7 +3785,7 @@ function isForumMarkupSource(value){
 }
 function editorSourceBlockHtml(value,type='html'){
  const cls=type==='bbcode'?'html-source-block bbcode-source-block':'html-source-block';
- return '<pre class="'+cls+'" spellcheck="false"><code>'+esc(String(value??''))+'</code></pre><p><br></p>';
+ return '<div class="'+cls+'" spellcheck="false">'+esc(String(value??''))+'</div>';
 }
 function insertEditorSourceBlock(ed,value,css='',type='html'){
  const area=ed?.querySelector('.ed-area');if(!area)return;
@@ -3817,11 +3832,11 @@ function edGet(ed){
    setEditorSourceCss(ed,'');
   }else if(isForumMarkupSource(text))area.innerHTML=editorSourceBlockHtml(text,'bbcode');
  }
- const sourceBlocks=[...area.querySelectorAll('pre.html-source-block')];
+ const sourceBlocks=[...area.querySelectorAll('.html-source-block')];
  if(sourceBlocks.length===1){
   const block=sourceBlocks[0],sourceText=block.textContent||'';
   const remainder=area.cloneNode(true);
-  remainder.querySelectorAll('pre.html-source-block').forEach(node=>node.remove());
+  remainder.querySelectorAll('.html-source-block').forEach(node=>node.remove());
   const extraText=String(remainder.textContent||'').replace(/[\u200B\uFEFF]/g,'').trim();
   const extraMedia=remainder.querySelector('img,iframe,video,table,hr,svg');
   if(!extraText&&!extraMedia){
@@ -3835,7 +3850,7 @@ function edGet(ed){
  let raw='',hasBBCodeSource=false;
  {
   const copy=area.cloneNode(true);
-  copy.querySelectorAll('pre.html-source-block').forEach(block=>{
+  copy.querySelectorAll('.html-source-block').forEach(block=>{
    const sourceText=block.textContent||'';
    if(block.classList.contains('bbcode-source-block')){
     hasBBCodeSource=true;
@@ -3857,6 +3872,18 @@ function edGet(ed){
  return{mode:'rich',content:meaningful?clean:''};
 }
 const edOf=(f,name)=>f?.querySelector(`.ed[data-name="${name}"]`);
+function normalizeEditorSourceBlocks(area){
+ if(!area)return;
+ area.querySelectorAll('pre.html-source-block').forEach(old=>{
+  const block=document.createElement('div');
+  block.className=old.className;
+  block.setAttribute('spellcheck','false');
+  block.textContent=old.textContent||'';
+  old.replaceWith(block);
+  const blank=block.nextElementSibling;
+  if(blank&&blank.tagName==='P'&&/^\s*<br\s*\/?\s*>\s*$/i.test(blank.innerHTML.trim()))blank.remove();
+ });
+}
 function initEditors(){
  document.querySelectorAll('.ed:not([data-ok])').forEach(ed=>{
   ed.dataset.ok=1;
@@ -3893,11 +3920,19 @@ function initEditors(){
     setTimeout(()=>toast('กู้คืนฉบับร่างที่เขียนค้างไว้ให้แล้ว ✍️'),300);
    }
   }
+  normalizeEditorSourceBlocks(a);
   if(a)a.addEventListener('input',()=>{edCount(ed);saveEditorDraft(ed,a,dk)});
   if(source)source.addEventListener('input',()=>{edCount(ed);saveEditorDraft(ed,a,dk)});
   if(a)a.addEventListener('paste',e=>{
    if(ed.dataset.htmlSource==='1')return;
-   const clip=e.clipboardData,tx=clip.getData('text/plain'),h=clip.getData('text/html');e.preventDefault();
+   const clip=e.clipboardData,tx=clip.getData('text/plain'),h=clip.getData('text/html');
+   const active=window.getSelection()?.anchorNode;
+   const sourceBlock=(active?.nodeType===1?active:active?.parentElement)?.closest('.html-source-block');
+   if(sourceBlock&&ed.contains(sourceBlock)){
+    e.preventDefault();document.execCommand('insertText',false,tx);
+    a.dispatchEvent(new Event('input',{bubbles:true}));edCount(ed);saveSel();return;
+   }
+   e.preventDefault();
    let found=getEditorHtmlSource(tx);
    if(found){insertEditorSourceBlock(ed,tx||found,'','html');return}
    if(isForumMarkupSource(tx)){insertEditorSourceBlock(ed,tx,'','bbcode');return}
@@ -3911,8 +3946,14 @@ function initEditors(){
    if(e.target?.matches('.char-bio-code'))return;
    if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();ed.closest('form')?.requestSubmit();return}
    if(e.key==='Enter'){
-    const sel=window.getSelection(),node=sel?.anchorNode,pre=(node?.nodeType===1?node:node?.parentElement)?.closest('pre.html-source-block');
-    if(pre&&ed.contains(pre)){e.preventDefault();ex(ed.id,'insertHTML','<br>')}
+    const sel=window.getSelection(),node=sel?.anchorNode,sourceBlock=(node?.nodeType===1?node:node?.parentElement)?.closest('.html-source-block');
+    if(sourceBlock&&ed.contains(sourceBlock)&&sel?.rangeCount){
+     e.preventDefault();
+     const range=sel.getRangeAt(0);range.deleteContents();
+     const newline=document.createTextNode('\n');range.insertNode(newline);
+     range.setStartAfter(newline);range.collapse(true);sel.removeAllRanges();sel.addRange(range);
+     saveSel();edCount(ed);a?.dispatchEvent(new Event('input',{bubbles:true}));
+    }
    }
   });
   edUI(ed);
