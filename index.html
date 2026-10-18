@@ -3479,12 +3479,16 @@ function setEditorSourceMode(ed,sourceMode){
  }else{
   const raw=String(source.value||'');
   if(raw!==String(ed.dataset.sourceOriginal??'__no_source_snapshot__')){
-   const found=getEditorHtmlSource(raw);
+   /* Preserve the user's source byte-for-byte in the visual composer.
+      Parsing/sanitizing belongs to preview/post time, not to the mode switch. */
    let visible=raw,type='html',css='';
-   if(found){
-    const parts=extractEditorHtmlSource(found);visible=parts.html;css=parts.css;
-   }else if(isForumMarkupSource(raw)){
+   const found=getEditorHtmlSource(raw);
+   if(isForumMarkupSource(raw)){
     type='bbcode';
+   }else if(found){
+    const parts=extractEditorHtmlSource(found);
+    css=parts.css||'';
+    visible=raw;
    }else if(!/<\/?[a-z][\w:-]*(?:\s[^<>]*?)?\s*\/?>/i.test(raw)){
     area.textContent=raw;
     setEditorSourceCss(ed,'');
@@ -3779,7 +3783,14 @@ function edGet(ed){
     block.replaceWith(document.createTextNode(sourceText));
    }else{
     const rendered=document.createElement('div');
-    rendered.innerHTML=sanitize(sourceText);
+    const detected=getEditorHtmlSource(sourceText);
+    if(detected){
+     const parts=extractEditorHtmlSource(detected);
+     if(parts.css&&!ed.dataset.sourceCss)setEditorSourceCss(ed,parts.css);
+     rendered.innerHTML=sanitize(parts.html);
+    }else{
+     rendered.innerHTML=sanitize(sourceText);
+    }
     block.replaceWith(...rendered.childNodes);
    }
   });
