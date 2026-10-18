@@ -3825,7 +3825,7 @@ function renderCommunityPresence(){
  const activeTotal=onlineMembers+hiddenMembers+visitors;
  const people=Array.isArray(data.online_today)?data.online_today:[];
  const groups=ONLINE_GROUPS.map(group=>{
-  const members=people.filter(person=>(person.online_group||'human')===group.id);
+  const members=people.filter(person=>(ONLINE_GROUPS.some(item=>item.id===person.online_group)?person.online_group:'applicant')===group.id);
   const names=members.length?members.map(person=>{
    const color=presenceSafeColor(person.display_color);
    const href='#profile/'+encodeURIComponent(String(person.app_user_id||''));
