@@ -418,7 +418,8 @@ begin
    'body',case when msg.revoked_at is not null then 'ข้อความถูกยกเลิก' else msg.body end,
    'image_url',case when msg.revoked_at is not null then '' else msg.image_url end,
    'created_at',msg.created_at,'revoked',msg.revoked_at is not null,
-   'is_hidden',false
+   'is_hidden',false,
+   'is_pinned',msg.id=(select pinned_message_id from public.site_phone_conversations where id=msg.conversation_id)
   ) as data
   from public.site_phone_messages msg
   left join public.site_records ch on ch.collection='characters' and ch.record_id=msg.sender_character_id
@@ -1383,10 +1384,37 @@ revoke all on function public.site_phone_group_cancel_invite(text,text) from pub
 grant execute on function public.site_phone_group_cancel_invite(text,text) to authenticated;
 revoke all on function public.site_phone_get_privacy(text) from public,anon;
 grant execute on function public.site_phone_get_privacy(text) to authenticated;
+
+
+create or replace function public.site_phone_group_sent_invites(p_character_id text,p_conversation_id text)
+returns jsonb language plpgsql security definer
+set search_path=public,pg_temp
+as $$
+declare v_profile public.site_profiles%rowtype; v_conv public.site_phone_conversations%rowtype; v_result jsonb;
+begin
+ if auth.uid() is null then raise exception 'Sign in is required'; end if;
+ select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
+ if not found or not public.site_phone_character_owned(p_character_id,v_profile.app_user_id) then raise exception 'Character is not available'; end if;
+ select * into v_conv from public.site_phone_conversations where id=p_conversation_id and kind='group';
+ if not found or v_conv.owner_character_id<>p_character_id then raise exception 'Only the group owner can view pending invitations'; end if;
+ select coalesce(jsonb_agg(jsonb_build_object(
+   'id',i.id,'invited_character_id',i.invited_character_id,
+   'name',coalesce(nullif(r.payload->>'stageName',''),nullif(r.payload->>'name',''),'ตัวละคร'),
+   'status',i.status,'created_at',i.created_at
+ ) order by i.created_at desc),'[]'::jsonb) into v_result
+ from public.site_phone_group_invites i
+ left join public.site_records r on r.collection='characters' and r.record_id=i.invited_character_id
+ where i.conversation_id=p_conversation_id and i.status='pending';
+ return v_result;
+end;
+$$;
+
 revoke all on function public.site_phone_group_members(text,text) from public,anon;
 grant execute on function public.site_phone_group_members(text,text) to authenticated;
 revoke all on function public.site_phone_group_pin_message(text,text,text) from public,anon;
 grant execute on function public.site_phone_group_pin_message(text,text,text) to authenticated;
 
+revoke all on function public.site_phone_group_sent_invites(text,text) from public,anon;
+grant execute on function public.site_phone_group_sent_invites(text,text) to authenticated;
 notify pgrst,'reload schema';
 commit;
