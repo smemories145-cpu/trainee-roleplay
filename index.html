@@ -1651,22 +1651,19 @@ nav{background:rgba(5,5,6,.94)!important;border-bottom-color:#303036!important}
 .presence-today-heading h3{font-size:1.02rem;margin:0}
 .presence-today-heading p{font-size:.78rem;color:var(--mut);margin:3px 0 0}
 .presence-today-total{padding:5px 10px;border:1px solid var(--line);border-radius:99px;color:var(--mut);font-size:.75rem;white-space:nowrap}
-.presence-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.presence-group{min-width:0;padding:12px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--card2) 80%,transparent)}
-.presence-group-heading{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:.81rem;min-width:0}
-.presence-group-icon{width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--pri) 25%,var(--line));border-radius:7px;background:color-mix(in srgb,var(--pri) 8%,transparent);font-size:.8rem}
-.presence-group-heading b{min-width:0;overflow-wrap:anywhere;font-weight:600}
-.presence-group-count{margin-left:auto;flex:0 0 auto;color:var(--mut);font-size:.68rem;padding:1px 6px;background:var(--card);border-radius:99px}
-.presence-names{display:flex;align-items:flex-start;align-content:flex-start;gap:6px;flex-wrap:wrap;min-height:24px}
-.presence-name{display:inline-flex;align-items:center;max-width:100%;padding:3px 7px;border:1px solid color-mix(in srgb,var(--presence-user-color) 28%,var(--line));border-radius:7px;background:color-mix(in srgb,var(--presence-user-color) 6%,transparent);color:var(--presence-user-color)!important;font-size:.78rem;line-height:1.5;overflow-wrap:anywhere}
+.presence-rank-strip{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:0 0 12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.presence-rank-tag{display:inline-flex;align-items:center;gap:5px;max-width:100%;padding:5px 8px;border:1px solid color-mix(in srgb,var(--presence-rank-color) 35%,var(--line));border-radius:7px;background:color-mix(in srgb,var(--presence-rank-color) 7%,transparent);color:var(--presence-rank-color);font-size:.74rem;line-height:1.4;white-space:nowrap}
+.presence-rank-icon{display:inline-grid;place-items:center;min-width:14px;font-size:.75rem;font-weight:700}
+.presence-member-list{display:flex;align-items:flex-start;align-content:flex-start;gap:6px;flex-wrap:wrap;min-height:28px}
+.presence-name{display:inline-flex;align-items:center;max-width:100%;padding:3px 8px;border:1px solid color-mix(in srgb,var(--presence-user-color) 28%,var(--line));border-radius:6px;background:color-mix(in srgb,var(--presence-user-color) 6%,transparent);color:var(--presence-user-color)!important;font-size:.78rem;line-height:1.5;overflow-wrap:anywhere}
 .presence-name:hover{border-color:var(--presence-user-color);background:color-mix(in srgb,var(--presence-user-color) 12%,transparent)}
-.presence-empty{font-size:.75rem;color:var(--mut);opacity:.6}
+.presence-empty{font-size:.78rem;color:var(--mut);opacity:.7;padding:3px 0}
 .presence-footnote{padding:0 clamp(17px,2.5vw,25px) 14px;text-align:right;color:var(--mut);font-size:.68rem}
 .presence-error{padding:20px;border:1px solid color-mix(in srgb,var(--warn) 35%,var(--line));border-radius:15px;background:var(--card);color:var(--mut);font-size:.84rem}
 .presence-error b{display:block;color:var(--txt);margin-bottom:4px}
 .user-settings-card .user-pref-choice input[type=checkbox]{width:auto;flex:0 0 auto}
-@media(max-width:900px){.presence-groups{grid-template-columns:repeat(2,minmax(0,1fr))}.presence-counters{justify-content:flex-start}}
-@media(max-width:560px){#communityPresence{padding-left:10px;padding-right:10px;padding-bottom:18px}.presence-groups{grid-template-columns:minmax(0,1fr)}.presence-top{gap:12px}.presence-counters{gap:6px}.presence-counter{padding:6px 8px;font-size:.72rem}.presence-group{padding:11px}.presence-footnote{text-align:left}}
+@media(max-width:900px){.presence-counters{justify-content:flex-start}}
+@media(max-width:560px){#communityPresence{padding-left:10px;padding-right:10px;padding-bottom:18px}.presence-top{gap:12px}.presence-counters{gap:6px}.presence-counter{padding:6px 8px;font-size:.72rem}.presence-rank-strip{gap:5px}.presence-rank-tag{padding:4px 6px;font-size:.7rem}.presence-footnote{text-align:left}}
 </style>
 </head>
 <body>
@@ -3827,22 +3824,30 @@ function renderCommunityPresence(){
  const totalMembers=Math.max(0,Number(data.total_members)||0);
  const activeTotal=onlineMembers+hiddenMembers+visitors;
  const people=Array.isArray(data.online_today)?data.online_today:[];
- const groups=ONLINE_GROUPS.map(group=>{
-  const members=people.filter(person=>(ONLINE_GROUPS.some(item=>item.id===person.online_group)?person.online_group:'applicant')===group.id);
-  const names=members.length?members.map(person=>{
-   const color=presenceSafeColor(person.display_color);
-   const href='#profile/'+encodeURIComponent(String(person.app_user_id||''));
-   return '<a class="presence-name" href="'+esc(href)+'" style="--presence-user-color:'+color+'" title="ดูลโปรไฟล์ '+esc(person.username||'สมาชิก')+'">'+esc(person.username||'สมาชิก')+'</a>';
-  }).join(''):'<span class="presence-empty">ยังไม่มีสมาชิกในหมวดนี้</span>';
-  return '<section class="presence-group"><div class="presence-group-heading"><span class="presence-group-icon" aria-hidden="true">'+group.icon+'</span><b>'+esc(group.label)+'</b><span class="presence-group-count">'+members.length+'</span></div><div class="presence-names">'+names+'</div></section>';
+ const rankLegend=ONLINE_GROUPS.map(group=>{
+  const color=presenceSafeColor(STAGES&&STAGES[group.stage]?STAGES[group.stage].c:'','#d6d6dc');
+  return '<span class="presence-rank-tag" style="--presence-rank-color:'+color+'"><span class="presence-rank-icon" aria-hidden="true">'+group.icon+'</span>'+esc(group.label)+'</span>';
  }).join('');
+ const stageOrder=person=>{
+  const idx=ONLINE_GROUPS.findIndex(group=>group.id===person.online_group);
+  return idx<0?0:idx;
+ };
+ const sortedPeople=people.slice().sort((a,b)=>{
+  const rankDiff=stageOrder(a)-stageOrder(b);
+  return rankDiff||String(a.username||'สมาชิก').localeCompare(String(b.username||'สมาชิก'),'th');
+ });
+ const names=sortedPeople.length?sortedPeople.map(person=>{
+  const color=presenceSafeColor(person.display_color);
+  const href='#profile/'+encodeURIComponent(String(person.app_user_id||''));
+  return '<a class="presence-name" href="'+esc(href)+'" style="--presence-user-color:'+color+'" title="ดูลโปรไฟล์ '+esc(person.username||'สมาชิก')+'">'+esc(person.username||'สมาชิก')+'</a>';
+ }).join(''):'<span class="presence-empty">วันนี้ยังไม่มีสมาชิกให้แสดงชื่อ</span>';
  root.innerHTML=
   '<div class="presence-shell">'+
    '<div class="presence-top"><div class="presence-top-copy"><span class="presence-eyebrow">COMMUNITY / ACTIVITY</span><h2>ผู้ใช้งานล่าสุด</h2><p class="presence-head-count"><b>'+activeTotal+'</b> ผู้ใช้งานที่ออนไลน์ภายใน 5 นาทีที่ผ่านมา</p><p class="presence-head-meta">สมาชิก '+onlineMembers+' คน · '+hiddenMembers+' ซ่อนตัว · '+visitors+' ผู้เยี่ยมชม · สมาชิกทั้งหมด '+totalMembers+' คน</p></div>'+
    '<div class="presence-counters"><span class="presence-counter"><i class="presence-live-dot"></i><b>'+onlineMembers+'</b> สมาชิกออนไลน์</span><span class="presence-counter"><b>'+hiddenMembers+'</b> ซ่อนตัว</span><span class="presence-counter"><b>'+visitors+'</b> ผู้เยี่ยมชม</span></div></div>'+
    '<div class="presence-divider"></div>'+
-   '<div class="presence-today"><div class="presence-today-heading"><div><h3>ผู้ใช้ออนไลน์วันนี้</h3><p>รายชื่อสมาชิกที่ใช้งานวันนี้ โดยชื่อจะแสดงตามสีระดับขั้นของตัวละครที่กำลังใช้</p></div><span class="presence-today-total">'+people.length+' สมาชิกที่แสดงชื่อ</span></div>'+
-   '<div class="presence-groups">'+groups+'</div></div>'+
+   '<div class="presence-today"><div class="presence-today-heading"><div><h3>ผู้ใช้ออนไลน์วันนี้</h3><p>เรียงระดับขั้นจากซ้ายไปขวา · รายชื่อด้านล่างใช้สีตามระดับตัวละครที่กำลังใช้งาน</p></div><span class="presence-today-total">'+people.length+' สมาชิกที่แสดงชื่อ</span></div>'+
+   '<div class="presence-rank-strip">'+rankLegend+'</div><div class="presence-member-list">'+names+'</div></div>'+
    '<div class="presence-footnote">อัปเดตอัตโนมัติทุก 1 นาที · นับผู้ใช้งานล่าสุดในช่วง 5 นาที · เวลาอ้างอิงประเทศไทย</div>'+
   '</div>';
 }
