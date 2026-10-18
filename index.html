@@ -4268,6 +4268,151 @@ async function phoneSaveGroupDetails(event,id){
  try{await phoneBankRpc('site_phone_group_update',{p_character_id:c.id,p_conversation_id:id,p_name:String(d.get('name')||''),p_description:String(d.get('description')||''),p_image_url:String(d.get('image')||'')});toast('บันทึกรายละเอียดกลุ่มแล้ว');await openPhoneGroupManagerRefresh(id);await loadPhoneConversations('groupchat')}catch(e){toast('บันทึกกลุ่มไม่สำเร็จ: '+(e.message||e),'bad')}
 }
 
+
+/* ================= PHONE CONTACTS, PRIVACY, NOTIFICATIONS, ITEM TRANSFER ================= */
+function phoneContactsMarkup(){
+ const c=getActiveChar(me());if(!c)return '<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติก่อนใช้รายชื่อติดต่อ</div>';
+ return phoneAppBack('รายชื่อและเพื่อน')+'<label class="phone-msg-muted" for="phoneContactSearch">ค้นหาตัวละครที่ผ่านอนุมัติ</label><input id="phoneContactSearch" oninput="phoneDirectorySearchChanged(this.value)" placeholder="ชื่อจริงหรือชื่อสเตจ" value="'+esc(PHONE_DIRECTORY_SEARCH)+'" style="width:100%;margin:6px 0 12px"><div class="row between" style="margin-bottom:10px;gap:7px"><span class="phone-msg-muted">เริ่มแชตได้ทันที ไม่ต้องรอคำขอเป็นเพื่อน</span><button class="btn sm ghost" onclick="loadPhoneContacts()">↻</button></div><div id="phoneContactsDirectory" class="phone-msg-list"><div class="phone-msg-muted">กำลังโหลดรายชื่อ…</div></div><h3 class="phone-section-title" style="margin-top:18px">ตัวละครที่บล็อก</h3><div id="phoneBlockedList" class="phone-msg-list"><div class="phone-msg-muted">กำลังโหลด…</div></div>';
+}
+function phoneDirectorySearchChanged(value){PHONE_DIRECTORY_SEARCH=String(value||'');renderPhoneContactsDirectory()}
+async function loadPhoneContacts(){
+ const c=getActiveChar(me());if(!c)return;
+ const root=document.getElementById('phoneContactsDirectory');if(root)root.innerHTML='<div class="phone-msg-muted">กำลังโหลดรายชื่อและผู้ติดต่อ…</div>';
+ try{
+  const [contacts,blocks,privacy]=await Promise.all([
+   phoneBankRpc('site_phone_list_contacts',{p_character_id:c.id}),
+   phoneBankRpc('site_phone_list_blocks',{p_character_id:c.id}),
+   phoneBankRpc('site_phone_get_privacy',{p_character_id:c.id})
+  ]);
+  PHONE_CONTACTS=Array.isArray(contacts)?contacts:[];
+  PHONE_BLOCKED=Array.isArray(blocks)?blocks:[];
+  PHONE_PRIVACY=privacy||{hide_presence:false,hide_last_seen:false};
+  renderPhoneContactsDirectory();renderPhoneBlockedList();
+ }catch(e){if(root)root.innerHTML=phoneFeatureError(e)}
+}
+function renderPhoneContactsDirectory(){
+ const root=document.getElementById('phoneContactsDirectory');if(!root)return;
+ const c=getActiveChar(me());if(!c)return;
+ const saved=new Map(PHONE_CONTACTS.map(x=>[x.character_id,x]));
+ const q=PHONE_DIRECTORY_SEARCH.trim().toLowerCase();
+ const chars=DB.get('characters').filter(x=>x.status==='approved'&&x.id!==c.id&&(!q||String(x.stageName||'').toLowerCase().includes(q)||String(x.name||'').toLowerCase().includes(q)));
+ chars.sort((a,b)=>Number(!!saved.get(b.id)?.favorite)-Number(!!saved.get(a.id)?.favorite)||String(a.stageName||a.name).localeCompare(String(b.stageName||b.name)));
+ if(!chars.length){root.innerHTML='<div class="phone-msg-muted">ไม่พบตัวละครที่ตรงกับคำค้นหา</div>';return}
+ root.innerHTML=chars.slice(0,100).map(ch=>{
+  const contact=saved.get(ch.id),online=contact&&contact.online;
+  const blocked=PHONE_BLOCKED.some(x=>x.character_id===ch.id);
+  const presence=contact?(online?'<span class="phone-online-dot"></span>ออนไลน์':(contact.last_seen_at?'<span class="phone-offline-dot"></span>ล่าสุด '+esc(phoneDateTime(contact.last_seen_at)):'<span class="phone-offline-dot"></span>ออฟไลน์')):'';
+  const img=ch.avatar&&/^https?:\/\//i.test(ch.avatar)?phoneImage(ch.avatar):'<span class="phone-msg-avatar">✦</span>';
+  return '<div class="phone-contact-card">'+img+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(ch.stageName||ch.name)+'</div><div class="phone-contact-meta">'+esc(ch.name||'')+(presence?' · '+presence:'')+(contact&&contact.favorite?' · ★ รายการโปรด':'')+'</div></div><div class="phone-contact-actions"><button class="btn sm phone-action-small" onclick="phoneStartDM(\''+String(ch.id).replace(/'/g,'')+'\')">แชต</button>'+(contact?'<button class="btn sm ghost phone-action-small" onclick="phoneToggleFavorite(\''+ch.id+'\')">'+(contact.favorite?'★':'☆')+'</button><button class="btn sm ghost phone-action-small" onclick="phoneRemoveContact(\''+ch.id+'\')">ลบรายชื่อ</button>':'<button class="btn sm ghost phone-action-small" onclick="phoneAddContact(\''+ch.id+'\')">＋ รายชื่อ</button>')+(blocked?'<button class="btn sm ghost phone-action-small" onclick="phoneUnblockCharacter(\''+ch.id+'\')">ปลดบล็อก</button>':'')+'</div></div>';
+ }).join('');
+}
+function renderPhoneBlockedList(){
+ const root=document.getElementById('phoneBlockedList');if(!root)return;
+ root.innerHTML=PHONE_BLOCKED.length?PHONE_BLOCKED.map(x=>'<div class="phone-contact-card">'+phoneImage(x.avatar)+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(x.name)+'</div><div class="phone-contact-meta">บล็อกแชตและจดหมายจากตัวละครนี้</div></div><button class="btn sm ghost phone-action-small" onclick="phoneUnblockCharacter(\''+x.character_id+'\')">ปลดบล็อก</button></div>').join(''):'<div class="phone-msg-muted">ยังไม่มีตัวละครที่บล็อก</div>';
+}
+async function phoneAddContact(targetId){
+ const c=getActiveChar(me());if(!c)return;
+ try{await phoneBankRpc('site_phone_add_contact',{p_character_id:c.id,p_contact_character_id:targetId,p_nickname:''});toast('เพิ่มรายชื่อแล้ว');await loadPhoneContacts()}catch(e){toast('เพิ่มรายชื่อไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneToggleFavorite(targetId){
+ const c=getActiveChar(me()),entry=PHONE_CONTACTS.find(x=>x.character_id===targetId);if(!c||!entry)return;
+ try{await phoneBankRpc('site_phone_contact_update',{p_character_id:c.id,p_contact_character_id:targetId,p_favorite:!entry.favorite,p_nickname:entry.nickname||''});await loadPhoneContacts()}catch(e){toast('ปรับรายชื่อไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneRemoveContact(targetId){
+ const c=getActiveChar(me());if(!c||!await ask('นำตัวละครนี้ออกจากรายชื่อส่วนตัวหรือไม่? ประวัติแชตจะไม่ถูกลบ'))return;
+ try{await phoneBankRpc('site_phone_remove_contact',{p_character_id:c.id,p_contact_character_id:targetId});toast('ลบรายชื่อแล้ว');await loadPhoneContacts()}catch(e){toast('ลบรายชื่อไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneUnblockCharacter(targetId){
+ const c=getActiveChar(me());if(!c)return;
+ try{await phoneBankRpc('site_phone_unblock',{p_character_id:c.id,p_blocked_character_id:targetId});toast('ปลดบล็อกแล้ว');await loadPhoneContacts();await loadPhonePrivacy()}catch(e){toast('ปลดบล็อกไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+
+function phoneNotificationsMarkup(){
+ return phoneAppBack('การแจ้งเตือน')+'<div class="row between" style="margin-bottom:10px"><span class="phone-msg-muted">หน้าจอล็อกแสดงเฉพาะผู้ส่งและประเภทแจ้งเตือน</span><button class="btn sm ghost" onclick="phoneMarkAllNotificationsRead()">อ่านทั้งหมด</button></div><div id="phoneNotificationsRoot" class="phone-msg-card"><div class="phone-msg-muted">กำลังโหลดการแจ้งเตือน…</div></div>';
+}
+async function loadPhoneNotifications(){
+ const c=getActiveChar(me()),root=document.getElementById('phoneNotificationsRoot');if(!c||!cloudReady)return;
+ try{
+  const data=await phoneBankRpc('site_phone_list_notifications',{p_character_id:c.id});
+  PHONE_NOTIFICATIONS=Array.isArray(data)?data:[];
+  phoneUpdateNotificationCount(PHONE_NOTIFICATIONS);
+  if(root)root.innerHTML=PHONE_NOTIFICATIONS.length?PHONE_NOTIFICATIONS.map(n=>{
+   const icons={message:'💬',mention:'＠',group_invite:'👥',group_joined:'👋',group_left:'↗',group_removed:'🚫',group_archived:'📦',group_owner:'👑',item_received:'🎁',item_sent:'📨'};
+   const p=n.payload||{},summary=p.item_name?(String(p.quantity||1)+' × '+p.item_name):p.group_name||p.conversation_name||'';
+   return '<div class="phone-notification-row '+(!n.is_read?'unread':'')+'"><div class="phone-notification-icon">'+(icons[n.kind]||'✦')+'</div><div class="phone-notification-main"><b>'+esc(phoneTitleForNotification(n))+'</b><small>'+esc(n.actor_name||'STARLIGHT')+(summary?' · '+esc(summary):'')+' · '+esc(phoneDateTime(n.created_at))+'</small><div class="row" style="gap:6px;margin-top:7px">'+(n.conversation_id?'<button class="btn sm ghost" onclick="phoneOpenNotificationConversation(\''+n.conversation_id+'\')">เปิดแชต/กลุ่ม</button>':'')+(!n.is_read?'<button class="btn sm ghost" onclick="phoneMarkNotificationRead('+n.id+')">อ่านแล้ว</button>':'')+'</div></div></div>';
+  }).join(''):'<div class="phone-msg-muted">ยังไม่มีการแจ้งเตือน</div>';
+ }catch(e){if(root)root.innerHTML=phoneFeatureError(e)}
+}
+async function phoneMarkNotificationRead(id){
+ const c=getActiveChar(me());if(!c)return;
+ try{await phoneBankRpc('site_phone_mark_notification_read',{p_character_id:c.id,p_notification_id:id});await loadPhoneNotifications()}catch(e){toast('เปลี่ยนสถานะไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneMarkAllNotificationsRead(){
+ const c=getActiveChar(me());if(!c)return;
+ try{await phoneBankRpc('site_phone_mark_all_notifications_read',{p_character_id:c.id});toast('อ่านการแจ้งเตือนทั้งหมดแล้ว');await loadPhoneNotifications()}catch(e){toast('ทำเครื่องหมายไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+async function phoneOpenNotificationConversation(id){
+ const c=getActiveChar(me());if(!c)return;
+ try{
+  const list=await phoneBankRpc('site_phone_list_conversations',{p_character_id:c.id});
+  PHONE_CONVERSATIONS=Array.isArray(list)?list:[];
+  const conv=PHONE_CONVERSATIONS.find(x=>x.id===id);if(!conv)return toast('ไม่พบห้องนี้ หรือคุณไม่มีสิทธิ์ดูแล้ว','bad');
+  openPhoneConversation(id,conv.kind);
+ }catch(e){toast('เปิดบทสนทนาไม่สำเร็จ: '+(e.message||e),'bad')}
+}
+
+function phoneSettingsMarkup(){
+ return phoneAppBack('ความเป็นส่วนตัว')+'<div id="phoneSettingsRoot" class="phone-msg-card"><div class="phone-msg-muted">กำลังโหลดการตั้งค่า…</div></div>';
+}
+async function loadPhonePrivacy(){
+ const c=getActiveChar(me()),root=document.getElementById('phoneSettingsRoot');if(!c||!root)return;
+ try{
+  const [privacy,blocks]=await Promise.all([phoneBankRpc('site_phone_get_privacy',{p_character_id:c.id}),phoneBankRpc('site_phone_list_blocks',{p_character_id:c.id})]);
+  PHONE_PRIVACY=privacy||{hide_presence:false,hide_last_seen:false};PHONE_BLOCKED=Array.isArray(blocks)?blocks:[];
+  root.innerHTML='<h3 style="margin-top:0">สถานะออนไลน์</h3><label class="user-pref-choice"><input type="checkbox" id="phoneHidePresence" '+(PHONE_PRIVACY.hide_presence?'checked':'')+' onchange="savePhonePrivacy()"><span><b>ซ่อนสถานะออนไลน์</b><small>ตัวละครอื่นจะไม่เห็นว่าคุณออนไลน์</small></span></label><label class="user-pref-choice"><input type="checkbox" id="phoneHideLastSeen" '+(PHONE_PRIVACY.hide_last_seen?'checked':'')+' onchange="savePhonePrivacy()"><span><b>ซ่อนเวลาใช้งานล่าสุด</b><small>ตัวละครอื่นจะไม่เห็นเวลาที่ออนไลน์ล่าสุด</small></span></label><p class="phone-msg-muted">การบล็อกจะปิดแชตส่วนตัวและจดหมายระหว่างตัวละคร ประวัติเดิมยังอยู่</p><h3>ตัวละครที่บล็อก</h3><div class="phone-msg-list">'+(PHONE_BLOCKED.length?PHONE_BLOCKED.map(x=>'<div class="phone-contact-card">'+phoneImage(x.avatar)+'<div class="phone-contact-info">'+esc(x.name)+'</div><button class="btn sm ghost" onclick="phoneUnblockCharacter(\''+x.character_id+'\')">ปลดบล็อก</button></div>').join(''):'<div class="phone-msg-muted">ไม่มีตัวละครที่บล็อก</div>')+'</div><button class="btn ghost" style="width:100%;margin-top:12px" onclick="openPhoneFloatApp(\'contacts\')">ค้นหาและจัดการรายชื่อ</button>';
+ }catch(e){root.innerHTML=phoneFeatureError(e)}
+}
+async function savePhonePrivacy(){
+ const c=getActiveChar(me());if(!c)return;
+ const presence=!!document.getElementById('phoneHidePresence')?.checked,last=!!document.getElementById('phoneHideLastSeen')?.checked;
+ try{await phoneBankRpc('site_phone_set_privacy',{p_character_id:c.id,p_hide_presence:presence,p_hide_last_seen:last});PHONE_PRIVACY={hide_presence:presence,hide_last_seen:last};toast('บันทึกความเป็นส่วนตัวแล้ว')}
+ catch(e){toast('บันทึกไม่สำเร็จ: '+(e.message||e),'bad');loadPhonePrivacy()}
+}
+
+function phoneItemTransferMarkup(){
+ const c=getActiveChar(me());if(!c)return '<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติก่อนส่งไอเทม</div>';
+ const chars=DB.get('characters').filter(x=>x.status==='approved'&&x.id!==c.id),itemIds=new Set((c.inv||[]).map(x=>x.iid)),owned=DB.get('items').filter(i=>itemIds.has(i.id)&&i.transferable!==false);
+ let html=phoneAppBack('ส่งไอเทม')+'<div class="phone-msg-card"><p class="phone-msg-muted">ส่งไอเทมไปยังคลังผู้รับทันที พร้อมบันทึกประวัติทั้งสองฝั่ง</p>';
+ if(!owned.length)html+='<div class="phone-not-ready">ยังไม่มีไอเทมที่ส่งต่อได้ในกระเป๋า หรือไอเทมถูกตั้งค่าไม่ให้ส่งต่อ</div>';
+ else html+='<form class="phone-msg-form" onsubmit="doPhoneItemTransfer(event)"><label>ผู้รับ</label><select name="recipient" required><option value="">เลือกตัวละครผู้รับ…</option>'+chars.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.stageName||x.name)+'</option>').join('')+'</select><label>ไอเทม</label><select name="item" id="phoneTransferItemSelect" required onchange="phoneUpdateTransferQuantity()"><option value="">เลือกไอเทม…</option>'+owned.map(i=>'<option value="'+esc(i.id)+'">'+esc(i.name)+' · มี '+(c.inv||[]).filter(x=>x.iid===i.id).length+' ชิ้น</option>').join('')+'</select><label>จำนวน</label><input id="phoneTransferQuantity" name="quantity" type="number" min="1" max="100" value="1" step="1" required><label>หมายเหตุ (ไม่บังคับ)</label><input name="note" maxlength="160" placeholder="เช่น ของขวัญจากกิจกรรม"><button class="btn" type="submit">ตรวจสอบและยืนยันการส่ง</button></form>';
+ html+='</div><div id="phoneTransferHistory" class="phone-msg-card"><div class="phone-msg-muted">กำลังโหลดประวัติ…</div></div>';
+ return html;
+}
+function phoneUpdateTransferQuantity(){
+ const c=getActiveChar(me()),select=document.getElementById('phoneTransferItemSelect'),input=document.getElementById('phoneTransferQuantity');if(!c||!select||!input)return;
+ const count=(c.inv||[]).filter(x=>x.iid===select.value).length;input.max=String(Math.max(1,count));if(Number(input.value)>count)input.value=String(Math.max(1,count));
+}
+async function doPhoneItemTransfer(event){
+ event.preventDefault();if(PHONE_ITEM_TRANSFER_BUSY)return;
+ const c=getActiveChar(me());if(!c)return;
+ const f=new FormData(event.currentTarget),recipient=String(f.get('recipient')||''),itemId=String(f.get('item')||''),quantity=Number(f.get('quantity')),note=String(f.get('note')||'').trim();
+ const item=DB.get('items').find(x=>x.id===itemId),rec=DB.get('characters').find(x=>x.id===recipient);
+ if(!item||!rec)return toast('กรุณาเลือกผู้รับและไอเทมให้ครบ','bad');
+ if(item.transferable===false)return toast('ไอเทมนี้ถูกตั้งค่าไม่ให้ส่งต่อ','bad');
+ if(!Number.isSafeInteger(quantity)||quantity<1||quantity>(c.inv||[]).filter(x=>x.iid===itemId).length)return toast('จำนวนไอเทมไม่ถูกต้อง','bad');
+ if(!await ask('ยืนยันส่งไอเทม?'+String.fromCharCode(10)+'จาก: '+(c.stageName||c.name)+String.fromCharCode(10)+'ถึง: '+(rec.stageName||rec.name)+String.fromCharCode(10)+'ไอเทม: '+item.name+' × '+quantity+(note?String.fromCharCode(10)+'หมายเหตุ: '+note:'')))return;
+ PHONE_ITEM_TRANSFER_BUSY=true;
+ try{await phoneBankRpc('site_phone_transfer_item',{p_character_id:c.id,p_recipient_character_id:recipient,p_item_id:itemId,p_quantity:quantity,p_note:note,p_request_id:bankRequestId()});await cloudRefresh(false);toast('ส่งไอเทมสำเร็จแล้ว 🎁');openPhoneFloatApp('item-transfer')}
+ catch(e){toast('ส่งไอเทมไม่สำเร็จ: '+(e.message||e),'bad')}finally{PHONE_ITEM_TRANSFER_BUSY=false}
+}
+async function loadPhoneItemTransferHistory(){
+ const c=getActiveChar(me()),root=document.getElementById('phoneTransferHistory');if(!c||!root)return;
+ try{
+  const data=await phoneBankRpc('site_phone_transfer_history',{p_character_id:c.id});PHONE_TRANSFER_HISTORY=Array.isArray(data)?data:[];
+  root.innerHTML='<h3 style="margin-top:0">ประวัติส่ง/รับไอเทม</h3>'+(PHONE_TRANSFER_HISTORY.length?PHONE_TRANSFER_HISTORY.map(x=>'<div class="phone-mini-history-row"><div><b>'+(x.direction==='sent'?'ส่งให้ '+esc(x.recipient_name):'ได้รับจาก '+esc(x.sender_name))+'</b><small>'+esc(x.item_name)+' × '+esc(x.quantity)+(x.note?' · '+esc(x.note):'')+' · '+esc(phoneDateTime(x.created_at))+'</small></div><span>'+(x.direction==='sent'?'↗':'↙')+'</span></div>').join(''):'<div class="phone-msg-muted">ยังไม่มีประวัติส่งหรือรับไอเทม</div>');
+ }catch(e){root.innerHTML=phoneFeatureError(e)}
+}
+
 /* ================= ROUTER ================= */
 const routes={home:pageHome,login:pageLogin,register:pageRegister,threads:pageThreads,forum:pageForum,thread:pageThread,editpost:pageEditPost,
  chars:pageChars,char:pageChar,mychars:pageMyChars,newchar:pageNewChar,newbio:pageNewBioThread,editbio:pageEditCharacterBioThread,editchar:pageEditChar,shop:pageShop,profile:pageProfile,settings:pageSettings,
