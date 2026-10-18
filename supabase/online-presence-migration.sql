@@ -17,6 +17,8 @@ create table if not exists public.site_presence (
   member_last_seen timestamptz
 );
 
+alter table public.site_presence alter column member_online_group set default 'applicant';
+
 create index if not exists site_presence_last_seen_idx
   on public.site_presence(last_seen desc);
 create index if not exists site_presence_member_last_seen_idx
