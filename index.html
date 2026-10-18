@@ -3656,9 +3656,10 @@ async function bankSearchRecipients(event){
  try{
   const data=await phoneBankRpc('site_bank_find_recipient',{p_character_id:c.id,p_query:query});
   if(!Array.isArray(data)||!data.length){target.innerHTML='<div class="mut" style="padding:10px 0;font-size:.76rem">ไม่พบตัวละครที่เปิดบัญชีธนาคารและตรงกับคำค้นหา</div>';return}
-  target.innerHTML=data.map(x=>'<div class="phone-recipient-result"><div><b>'+esc(x.display_name)+'</b><small>เลขบัญชี '+esc(x.account_number)+'</small></div><button type="button" class="btn sm" onclick="chooseBankRecipient(\''+String(x.character_id).replace(/'/g,'')+'\',\''+String(x.account_number).replace(/'/g,'')+'\',\''+String(x.display_name).replace(/'/g,'')+'\')">เลือกผู้รับ</button></div>').join('');
+  target.innerHTML=data.map(x=>'<div class="phone-recipient-result"><div><b>'+esc(x.display_name)+'</b><small>เลขบัญชี '+esc(x.account_number)+'</small></div><button type="button" class="btn sm" data-bank-recipient-char="'+esc(x.character_id)+'" data-bank-recipient-number="'+esc(x.account_number)+'" data-bank-recipient-name="'+esc(x.display_name)+'" onclick="chooseBankRecipientFromButton(this)">เลือกผู้รับ</button></div>').join('');
  }catch(e){target.innerHTML='<div class="mut" style="padding:10px 0;font-size:.76rem">'+esc(e.message||String(e))+'</div>'}
 }
+function chooseBankRecipientFromButton(button){chooseBankRecipient(button.dataset.bankRecipientChar||'',button.dataset.bankRecipientNumber||'',button.dataset.bankRecipientName||'')}
 function chooseBankRecipient(characterId,accountNumber,displayName){
  PHONE_BANK_SELECTED_RECIPIENT={character_id:characterId,account_number:accountNumber,display_name:displayName};
  const root=document.getElementById('bankSelectedRecipient');if(!root)return;
@@ -4294,6 +4295,7 @@ async function emergencyResetAdmin(){
  toast(`รีเซ็ตแล้ว! ชื่อผู้ใช้ "${admin.username}" รหัสผ่าน "admin1234"`);go('admin/settings');
 }
 async function logout(){
+ phoneUnlocked=false;
  if(supaClient)try{await supaClient.auth.signOut()}catch(e){console.warn('Cloud sign out failed',e)}
  cloudProfile=null;cloudReady=false;store.removeItem('sa_session');toast('ออกจากระบบแล้ว');go('home')
 }
