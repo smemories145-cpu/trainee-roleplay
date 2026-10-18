@@ -213,7 +213,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
   v_caller public.site_profiles%rowtype;
   v_target public.site_profiles%rowtype;
@@ -258,7 +258,7 @@ begin
     'role', case when cardinality(v_permissions) > 0 then 'admin' else 'player' end
   );
 end;
-$;
+$$;
 
 revoke all on function public.site_set_admin_permissions(text, text[]) from public, anon;
 grant execute on function public.site_set_admin_permissions(text, text[]) to authenticated;
