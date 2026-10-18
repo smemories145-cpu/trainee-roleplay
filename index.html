@@ -1984,11 +1984,11 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(216,182,244,.24);
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.thread-list-card{transition:none!important}}
 </style>
 <style id="starlightAccountPillRefresh">
-/* STARLIGHT RP · compact active-character/account chip */
+/* STARLIGHT RP · balanced compact character selector */
 nav .links .me-pill.starlight-account-pill{
   position:relative;display:flex;align-items:center;gap:7px;
   flex:0 1 154px;width:154px;min-width:146px;max-width:164px;margin:0;
-  padding:4px 8px 4px 4px;border:1px solid rgba(216,182,244,.22);
+  padding:4px 8px 4px 5px;border:1px solid rgba(216,182,244,.22);
   border-radius:13px;overflow:hidden;box-sizing:border-box;
   background:linear-gradient(145deg,rgba(216,182,244,.08),rgba(255,255,255,.01) 58%),#101015;
   box-shadow:inset 0 1px rgba(255,255,255,.045),0 3px 10px rgba(0,0,0,.14);
@@ -2000,17 +2000,23 @@ nav .links .me-pill.starlight-account-pill:hover{
   box-shadow:inset 0 1px rgba(255,255,255,.06),0 4px 12px rgba(0,0,0,.18);
 }
 .starlight-account-avatar{
-  display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
-  padding:2px;overflow:hidden;border:1px solid rgba(216,182,244,.22);
-  border-radius:10px;background:linear-gradient(145deg,#2a2135,#17151c);
+  display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;
+  padding:1px;overflow:hidden;border:1px solid rgba(216,182,244,.28);
+  border-radius:50%;background:linear-gradient(145deg,#2a2135,#17151c);
 }
 .starlight-account-avatar .av{
-  display:block!important;width:100%!important;height:100%!important;min-width:0;
-  margin:0!important;padding:0!important;border:0!important;border-radius:7px!important;
+  display:block!important;width:28px!important;height:28px!important;min-width:28px;
+  margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;
   object-fit:cover;object-position:center;box-shadow:none!important;
 }
-.starlight-account-details{display:flex;flex:1 1 auto;flex-direction:column;justify-content:center;gap:3px;min-width:0}
-.starlight-account-name-line{display:flex;align-items:center;gap:3px;min-width:0}
+.starlight-account-details{
+  display:flex;flex:1 1 auto;flex-direction:column;align-items:stretch;
+  justify-content:center;gap:3px;min-width:0;
+}
+.starlight-account-name-line{
+  display:flex;align-items:center;justify-content:space-between;gap:4px;min-width:0;
+  min-height:13px;
+}
 nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{
   display:block;flex:1 1 auto;width:100%;min-width:0;max-width:100%;
   margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
@@ -2024,28 +2030,22 @@ nav .links .me-pill.starlight-account-pill .starlight-account-name-line select:f
 }
 nav .links .me-pill.starlight-account-pill .starlight-account-name-line option{background:#17131e;color:#f5f0fa}
 .starlight-account-chevron{display:block;flex:0 0 11px;width:11px;height:11px;color:#b9a7ce;pointer-events:none}
-.starlight-account-balance{display:flex;align-items:center;gap:4px;min-width:0;line-height:1}
-.starlight-account-coin{
-  display:grid;place-items:center;flex:0 0 14px;width:14px;height:14px;
-  border:1px solid #e5c47b;border-radius:50%;
-  background:linear-gradient(145deg,#f3d994,#b78b3b);color:#39270d;
-  font-family:Arial,sans-serif;font-size:.47rem;font-weight:800;line-height:1;
+.starlight-account-balance{
+  display:block;min-width:0;min-height:12px;line-height:1.2;text-align:left;
 }
 .starlight-account-amount{
-  display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  display:block;width:100%;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:#e9ca83;font-family:'Prompt','Noto Sans Thai',sans-serif;font-size:.61rem;
   font-weight:650;line-height:1.2;letter-spacing:0;font-variant-numeric:tabular-nums;
 }
 @media(max-width:560px){
   nav .links .me-pill.starlight-account-pill{
-    flex:0 0 146px;width:146px;min-width:140px;max-width:154px;gap:6px;padding:4px 7px 4px 4px;border-radius:12px;
+    flex:0 0 146px;width:146px;min-width:140px;max-width:154px;gap:6px;padding:4px 7px 4px 5px;border-radius:12px;
   }
-  .starlight-account-avatar{flex-basis:30px;width:30px;height:30px;border-radius:9px}
-  .starlight-account-avatar .av{border-radius:6px!important}
+  .starlight-account-avatar{flex-basis:30px;width:30px;height:30px}
   .starlight-account-details{gap:3px}
   nav .links .me-pill.starlight-account-pill .starlight-account-name-line select{font-size:.73rem}
   .starlight-account-amount{font-size:.59rem}
-  .starlight-account-coin{flex-basis:13px;width:13px;height:13px;font-size:.43rem}
 }
 @media(prefers-reduced-motion:reduce){nav .links .me-pill.starlight-account-pill{transition:none}}
 </style></head>
@@ -5003,7 +5003,7 @@ function renderNav(){
  let pill='';
  if(u){
   const mine=DB.get('characters').filter(c=>(c.ownerId===u.id||admin)&&c.status==='approved'),cur=getActiveChar(u);
-  pill=mine.length?`<div class="me-pill starlight-account-pill" title="ตัวละครที่กำลังใช้งาน"><span class="starlight-account-avatar">${avatar(cur,28)}</span><span class="starlight-account-details"><span class="starlight-account-name-line"><select aria-label="เลือกตัวละครที่ใช้งาน" onchange="setActiveChar(this.value)">${mine.map(c=>`<option value="${c.id}" ${c.id===cur?.id?'selected':''}>${esc(c.stageName||c.name)}</option>`).join('')}</select><svg class="starlight-account-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="starlight-account-balance"><span class="starlight-account-coin" aria-hidden="true">₩</span><span class="starlight-account-amount">${wonFmt(cur.won)}</span></span></span></div>`
+  pill=mine.length?`<div class="me-pill starlight-account-pill" title="ตัวละครที่กำลังใช้งาน"><span class="starlight-account-avatar">${avatar(cur,28)}</span><span class="starlight-account-details"><span class="starlight-account-name-line"><select aria-label="เลือกตัวละครที่ใช้งาน" onchange="setActiveChar(this.value)">${mine.map(c=>`<option value="${c.id}" ${c.id===cur?.id?'selected':''}>${esc(c.stageName||c.name)}</option>`).join('')}</select><svg class="starlight-account-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="starlight-account-balance"><span class="starlight-account-amount">${wonFmt(cur.won)}</span></span></span></div>`
    :`<a href="#newchar" class="badge" style="--c:var(--warn)">+ สร้างตัวละคร</a>`;
  }
  const navEl=document.getElementById('nav');
