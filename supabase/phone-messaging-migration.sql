@@ -1039,7 +1039,7 @@ begin
  end loop;
  if v_remaining>0 then raise exception 'Not enough of this item in the sender inventory'; end if;
  -- Rebuild sender inventory after selecting the first requested matching instances.
- v_remaining:=p_quantity;
+ v_sender_inv:='[]'::jsonb; v_remaining:=p_quantity;
  for v_entry in select value from jsonb_array_elements(coalesce(v_sender->'inv','[]'::jsonb)) loop
   if v_remaining>0 and v_entry->>'iid'=p_item_id then
    v_remaining:=v_remaining-1;
@@ -1075,18 +1075,21 @@ begin
  if auth.uid() is null then raise exception 'Sign in is required'; end if;
  select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
  if not found or not public.site_phone_character_owned(p_character_id,v_profile.app_user_id) then raise exception 'Character is not available'; end if;
- select coalesce(jsonb_agg(jsonb_build_object(
-  'id',t.id,'sender_character_id',t.sender_character_id,'recipient_character_id',t.recipient_character_id,
-  'sender_name',coalesce(nullif(s.payload->>'stageName',''),nullif(s.payload->>'name',''),'ตัวละคร'),
-  'recipient_name',coalesce(nullif(r.payload->>'stageName',''),nullif(r.payload->>'name',''),'ตัวละคร'),
-  'item_id',t.item_id,'item_name',t.item_name,'quantity',t.quantity,'note',t.note,'created_at',t.created_at,
-  'direction',case when t.sender_character_id=p_character_id then 'sent' else 'received' end
- ) order by t.created_at desc),'[]'::jsonb)
- into v_result from public.site_phone_item_transfers t
- left join public.site_records s on s.collection='characters' and s.record_id=t.sender_character_id
- left join public.site_records r on r.collection='characters' and r.record_id=t.recipient_character_id
- where t.sender_character_id=p_character_id or t.recipient_character_id=p_character_id
- order by t.created_at desc limit 50;
+ select coalesce(jsonb_agg(q.data order by q.created_at desc),'[]'::jsonb)
+ into v_result from (
+  select t.created_at,jsonb_build_object(
+   'id',t.id,'sender_character_id',t.sender_character_id,'recipient_character_id',t.recipient_character_id,
+   'sender_name',coalesce(nullif(s.payload->>'stageName',''),nullif(s.payload->>'name',''),'ตัวละคร'),
+   'recipient_name',coalesce(nullif(r.payload->>'stageName',''),nullif(r.payload->>'name',''),'ตัวละคร'),
+   'item_id',t.item_id,'item_name',t.item_name,'quantity',t.quantity,'note',t.note,'created_at',t.created_at,
+   'direction',case when t.sender_character_id=p_character_id then 'sent' else 'received' end
+  ) as data
+  from public.site_phone_item_transfers t
+  left join public.site_records s on s.collection='characters' and s.record_id=t.sender_character_id
+  left join public.site_records r on r.collection='characters' and r.record_id=t.recipient_character_id
+  where t.sender_character_id=p_character_id or t.recipient_character_id=p_character_id
+  order by t.created_at desc limit 50
+ ) q;
  return v_result;
 end;
 $$;
@@ -1341,6 +1344,45 @@ begin
 end;
 $$;
 
+
+
+create or replace function public.site_phone_get_privacy(p_character_id text)
+returns jsonb language plpgsql security definer
+set search_path=public,pg_temp
+as $
+declare v_profile public.site_profiles%rowtype; v_settings public.site_phone_presence%rowtype;
+begin
+ if auth.uid() is null then raise exception 'Sign in is required'; end if;
+ select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
+ if not found or not public.site_phone_character_owned(p_character_id,v_profile.app_user_id) then raise exception 'Character is not available'; end if;
+ select * into v_settings from public.site_phone_presence where character_id=p_character_id;
+ return jsonb_build_object('hide_presence',coalesce(v_settings.hide_presence,false),'hide_last_seen',coalesce(v_settings.hide_last_seen,false));
+end;
+$;
+
+create or replace function public.site_phone_group_cancel_invite(p_character_id text,p_invite_id text)
+returns jsonb language plpgsql security definer
+set search_path=public,pg_temp
+as $
+declare v_profile public.site_profiles%rowtype; v_inv public.site_phone_group_invites%rowtype; v_conv public.site_phone_conversations%rowtype; v_count integer;
+begin
+ if auth.uid() is null then raise exception 'Sign in is required'; end if;
+ select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
+ if not found or not public.site_phone_character_owned(p_character_id,v_profile.app_user_id) then raise exception 'Character is not available'; end if;
+ select * into v_inv from public.site_phone_group_invites where id=p_invite_id and invited_by_character_id=p_character_id and status='pending' for update;
+ if not found then raise exception 'Pending invitation not found'; end if;
+ select * into v_conv from public.site_phone_conversations where id=v_inv.conversation_id;
+ if not found or v_conv.owner_character_id<>p_character_id then raise exception 'Only the current group owner can cancel an invitation'; end if;
+ update public.site_phone_group_invites set status='canceled',responded_at=now() where id=p_invite_id and status='pending';
+ get diagnostics v_count=row_count;
+ return jsonb_build_object('ok',v_count>0);
+end;
+$;
+
+revoke all on function public.site_phone_group_cancel_invite(text,text) from public,anon;
+grant execute on function public.site_phone_group_cancel_invite(text,text) to authenticated;
+revoke all on function public.site_phone_get_privacy(text) from public,anon;
+grant execute on function public.site_phone_get_privacy(text) to authenticated;
 revoke all on function public.site_phone_group_members(text,text) from public,anon;
 grant execute on function public.site_phone_group_members(text,text) to authenticated;
 revoke all on function public.site_phone_group_pin_message(text,text,text) from public,anon;
