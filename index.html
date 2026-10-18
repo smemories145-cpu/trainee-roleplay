@@ -4341,8 +4341,14 @@ async function loadPhoneNotifications(){
   phoneUpdateNotificationCount(PHONE_NOTIFICATIONS);
   if(root)root.innerHTML=PHONE_NOTIFICATIONS.length?PHONE_NOTIFICATIONS.map(n=>{
    const icons={message:'💬',mention:'＠',group_invite:'👥',group_joined:'👋',group_left:'↗',group_removed:'🚫',group_archived:'📦',group_owner:'👑',item_received:'🎁',item_sent:'📨',mail_received:'✉️',bank_deposit:'🏦',bank_withdraw:'🏦',bank_transfer_sent:'↗',bank_transfer_received:'↙'};
-   const p=n.payload||{},summary=p.item_name?(String(p.quantity||1)+' × '+p.item_name):p.group_name||p.conversation_name||(p.amount!==undefined?bankMoney(p.amount)+(Number(p.fee)?' · ค่าธรรมเนียม '+bankMoney(p.fee):''):'')||(p.subject?'หัวข้อ: '+p.subject:'');
-   return '<div class="phone-notification-row '+(!n.is_read?'unread':'')+'"><div class="phone-notification-icon">'+(icons[n.kind]||'✦')+'</div><div class="phone-notification-main"><b>'+esc(phoneTitleForNotification(n))+'</b><small>'+esc(n.actor_name||'STARLIGHT')+(summary?' · '+esc(summary):'')+' · '+esc(phoneDateTime(n.created_at))+'</small><div class="row" style="gap:6px;margin-top:7px">'+(n.conversation_id?'<button class="btn sm ghost" onclick="phoneOpenNotificationConversation(\''+n.conversation_id+'\')">เปิดแชต/กลุ่ม</button>':'')+(!n.is_read?'<button class="btn sm ghost" onclick="phoneMarkNotificationRead('+n.id+')">อ่านแล้ว</button>':'')+'</div></div></div>';
+   const p=n.payload||{};
+   const summary=p.item_name?(String(p.quantity||1)+' × '+p.item_name):p.group_name||p.conversation_name||(p.amount!==undefined?bankMoney(p.amount)+(Number(p.fee)?' · ค่าธรรมเนียม '+bankMoney(p.fee):''):'')||(p.subject?'หัวข้อ: '+p.subject:'');
+   let action='';
+   if(n.conversation_id)action='<button class="btn sm ghost" onclick="phoneOpenNotificationConversation(\''+n.conversation_id+'\')">เปิดแชต/กลุ่ม</button>';
+   else if(n.kind==='mail_received')action='<button class="btn sm ghost" onclick="phoneOpenNotificationTarget(\'mail\')">เปิดจดหมาย</button>';
+   else if(['bank_deposit','bank_withdraw','bank_transfer_sent','bank_transfer_received'].includes(n.kind))action='<button class="btn sm ghost" onclick="phoneOpenNotificationTarget(\'bank\')">เปิดธนาคาร</button>';
+   else if(['item_received','item_sent'].includes(n.kind))action='<button class="btn sm ghost" onclick="phoneOpenNotificationTarget(\'item-transfer\')">ดูประวัติไอเทม</button>';
+   return '<div class="phone-notification-row '+(!n.is_read?'unread':'')+'"><div class="phone-notification-icon">'+(icons[n.kind]||'✦')+'</div><div class="phone-notification-main"><b>'+esc(phoneTitleForNotification(n))+'</b><small>'+esc(n.actor_name||'STARLIGHT')+(summary?' · '+esc(summary):'')+' · '+esc(phoneDateTime(n.created_at))+'</small><div class="row" style="gap:6px;margin-top:7px">'+action+(!n.is_read?'<button class="btn sm ghost" onclick="phoneMarkNotificationRead('+n.id+')">อ่านแล้ว</button>':'')+'</div></div></div>';
   }).join(''):'<div class="phone-msg-muted">ยังไม่มีการแจ้งเตือน</div>';
  }catch(e){if(root)root.innerHTML=phoneFeatureError(e)}
 }
