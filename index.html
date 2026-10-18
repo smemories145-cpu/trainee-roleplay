@@ -2879,7 +2879,7 @@ function renderBody(content,mode,css,allowCharacterHtmlFallback=false){
 function codeFrame(html,css='',isolated=false){
  const id='cf'+uid();
  let source=String(html||''),head='',body=source,htmlAttrs='',bodyAttrs='';
- const hasFullDoc=/<html[\s>]/i.test(source)||/<!doctype\s+html/i.test(source);
+ const hasFullDoc=/<html[\s>]/i.test(source)||/<!doctype\s+html/i.test(source)||/<head[\s>]/i.test(source)||/<body[\s>]/i.test(source);
  const fullDoc=hasFullDoc||isolated;
  if(isolated&&!hasFullDoc)source='<!doctype html><html lang="th"><head></head><body>'+source+'</body></html>';
  if(fullDoc){
@@ -2889,6 +2889,12 @@ function codeFrame(html,css='',isolated=false){
   head=hm?hm[1]:'';
   htmlAttrs=ht?ht[1]:'';bodyAttrs=bt?bt[1]:'';
   body=bm?bm[1]:source.replace(/<!doctype[^>]*>/ig,'').replace(/<\/?html[^>]*>/ig,'').replace(/<head[^>]*>[\s\S]*?<\/head>/ig,'');
+  /* Stylesheets pasted outside <head> must be moved into the preview document head,
+     or their layout may disappear when the browser repairs the HTML fragment. */
+  const movedStyles=[];
+  body=body.replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi,tag=>{movedStyles.push(tag);return ''});
+  body=body.replace(/<link\b(?=[^>]*\brel\s*=\s*["']?stylesheet\b)[^>]*>/gi,tag=>{movedStyles.push(tag);return ''});
+  if(movedStyles.length)head=(head?head+'\n':'')+movedStyles.join('\n');
  }
  const doc=`<!DOCTYPE html><html${fullDoc?htmlAttrs:'' }><head><meta charset="utf-8">${hasFullDoc?'':`<base target="_blank">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2928,7 +2934,7 @@ img,video,iframe{max-width:100%}a{color:${S.pri}}*,*::before,*::after{box-sizing
 .profile-container .text-block{font-size:13px;line-height:1.95;color:#ded6e5;margin:0 0 24px;white-space:pre-wrap}
 .profile-container .divider{height:1px;background:#39313f;margin:24px 0}
 @media(max-width:560px){.profile-container .banner{height:160px}.profile-header-section{padding:0 15px 17px}.profile-header-section .avatar-row{margin-top:-42px}.profile-header-section .avatar{width:86px;height:86px;flex-basis:86px}.profile-header-section .action-buttons{font-size:10px;gap:5px}.profile-container .content-body{padding:18px 14px}.profile-container .info-grid{grid-template-columns:1fr}.profile-container .gallery-grid{gap:6px}.profile-container .gallery-item{height:100px}.profile-container .nav-tabs{padding:0 8px}.profile-container .nav-tab{padding:11px 10px}}
-</style>`}${head}${hasFullDoc?'':`<style>${css||''}
+</style>`}${head}${hasFullDoc&&css?'<style>'+css+'</style>':''}${hasFullDoc?'':`<style>${css||''}
 html,body{width:100%;max-width:100%;min-width:0;height:auto!important;min-height:0!important}
 /* Measure intrinsic content, not the iframe viewport; viewport-sized roots can
    otherwise create a self-growing resize loop. */
