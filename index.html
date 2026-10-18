@@ -3787,12 +3787,16 @@ async function doSaveProfile(e){
 
 /* ================= COMMUNITY PRESENCE ================= */
 let presenceSnapshot=null,presenceError='',presenceBusy=false,presenceStarted=false;
-function presenceSessionId(){
- let id=store.getItem('sa_presence_session')||'';
+function presenceSessionId(user){
+ // Use a separate presence record per signed-in app user, plus one anonymous browser session.
+ // This preserves today's history when someone signs out or another member uses the same browser.
+ const safeUserId=user&&user.id?String(user.id).replace(/[^A-Za-z0-9-]/g,''):'';
+ const key=safeUserId?'sa_presence_session_member_'+safeUserId:'sa_presence_session_visitor';
+ let id=store.getItem(key)||'';
  if(!/^[A-Za-z0-9-]{16,80}$/.test(id)){
   try{id=window.crypto&&typeof window.crypto.randomUUID==='function'?window.crypto.randomUUID():''}catch(e){id=''}
   if(!id)id='presence-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)+'-'+Math.random().toString(36).slice(2);
-  store.setItem('sa_presence_session',id);
+  store.setItem(key,id);
  }
  return id;
 }
@@ -3853,7 +3857,7 @@ async function refreshCommunityPresence(){
   const onlineGroup=isAdmin()?'webmaster':(prefs.onlineGroup||'human');
   const displayColor=presenceMemberColor(user,activeCharacter);
   const {data:heartbeat,error:heartbeatError}=await supaClient.rpc('site_presence_heartbeat',{
-   p_session_id:presenceSessionId(),
+   p_session_id:presenceSessionId(user),
    p_hidden:!!(user&&prefs.hideOnline),
    p_online_group:onlineGroup,
    p_display_color:displayColor
