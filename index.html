@@ -4563,32 +4563,46 @@ function openAdminPermissions(id){
  const rows=ADMIN_PERMISSION_OPTIONS.map(p=>'<label class="admin-permission-option"><input type="checkbox" name="adminPermission" value="'+p.key+'" '+(current.has(p.key)?'checked':'')+'><span><b>'+esc(p.label)+'</b><small>'+esc(p.desc)+'</small></span></label>').join('');
  document.getElementById('adminPermissionModal')?.remove();
  const wrap=document.createElement('div');wrap.id='adminPermissionModal';wrap.className='qu-modal-backdrop';
- wrap.innerHTML='<section class="qu-modal admin-permissions-modal" role="dialog" aria-modal="true" aria-labelledby="adminPermissionsTitle"><div class="qu-modal-head"><div><span class="qu-modal-kicker">ROLE & ACCESS</span><h2 id="adminPermissionsTitle">🔐 กำหนดสิทธิ์แอดมิน</h2><p>บัญชี: <b>'+esc(target.username)+'</b></p></div><button type="button" class="qu-modal-close" data-admin-perm-close aria-label="ปิด">×</button></div><p class="mut">เลือกเฉพาะหน้าที่ต้องการให้ดูแล แอดมินย่อยจะไม่มีสิทธิ์แจกสิทธิ์แอดมินให้คนอื่น และไม่มีสิทธิ์เต็มเหมือนแอดมินหลัก</p><div class="admin-permissions-list">'+rows+'</div><div class="qu-modal-actions"><button type="button" class="btn ghost" data-admin-perm-close>ยกเลิก</button><button type="button" class="btn" id="adminPermissionsSave">บันทึกสิทธิ์</button></div></section>';
+ wrap.innerHTML='<section class="qu-modal admin-permissions-modal" role="dialog" aria-modal="true" aria-labelledby="adminPermissionsTitle"><div class="qu-modal-head"><div><span class="qu-modal-kicker">ROLE & ACCESS</span><h2 id="adminPermissionsTitle">🔐 กำหนดสิทธิ์แอดมิน</h2><p>บัญชี: <b>'+esc(target.username)+'</b></p></div><button type="button" class="qu-modal-close" data-admin-perm-close aria-label="ปิด">×</button></div><p class="mut">เลือกเฉพาะหน้าที่ต้องการให้ดูแล แอดมินย่อยจะไม่มีสิทธิ์แจกสิทธิ์แอดมินให้คนอื่น และไม่มีสิทธิ์เต็มเหมือนแอดมินหลัก</p><div class="admin-permissions-list">'+rows+'</div><div id="adminPermissionsStatus" role="status" aria-live="polite" style="display:none;margin:14px 0 0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.85rem;line-height:1.6"></div><div class="qu-modal-actions"><button type="button" class="btn ghost" data-admin-perm-close>ยกเลิก</button><button type="button" class="btn" id="adminPermissionsSave">บันทึกสิทธิ์</button></div></section>';
  document.body.appendChild(wrap);
  wrap.addEventListener('click',e=>{if(e.target===wrap||e.target.closest('[data-admin-perm-close]'))wrap.remove()});
  wrap.querySelector('#adminPermissionsSave').addEventListener('click',()=>saveAdminPermissions(id));
  wrap.addEventListener('keydown',e=>{if(e.key==='Escape')wrap.remove()});
 }
 async function saveAdminPermissions(id){
- if(!isAdmin())return toast('มีเพียงแอดมินหลักที่กำหนดสิทธิ์ได้','bad');
  const wrap=document.getElementById('adminPermissionModal');if(!wrap)return;
- const target=DB.get('users').find(x=>x.id===id),owner=me();
- if(!target||target.id===owner?.id)return toast('ไม่สามารถแก้สิทธิ์ของบัญชีนี้ได้','bad');
- const permissions=[...wrap.querySelectorAll('input[name="adminPermission"]:checked')].map(x=>x.value);
- const users=DB.get('users'),index=users.findIndex(x=>x.id===id);
- if(index<0)return toast('ไม่พบบัญชีสมาชิก','bad');
+ const status=wrap.querySelector('#adminPermissionsStatus');
  const saveBtn=wrap.querySelector('#adminPermissionsSave');
+ const setStatus=(message,kind='info')=>{
+  if(status){
+   status.textContent=message;
+   status.style.display='block';
+   status.style.borderColor=kind==='error'?'var(--bad)':'var(--line)';
+   status.style.color=kind==='error'?'var(--bad)':'var(--txt)';
+  }else toast(message,kind==='error'?'bad':'ok');
+ };
+ const setBusy=busy=>{
+  if(!saveBtn)return;
+  saveBtn.disabled=busy;
+  saveBtn.textContent=busy?'กำลังบันทึก…':'บันทึกสิทธิ์';
+  saveBtn.setAttribute('aria-busy',busy?'true':'false');
+ };
  if(saveBtn?.disabled)return;
- if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='กำลังบันทึก…';}
+ if(!isAdmin()){setStatus('บันทึกไม่ได้: บัญชีนี้ไม่มีสิทธิ์แอดมินหลัก กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่','error');return;}
+ const target=DB.get('users').find(x=>x.id===id),owner=me();
+ if(!target||target.id===owner?.id){setStatus('บันทึกไม่ได้: ไม่พบบัญชีเป้าหมาย หรือไม่สามารถแก้สิทธิ์บัญชีที่กำลังใช้งานได้','error');return;}
+ const users=DB.get('users'),index=users.findIndex(x=>x.id===id);
+ if(index<0){setStatus('บันทึกไม่ได้: ไม่พบบัญชีสมาชิกในข้อมูลที่โหลดอยู่','error');return;}
+ const permissions=[...wrap.querySelectorAll('input[name="adminPermission"]:checked')].map(x=>x.value);
+ setBusy(true);
+ setStatus('กำลังบันทึกสิทธิ์ลงฐานข้อมูล Cloud…');
  try{
-  if(!supaClient||!cloudReady)throw new Error('ระบบ Cloud ยังเชื่อมต่อไม่พร้อม กรุณารีเฟรชเว็บแล้วลองอีกครั้ง');
-  const {error:permissionError}=await supaClient.rpc('site_set_admin_permissions',{p_app_user_id:id,p_permissions:permissions});
-  if(permissionError)throw permissionError;
+  if(!supaClient)throw new Error('ไม่สามารถเริ่มการเชื่อมต่อ Supabase ได้ กรุณารีเฟรชเว็บ');
+  if(!cloudReady)throw new Error('ข้อมูล Cloud ยังโหลดไม่เสร็จ กรุณารีเฟรชเว็บ รอให้ข้อมูลโหลด แล้วลองอีกครั้ง');
+  const {data,error}=await supaClient.rpc('site_set_admin_permissions',{p_app_user_id:id,p_permissions:permissions});
+  if(error)throw error;
+  if(!data||data.ok!==true)throw new Error('ฐานข้อมูลไม่ได้ยืนยันว่าบันทึกสำเร็จ กรุณาตรวจสอบ Migration');
   const updatedUser={...users[index],role:permissions.length?'admin':'player',permissions};
-  const {error:recordError}=await supaClient.rpc('site_record_write',{
-   p_collection:'users',p_record_id:id,p_payload:updatedUser,p_delete:false
-  });
-  if(recordError)throw recordError;
   users[index]=updatedUser;
   store.setItem('sa_users',JSON.stringify(users));
   wrap.remove();
@@ -4596,8 +4610,9 @@ async function saveAdminPermissions(id){
   render();
  }catch(error){
   console.error('Admin permission save failed:',error);
-  if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='บันทึกสิทธิ์';}
-  toast('บันทึกสิทธิ์ไม่สำเร็จ: '+(error?.message||'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'),'bad');
+  const message=error?.message||String(error)||'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ';
+  setStatus('บันทึกไม่สำเร็จ\n'+message,'error');
+  setBusy(false);
  }
 }
 
