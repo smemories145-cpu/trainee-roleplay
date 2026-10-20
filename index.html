@@ -6298,6 +6298,8 @@ async function doReply(e,tid){
   const ac=getActiveChar(u);if(ac&&characterBioExpired(ac)&&!isAdmin())return toast('ตัวละครเลยกำหนด 5 วันแล้ว กรุณาแนบลิงก์ประวัติในหน้าแก้ไขตัวละครก่อนโพสต์','bad');if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
   const len=textLen(content,mode);if(len<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร (ตอนนี้ ${len})`,'bad');
   const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;
+  if(tr&&ac.sick)return toast('ตัวละครป่วยอยู่ ต้องรักษาให้หายก่อนจึงจะฝึกทักษะได้','bad');
+  if(tr&&todayPracticeCount(ac,tr)>=11)return toast('ฝึกทักษะนี้ครบกำหนดของวันนี้แล้ว','bad');
   if(cloudReady){
    const cloudPost={...base,charId:ac.id,gm:false,train:tr};
    const {data,error}=await supaClient.rpc('site_create_post',{p_post:cloudPost,p_train:tr});
@@ -6308,12 +6310,24 @@ async function doReply(e,tid){
    const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0;
    if(actual.becameSick)toast('ตัวละครป่วยจากการฝึกทักษะเกิน 10 ครั้งทันที','bad');else if(actual.trainingWarning)toast('ฝึกทักษะครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');else toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
   }else{
-   let gain=0,capped=false;
-   const nc=update('characters',ac.id,o=>{o.exp+=Number(t.exp)||0;
-    if(tr){const cap=statCap(o.stage),old=o.stats[tr]||0;o.stats[tr]=Math.max(old,Math.min(cap,old+(Number(t.statGain)||0)));gain=o.stats[tr]-old;capped=old>=cap}});
+   let gain=0,capped=false,trainingCount=0,trainingWarning=false,becameSick=false;
+   const nc=update('characters',ac.id,o=>{
+    o.exp+=Number(t.exp)||0;
+    if(tr){
+     const cap=statCap(o.stage),old=o.stats[tr]||0;
+     o.stats[tr]=Math.max(old,Math.min(cap,old+(Number(t.statGain)||0)));gain=o.stats[tr]-old;capped=old>=cap;
+     const day=bangkokDateKey(),pc=o.practiceCounts||{},counts=pc.date===day?{...(pc.counts||{})}:{};
+     trainingCount=(Number(counts[tr])||0)+1;counts[tr]=trainingCount;o.practiceCounts={date:day,counts};
+     trainingWarning=trainingCount===10;
+     if(trainingCount===11){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='ฝึกทักษะ '+tr+' เกิน 10 ครั้งในวันเดียว';becameSick=true}
+    }
+   });
    const w=Number(t.won)||0;if(w)addWon(ac.id,w,'โพสต์: '+t.title);
-   posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w});DB.set('posts',posts);
-   toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}${capped?' (ถึงเพดานขั้นนี้แล้ว)':''}${eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''}`);
+   posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w,trainingCount,trainingWarning,becameSick});DB.set('posts',posts);
+   if(becameSick)toast('ฝึกครั้งที่ 11 แล้ว! ตัวละครติดสถานะป่วยทันที','bad');
+   else if(trainingWarning)toast('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');
+   else toast('+'+t.exp+' EXP'+(w?' · +'+wonFmt(w):'')+(tr?' · '+statOf(tr).n+' +'+gain:'')+(capped?' (ถึงเพดานขั้นนี้แล้ว)':'')+(eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''));
+
   }
  }
  store.removeItem('sa_draft_'+tid);
