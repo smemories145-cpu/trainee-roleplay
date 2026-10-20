@@ -290,6 +290,7 @@ begin
   select * into v_profile from public.site_profiles where auth_user_id=auth.uid();
   select payload into v_char from public.site_records where collection='characters' and record_id=p_character_id for update;
   if v_char is null or v_char->>'ownerId' is distinct from v_profile.app_user_id or v_char->>'status' is distinct from 'approved' then raise exception 'Character is not available'; end if;
+  if not coalesce((v_char->>'sick')::boolean,false) then raise exception 'ตัวละครนี้ไม่ได้อยู่ในสถานะป่วย'; end if;
   select * into v_treatment from public.site_hospital_treatments where treatment_post_id=p_treatment_post_id for update;
   if not found then
     select payload into v_post from public.site_records where collection='posts' and record_id=p_treatment_post_id for update;
@@ -509,9 +510,12 @@ begin
 
   v_new := p_payload - 'pass';
 
-  if not v_admin and p_collection='posts' and v_old is not null
-    and (v_new -> 'hospitalAnnotations') is distinct from (v_old -> 'hospitalAnnotations') then
-    raise exception 'Hospital annotations can only be changed by the hospital system';
+  if not v_admin and p_collection='posts' and v_old is not null and (
+       (v_new -> 'hospitalAnnotations') is distinct from (v_old -> 'hospitalAnnotations')
+       or (v_new -> 'trainingCount') is distinct from (v_old -> 'trainingCount')
+       or (v_new -> 'trainingWarning') is distinct from (v_old -> 'trainingWarning')
+       or (v_new -> 'becameSick') is distinct from (v_old -> 'becameSick')) then
+    raise exception 'Hospital and training metadata can only be changed by trusted server functions';
   end if;
 
   if coalesce(v_new ->> 'id', p_record_id) <> p_record_id then
