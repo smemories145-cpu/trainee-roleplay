@@ -276,3 +276,24 @@ revoke all on function public.site_hospital_use_medicine(text,text) from public,
 grant execute on function public.site_hospital_submit_queue(text,text) to authenticated;
 grant execute on function public.site_hospital_pay(text,text,text,text) to authenticated;
 grant execute on function public.site_hospital_use_medicine(text,text) to authenticated;
+
+
+-- Seed the medicine item without overwriting an existing administrator-managed item.
+insert into public.site_records(collection,record_id,payload,updated_at)
+values (
+ 'items',
+ 'starlight_medicine_bottle',
+ jsonb_build_object(
+   'id','starlight_medicine_bottle',
+   'name','ขวดยารักษา',
+   'description','ยารักษาอาการป่วยจากการฝึกทักษะหรือโรลเพลย์ ใช้ได้ 1 ครั้งภายใน 3 ชั่วโมงหลังได้รับยา',
+   'price',0,
+   'stock',-1,
+   'category','medicine',
+   'image','assets/starlight_medicine_bottle.svg',
+   'icon','assets/starlight_medicine_bottle.svg',
+   'usable',true
+ ),
+ now()
+)
+on conflict (collection,record_id) do nothing;
