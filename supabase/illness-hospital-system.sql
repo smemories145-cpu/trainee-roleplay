@@ -20,6 +20,9 @@ create table if not exists public.site_hospital_treatments (
 );
 create index if not exists site_hospital_treatments_character_idx
   on public.site_hospital_treatments(character_id, created_at desc);
+create unique index if not exists site_hospital_one_active_treatment_idx
+  on public.site_hospital_treatments(character_id)
+  where status in ('queued','paid_medicine_received');
 alter table public.site_hospital_treatments enable row level security;
 revoke all on table public.site_hospital_treatments from anon, authenticated;
 
@@ -126,6 +129,7 @@ begin
     v_practice_day := to_char(clock_timestamp() at time zone 'Asia/Bangkok','YYYY-MM-DD');
     v_practice_counts := coalesce(v_char -> 'practiceCounts','{}'::jsonb);
     if v_practice_counts ->> 'date' is distinct from v_practice_day then v_practice_counts := jsonb_build_object('date',v_practice_day,'counts','{}'::jsonb); end if;
+    if coalesce(((v_practice_counts -> 'counts') ->> p_train)::integer,0) >= 11 then raise exception 'ฝึกทักษะนี้ครบกำหนดของวันนี้แล้ว'; end if;
     v_training_count := coalesce(((v_practice_counts -> 'counts') ->> p_train)::integer,0) + 1;
     v_practice_counts := jsonb_set(v_practice_counts,'{counts}',jsonb_set(coalesce(v_practice_counts -> 'counts','{}'::jsonb),array[p_train],to_jsonb(v_training_count),true),true);
     v_char := jsonb_set(v_char,'{practiceCounts}',v_practice_counts,true);
@@ -158,7 +162,7 @@ language plpgsql security definer set search_path = public, pg_temp as $$
 declare
   v_profile public.site_profiles%rowtype;
   v_char jsonb; v_stats jsonb; v_now_ms bigint; v_cap integer; v_old integer; v_gain integer;
-  v_counts jsonb; v_day text; v_count integer; v_became_sick boolean := false;
+  v_counts jsonb; v_day text; v_count integer; v_previous_count integer; v_became_sick boolean := false;
 begin
   if auth.uid() is null then raise exception 'Sign in is required'; end if;
   select * into v_profile from public.site_profiles where auth_user_id=(select auth.uid());
@@ -174,7 +178,9 @@ begin
   v_day := to_char(clock_timestamp() at time zone 'Asia/Bangkok','YYYY-MM-DD');
   v_counts := coalesce(v_char -> 'practiceCounts','{}'::jsonb);
   if v_counts ->> 'date' is distinct from v_day then v_counts := jsonb_build_object('date',v_day,'counts','{}'::jsonb); end if;
-  v_count := coalesce(((v_counts -> 'counts') ->> p_stat)::integer,0) + 1;
+  v_previous_count := coalesce(((v_counts -> 'counts') ->> p_stat)::integer,0);
+  if v_previous_count >= 11 then raise exception 'ฝึกทักษะนี้ครบกำหนดของวันนี้แล้ว'; end if;
+  v_count := v_previous_count + 1;
   v_counts := jsonb_set(v_counts,'{counts}',jsonb_set(coalesce(v_counts -> 'counts','{}'::jsonb),array[p_stat],to_jsonb(v_count),true),true);
   v_char := jsonb_set(v_char,'{practiceCounts}',v_counts,true);
   v_now_ms := floor(extract(epoch from clock_timestamp())*1000)::bigint;
@@ -219,12 +225,19 @@ begin
   if v_thread is null or (coalesce(v_thread->>'title','') not ilike '%แผนกต้อนรับ%' and coalesce(v_thread->>'title','') not ilike '%แผนกรักษาทั่วไป%') then raise exception 'กรุณาใช้โพสต์ในกระทู้แผนกรักษาทั่วไป'; end if;
   if public.site_hospital_word_count(coalesce(v_post->>'content','')) <= 70 then raise exception 'โรลเพลย์ต้องมีความยาวมากกว่า 70 คำ (นับจากคำที่คั่นด้วยช่องว่าง)'; end if;
   if coalesce(v_post->>'note','') not ilike '%รับบัตรคิว%' and coalesce(v_post->>'content','') not ilike '%รับบัตรคิว%' then raise exception 'กรุณาระบุหมายเหตุ รับบัตรคิว'; end if;
-  select * into v_existing from public.site_hospital_treatments where queue_post_id=p_post_id;
+  select * into v_existing from public.site_hospital_treatments where queue_post_id=p_post_id for update;
   if found then return jsonb_build_object('ok',true,'already_processed',true,'room_number',v_existing.room_number,'doctor_name',v_existing.doctor_name); end if;
+  select * into v_existing from public.site_hospital_treatments where character_id=p_character_id and status in ('queued','paid_medicine_received') for update;
+  if found then raise exception 'ตัวละครนี้มีคิวหรือรายการรักษาที่ยังดำเนินการอยู่แล้ว'; end if;
   v_room := 1+floor(random()*3)::integer;
   v_doctor := case v_room when 1 then 'คุณหมอลี' when 2 then 'คุณหมอจาง' else 'คุณหมอชิม' end;
   insert into public.site_hospital_treatments(character_id,owner_app_user_id,queue_post_id,room_number,doctor_name)
-    values(p_character_id,v_profile.app_user_id,p_post_id,v_room,v_doctor);
+    values(p_character_id,v_profile.app_user_id,p_post_id,v_room,v_doctor)
+    on conflict(queue_post_id) do nothing returning * into v_existing;
+  if not found then
+    select * into v_existing from public.site_hospital_treatments where queue_post_id=p_post_id for update;
+    return jsonb_build_object('ok',true,'already_processed',true,'room_number',v_existing.room_number,'doctor_name',v_existing.doctor_name);
+  end if;
   v_annotation := '<div style="margin-top:18px;padding:14px 16px;border-left:4px solid #39804b;background:#eff8ef;color:#28743c;font-size:16px;font-weight:700;">เข้ารับการตรวจที่ห้องตรวจหมายเลข '||v_room||' พบ'||v_doctor||'</div>';
   update public.site_records set payload=jsonb_set(v_post,'{content}',to_jsonb(coalesce(v_post->>'content','')||E'\n'||v_annotation),true),updated_at=now(),updated_by=auth.uid()
     where collection='posts' and record_id=p_post_id;
@@ -262,7 +275,7 @@ begin
     select * into v_treatment from public.site_hospital_treatments
       where character_id=p_character_id and status='queued' order by created_at desc limit 1 for update;
     if not found then raise exception 'ไม่พบคิวรักษาที่รอชำระเงิน'; end if;
-    if coalesce(((regexp_match(coalesce(v_thread->>'title',''),'ห้องตรวจหมายเลข\\s*([1-3])'))[1])::integer,0) <> v_treatment.room_number then
+    if coalesce(((regexp_match(coalesce(v_thread->>'title',''),'ห้องตรวจหมายเลข[[:space:]]*([1-3])'))[1])::integer,0) <> v_treatment.room_number then
       raise exception 'โพสต์นี้อยู่คนละห้องตรวจกับคิวที่ได้รับ กรุณาใช้ห้องตรวจหมายเลข %',v_treatment.room_number;
     end if;
     update public.site_hospital_treatments set treatment_post_id=p_treatment_post_id,updated_at=now()
