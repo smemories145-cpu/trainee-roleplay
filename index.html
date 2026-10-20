@@ -6129,9 +6129,67 @@ async function copyPostLink(threadId,postId){
  }catch(e){}
  prompt('คัดลอกลิงก์โพสต์นี้',url);
 }
+function hospitalPostIdFromLink(value){
+ const raw=String(value||'').trim();if(!raw)return '';
+ try{const u=new URL(raw,location.href);const m=(u.hash||'').match(/post-([^/?#]+)/);if(m)return decodeURIComponent(m[1]);}catch(e){}
+ const m=raw.match(/post-([^/?#]+)/);return m?decodeURIComponent(m[1]):raw;
+}
+function openHospitalModal(kind,threadId){
+ const c=getActiveChar(me());
+ if(!me())return toast('กรุณาเข้าสู่ระบบก่อน','bad');
+ if(!c||c.status!=='approved')return toast('กรุณาเลือกตัวละครที่ผ่านการอนุมัติ','bad');
+ if(!cloudReady||!supaClient)return toast('ระบบโรงพยาบาลต้องเชื่อมต่อฐานข้อมูลออนไลน์ก่อน','bad');
+ if(kind==='queue'&&!c.sick)return toast('ตัวละครนี้ไม่ได้อยู่ในสถานะป่วย','bad');
+ const queue=kind==='queue',dlg=document.createElement('dialog');dlg.id='hospitalActionDialog';
+ dlg.style.cssText='width:min(520px,calc(100% - 28px));border:1px solid #d7e1d5;border-radius:18px;padding:24px;color:#35483b;background:#fff;box-shadow:0 24px 80px #0006;max-height:90vh;overflow:auto';
+ dlg.innerHTML='<div style="font-size:10px;letter-spacing:2px;color:#7b927c">STARLIGHT MEDICAL CENTER</div><h2 style="margin:6px 0 0">'+(queue?'รับบัตรคิว':'ชำระค่ารักษา')+'</h2><p style="line-height:1.8;color:#68786b">'+(queue?'แนบลิงก์โพสต์รับบัตรคิวในกระทู้แผนกรักษาทั่วไป ต้องมีโรลเพลย์มากกว่า 70 คำและหมายเหตุ “รับบัตรคิว”':'แนบลิงก์โพสต์เข้าห้องตรวจ ต้องมีโรลเพลย์มากกว่า 70 คำและหมายเหตุ “รับการรักษา” ค่ารักษา 1,000 won')+'</p><form id="hospitalActionForm"><label>ลิงก์โพสต์โรลเพลย์</label><input name="postLink" type="url" required placeholder="วางลิงก์โพสต์ที่นี่" style="width:100%;margin:7px 0 14px"><div style="display:'+(queue?'none':'block')+'"><label>ช่องทางชำระเงิน</label><select name="paymentMethod" style="width:100%;margin:7px 0 14px"><option value="cash">เงินสด</option><option value="bank">บัญชีธนาคาร</option></select></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button type="button" class="btn ghost" id="hospitalCancel">ยกเลิก</button><button type="submit" class="btn">'+(queue?'ยืนยันรับคิว':'ชำระ 1,000 won')+'</button></div></form>';
+ document.body.appendChild(dlg);
+ dlg.addEventListener('close',()=>dlg.remove(),{once:true});
+ dlg.querySelector('#hospitalCancel').onclick=()=>dlg.close();
+ dlg.showModal();
+ dlg.querySelector('form').onsubmit=async e=>{
+  e.preventDefault();const f=e.currentTarget,postId=hospitalPostIdFromLink(f.elements.postLink.value),button=f.querySelector('[type="submit"]');
+  if(!postId)return toast('อ่านรหัสโพสต์ไม่สำเร็จ กรุณาคัดลอกลิงก์โพสต์จากเว็บ','bad');
+  button.disabled=true;button.textContent='กำลังตรวจสอบ…';
+  try{
+   let data,error;
+   if(queue){({data,error}=await supaClient.rpc('site_hospital_submit_queue',{p_character_id:c.id,p_post_id:postId}));}
+   else{({data,error}=await supaClient.rpc('site_hospital_pay',{p_character_id:c.id,p_treatment_post_id:postId,p_payment_method:f.elements.paymentMethod.value,p_request_id:uid()}));}
+   if(error)throw error;
+   await cloudRefresh(false);dlg.close();
+   if(queue)toast('จัดคิวสำเร็จ: ห้องตรวจหมายเลข '+data.room_number+' พบ'+data.doctor_name);
+   else toast(data.already_paid?'รายการนี้ชำระเงินแล้ว':'ชำระเงินสำเร็จ ได้รับขวดยารักษาแล้ว');
+   go('thread/'+threadId+'/post-'+encodeURIComponent(postId));
+  }catch(err){toast('ดำเนินการไม่สำเร็จ: '+(err.message||err),'bad');button.disabled=false;button.textContent=queue?'ยืนยันรับคิว':'ชำระ 1,000 won';}
+ };
+}
+async function useHospitalMedicine(characterId,inventoryItemId){
+ const u=me(),c=DB.get('characters').find(x=>x.id===characterId);
+ if(!u||!c||c.ownerId!==u.id)return toast('ใช้ไอเทมได้เฉพาะตัวละครของคุณ','bad');
+ if(!cloudReady||!supaClient)return toast('ระบบใช้ยาออนไลน์ยังไม่พร้อม','bad');
+ if(!await ask('ใช้ขวดยารักษา 1 ครั้งหรือไม่? หากยาหมดอายุจะต้องเริ่มรักษาใหม่'))return;
+ try{
+  const {data,error}=await supaClient.rpc('site_hospital_use_medicine',{p_character_id:characterId,p_inventory_item_id:inventoryItemId});
+  if(error)throw error;
+  await cloudRefresh(false);
+  if(data?.expired){toast('ยาหมดอายุแล้ว ตัวละครยังป่วย ต้องรับคิวและชำระเงินใหม่','bad');render();return;}
+  if(data?.cured){toast('ใช้ยาสำเร็จ ตัวละครหายป่วยและได้รับยศเดิมคืน');render();return;}
+  toast('ระบบยังยืนยันผลการใช้ยาไม่ได้','bad');
+ }catch(e){toast('ใช้ยาไม่สำเร็จ: '+(e.message||e),'bad');}
+}
+async function setHospitalSick(characterId,isSick){
+ if(!isAdmin()&&!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการสถานะป่วย','bad');
+ if(!cloudReady||!supaClient)return toast('ระบบสถานะป่วยต้องเชื่อมต่อฐานข้อมูลออนไลน์','bad');
+ try{const {error}=await supaClient.rpc('site_hospital_admin_set_sick',{p_character_id:characterId,p_sick:!!isSick});if(error)throw error;await cloudRefresh(false);toast(isSick?'กำหนดให้ตัวละครป่วยแล้ว':'คืนสถานะตัวละครแล้ว');render();}
+ catch(e){toast('เปลี่ยนสถานะไม่สำเร็จ: '+(e.message||e),'bad');}
+}
+
 function pageThread(id,view=''){
  const t=DB.get('threads').find(x=>x.id===id);if(!t)return app('<div class="card">ไม่พบกระทู้</div>');
  const u=me(),chars=DB.get('characters'),users=DB.get('users'),ty=TYPES[t.type]||TYPES.main,closed=isClosed(t),train=t.train||[],ag=agencyOf(t.agencyId),fo=DB.get('forums').find(f=>f.id===t.forumId);
+ const hospitalKind=/แผนกต้อนรับ|แผนกรักษาทั่วไป/.test(String(t.title||''))?'queue':(/ห้องตรวจหมายเลข\s*[1-3]/.test(String(t.title||''))?'treatment':'');
+ const hospitalNoteField=hospitalKind?'<div class="topic-field-row"><label class="topic-field-label" for="postNote">หมายเหตุสำหรับระบบโรงพยาบาล</label><div class="topic-field-value"><input id="postNote" name="postNote" maxlength="80" placeholder="'+(hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษ')+'" required></div></div>':'';
+ const hospitalPanel=hospitalKind&&u?'<section class="card" style="margin:16px 0;border-color:#b9cbb8;background:#f4f8f2;color:#35483b"><div style="font-size:10px;letter-spacing:2px;color:#7b927c">STARLIGHT MEDICAL CENTER</div><h3 style="margin:7px 0;color:#35483b">'+(hospitalKind==='queue'?'แผนกรักษาทั่วไป · รับบัตรคิว':'ห้องตรวจ · ชำระค่ารักษา')+'</h3><p style="color:#68786b;line-height:1.8">'+(hospitalKind==='queue'?'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับบัตรคิว” แล้วกดปุ่มด้านล่าง':'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับการรักษา” แล้วแนบลิงก์เพื่อชำระค่ารักษา 1,000 won')+'</p><button class="btn" type="button" onclick="openHospitalModal(\''+(hospitalKind==='queue'?'queue':'treatment')+'\',\''+t.id+'\')">'+(hospitalKind==='queue'?'รับการรักษา · รับบัตรคิว':'ชำระค่ารักษา 1,000 won')+'</button></section>':'';
  const all=DB.get('posts'),posts=all.filter(p=>p.threadId===id).sort((a,b)=>a.createdAt-b.createdAt);
  const postsPerPage=15,totalPages=Math.max(1,Math.ceil(posts.length/postsPerPage));
  let requestedPage=1,targetPostId='';
@@ -6183,7 +6241,7 @@ function pageThread(id,view=''){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
    form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
-    <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
+    <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>${hospitalNoteField}
     <div class="preview topic-preview reply-preview" hidden></div>
     <div class="topic-field-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
     <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
@@ -6213,6 +6271,7 @@ function pageThread(id,view=''){
    </div>
   </div></div>
   <div id="thread-replies-heading" class="thread-replies-heading"><h3>💬 โรลเพลย์ (${posts.length})</h3>${totalPages>1?`<span>หน้า ${page} / ${totalPages}</span>`:''}</div>
+  ${hospitalPanel}
   ${paginationHtml()}
   ${pagePosts.map((p,i)=>postHtml(p,startIndex+i)).join('')||'<div class="card mut">ยังไม่มีโพสต์ — เป็นคนแรกที่เริ่มเรื่องสิ!</div>'}
   ${paginationHtml()}`}
@@ -6230,7 +6289,7 @@ async function doReply(e,tid){
  const {content,mode}=edGet(edOf(f,'content'));
  if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
  if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
- const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),createdAt:Date.now()};let postedPostId=base.id;
+ const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),note:(f.elements.postNote?.value||'').trim(),createdAt:Date.now()};let postedPostId=base.id;
  if(hasAdminPermission('manage_threads')&&E.as?.value==='gm'){
   posts.push({...base,charId:null,gm:true});DB.set('posts',posts);
   if(cloudReady)await cloudQueue;
@@ -6247,7 +6306,7 @@ async function doReply(e,tid){
    const actual=data?.post||{};
    postedPostId=actual.id||actual.post_id||actual.postId||base.id;
    const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0;
-   toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
+   if(actual.becameSick)toast('ตัวละครป่วยจากการฝึกทักษะเกิน 10 ครั้งทันที','bad');else if(actual.trainingWarning)toast('ฝึกทักษะครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');else toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
   }else{
    let gain=0,capped=false;
    const nc=update('characters',ac.id,o=>{o.exp+=Number(t.exp)||0;
