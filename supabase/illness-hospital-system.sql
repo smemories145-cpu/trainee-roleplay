@@ -146,6 +146,16 @@ begin
     end if;
   end if;
 
+  -- Optional event-thread trigger: only threads explicitly marked by staff may cause illness on posting.
+  if coalesce((v_thread ->> 'illnessTrigger')::boolean,false)
+     and not coalesce((v_char ->> 'sick')::boolean,false) then
+    v_char := jsonb_set(v_char,'{sick}','true'::jsonb,true);
+    v_char := jsonb_set(v_char,'{illnessOriginalStage}',to_jsonb(coalesce((v_char ->> 'stage')::integer,0)),true);
+    v_char := jsonb_set(v_char,'{sickSince}',to_jsonb(v_now_ms),true);
+    v_char := jsonb_set(v_char,'{sickReason}',to_jsonb('กิจกรรม: '||coalesce(v_thread ->> 'title','โรลเพลย์')),true);
+    v_became_sick := true;
+  end if;
+
   v_post := p_post
     || jsonb_build_object('charId',v_cid,'gm',false,'train',p_train,
        'gain',v_new_stat-v_old_stat,'wonGain',v_won,'trainingCount',case when p_train is null then null else v_training_count end,'trainingWarning',case when v_training_count=10 then true else false end,'becameSick',v_became_sick,'createdAt',coalesce((p_post ->> 'createdAt')::numeric,v_now_ms));
