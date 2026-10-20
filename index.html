@@ -6409,7 +6409,7 @@ function pageChar(id){
  if(c.status!=='approved'&&!isOwner&&!isAdmin())return app('<div class="card">ตัวละครนี้ยังไม่เปิดเผย</div>');
  const next=STAGES[c.stage+1],pct=next?Math.min(100,c.exp/next.exp*100):100,threads=DB.get('threads'),s=ST[c.status],g=groupOf(c.id),cap=statCap(c.stage),items=DB.get('items');
  const posts=DB.get('posts').filter(p=>p.charId===id).sort((a,b)=>b.createdAt-a.createdAt);
- const cd=(c.lastPractice||0)+PRACTICE_CD-Date.now(),sl=(c.lastSalary||0)+SALARY_CD-Date.now();
+ const sl=(c.lastSalary||0)+SALARY_CD-Date.now();
  const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
  
  app(`<div class="profile-wrap">
@@ -6418,7 +6418,7 @@ function pageChar(id){
   <div class="profile-info">
    <h2>${esc(c.stageName||c.name)}</h2>
    <div class="mut">${esc(c.name)} · ${c.age} ปี · ผู้เล่น: <a href="#profile/${owner?.id}">${esc(owner?.username||'-')}</a></div>
-   <div class="row" style="justify-content:center;margin:8px 0">${c.status==='approved'?stageBadge(c.stage):''}<span class="badge" style="--c:${s[1]}">${s[0]}</span>${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อมเลื่อนขั้น</span>':''}${agencyBadge(c.agencyId)}
+   <div class="row" style="justify-content:center;margin:8px 0">${c.status==='approved'?stageBadge(c.stage):''}<span class="badge" style="--c:${s[1]}">${s[0]}</span>${c.sick?'<span class="badge" style="--c:#4f8a60">🤒 ป่วย</span>':''}${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อมเลื่อนขั้น</span>':''}${agencyBadge(c.agencyId)}
    ${g?`<a href="#group/${g.id}" class="badge" style="--c:${esc(g.color)}">🎤 ${esc(g.name)} · ${esc(g.members.find(m=>m.charId===c.id)?.role||'')}</a>`:''}</div>
    ${c.status==='rejected'&&c.reason?`<div class="rules">เหตุผลที่ไม่ผ่าน: ${esc(c.reason)}</div>`:''}
    ${c.status==='approved'?`<div style="max-width:400px;margin:8px auto"><div class="row between mut" style="font-size:.8rem"><span>EXP ${c.exp}${next?` / ${next.exp}`:''}</span><span>${next?'ขั้นถัดไป: '+esc(next.n):'สูงสุด ✨'}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`:''}
@@ -6428,6 +6428,7 @@ function pageChar(id){
     ${(isOwner&&c.status!=='approved')||isAdmin()||hasAdminPermission('manage_characters')?`<button class="btn sm bad" onclick="deleteChar('${c.id}')">ลบตัวละคร</button>`:''}
    </div>
   </div>
+  ${(isAdmin()||hasAdminPermission('manage_characters'))&&c.status==='approved'?'<div class="row" style="justify-content:center;margin:10px 0"><button type="button" class="btn sm ghost" onclick="setHospitalSick(this.dataset.cid,'+(c.sick?'false':'true')+')" data-cid="'+c.id+'">'+(c.sick?'คืนสถานะป่วย':'กำหนดให้ป่วย')+'</button></div>':''}
   <div class="profile-main-layout">
    <div>${sideCard(c,owner,posts.length)}</div>
    <div style="min-width:0">
@@ -6440,11 +6441,11 @@ function pageChar(id){
      ${isOwner&&c.status==='approved'?`<br><div class="row"><button class="btn sm ${sl>0?'ghost':''}" ${sl>0?'disabled':''} onclick="claimSalary('${c.id}')">💵 รับเงินเดือน ${wonFmt(salaryOf(c.stage))}</button><span class="mut">${sl>0?'รับได้อีกใน '+fmtLeft(sl):'พร้อมรับแล้ว!'}</span><a class="btn sm ghost" href="#shop">🛍 ไปร้านค้า</a></div>
      <p class="mut" style="margin:12px 0 0">ปิดการโอนเงินสดข้ามตัวละครจากหน้านี้แล้ว การโอนระหว่างตัวละครจะทำผ่านแอปธนาคารเท่านั้น</p>`:''}
      ${(isOwner||isAdmin())&&(c.ledger||[]).length?`<details><summary>📒 สมุดบัญชี (${c.ledger.length} รายการล่าสุด)</summary>${c.ledger.map(l=>`<div class="row between" style="padding:5px 0;border-bottom:1px solid var(--line);font-size:.85rem"><span>${esc(l.note)} <span class="mut">· ${fmt(l.at)}</span></span><b style="color:${l.amt<0?'var(--bad)':'var(--ok)'}">${l.amt>0?'+':''}${wonFmt(l.amt)}</b></div>`).join('')}</details>`:''}</div>
-    <div class="card"><h3 style="margin-top:0">🎒 ของสะสม (${inv.length})</h3>${inv.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${inv.map(x=>`<div class="side-box" style="text-align:center">${x.it.img?`<img src="${esc(x.it.img)}" loading="lazy">`:'<div style="font-size:2rem">🎁</div>'}<b>${esc(x.it.name)}</b><div class="mut" style="font-size:.75rem">${esc(x.it.cat)}</div></div>`).join('')}</div>`:`<p class="mut">ยังไม่มีของ${isOwner?' · <a href="#shop">ไปร้านค้า</a>':''}</p>`}</div>
+    <div class="card"><h3 style="margin-top:0">🎒 ของสะสม (${inv.length})</h3>${inv.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${inv.map(x=>`<div class="side-box" style="text-align:center">${x.it.img?`<img src="${esc(x.it.img)}" loading="lazy">`:'<div style="font-size:2rem">🎁</div>'}<b>${esc(x.it.name)}</b><div class="mut" style="font-size:.75rem">${esc(x.it.cat)}</div>${isOwner&&x.it.id==='starlight_medicine_bottle'?'<button type="button" class="btn sm" style="margin-top:8px;width:100%" onclick="useHospitalMedicine(this.dataset.cid,this.dataset.iid)" data-cid="'+c.id+'" data-iid="'+x.id+'">💊 ใช้ยา</button>':''}</div>`).join('')}</div>`:`<p class="mut">ยังไม่มีของ${isOwner?' · <a href="#shop">ไปร้านค้า</a>':''}</p>`}</div>
     <div class="card"><div class="row between"><h3 style="margin:0">📊 ค่าสถานะ</h3><span class="mut">เพดานขั้นนี้ ${cap} · พลังรวม ⚡${sum(c.stats)}</span></div>
      <div class="row" style="gap:24px"><div>${radar(c.stats)}</div><div class="f1">${statBars(c.stats,cap)}</div></div>
-     ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ซ้อมทุก ${PRACTICE_CD/3600e3} ชม. ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${cd>0?`· ⏳ ซ้อมได้อีกใน ${fmtLeft(cd)}`:'· ✅ พร้อมซ้อม!'}</p>
-     <div class="row">${STATS.map(st=>{const dis=cd>0||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n}</button>`}).join('')}</div>`:''}</div>
+     ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ฝึกได้ไม่เกิน 10 ครั้งต่อทักษะต่อวัน · ครั้งที่ 10 เตือน และครั้งที่ 11 ทำให้ป่วย · ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${c.sick?'· ต้องรักษาให้หายก่อน':''}</p>
+     <div class="row">${STATS.map(st=>{const count=todayPracticeCount(c,st.k),dis=c.sick||count>=11||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} title="วันนี้ ${count}/10 ครั้ง" onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n} <small>(${count}/10)</small></button>`}).join('')}</div>`:''}</div>
     ${hasAdminPermission('manage_characters')&&c.status==='approved'?adminCharForm(c):''}
    </div>
   </div>
