@@ -386,7 +386,7 @@ values ('items','starlight_medicine_bottle',jsonb_build_object(
  'img','assets/starlight_medicine_bottle.png','usable',true,'hiddenFromShop',true
 ),now())
 on conflict (collection,record_id) do update
- set payload=public.site_records.payload || excluded.payload, updated_at=now();
+ set payload=site_records.payload || excluded.payload, updated_at=now();
 
 create or replace function public.site_hospital_admin_set_sick(p_character_id text,p_sick boolean)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
