@@ -5380,7 +5380,7 @@ function phoneInventoryMarkup(c){
  return html;
 }
 function phoneShopMarkup(c){
- const items=DB.get('items')||[];let html=phoneAppBack('ร้านค้า');
+ const items=(DB.get('items')||[]).filter(i=>!i.hiddenFromShop&&i.id!=='starlight_medicine_bottle');let html=phoneAppBack('ร้านค้า');
  if(c)html+='<div class="phone-home-card"><div class="phone-eyebrow">CASH WALLET</div><div class="phone-balance">'+bankMoney(c.won)+'</div><div class="phone-msg-muted">'+esc(c.stageName||c.name)+'</div></div>';
  html+=items.length?'<div class="phone-msg-list">'+items.map(i=>{
   const owned=c&&(c.inv||[]).some(x=>x.iid===i.id);
@@ -6610,7 +6610,7 @@ function doEditChar(e,id){
 
 /* ================= SHOP ================= */
 function pageShop(cat){
- const u=me(),c=u&&getActiveChar(u),items=DB.get('items'),list=cat?items.filter(i=>i.cat===cat):items;
+ const u=me(),c=u&&getActiveChar(u),items=(DB.get('items')||[]).filter(i=>!i.hiddenFromShop&&i.id!=='starlight_medicine_bottle'),list=cat?items.filter(i=>i.cat===cat):items;
  const rich=DB.get('characters').filter(x=>x.status==='approved').sort((a,b)=>(b.won||0)-(a.won||0)).slice(0,5);
  const cats=[...new Set(items.map(i=>i.cat))];
  app(`<div class="row between"><h2>🛍 ร้านค้า</h2>${hasAdminPermission('manage_shop')?'<a class="btn sm ghost" href="#admin/shop">⚙️ จัดการสินค้า</a>':''}</div>
