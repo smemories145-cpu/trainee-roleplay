@@ -6215,7 +6215,7 @@ function pageThread(id,view=''){
   return `<div id="post-${esc(p.id)}" class="card post ${p.gm?'gm':''}${isTarget?' post-permalink-target':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
    <div class="post-content-column" style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
    ${p.subject?`<h3 class="post-subject">${esc(p.subject)}</h3>`:''}
-   ${renderBody(p.content,p.mode,t.css)}</div></div></div>`;
+   ${renderBody(p.content,p.mode,t.css)}${Array.isArray(p.hospitalAnnotations)?p.hospitalAnnotations.map(a=>`<div role="status" style="margin-top:16px;padding:12px 16px;border-left:4px solid #39804b;background:#eff8ef;color:#28743c;font-size:15px;font-weight:650;line-height:1.8;border-radius:0 8px 8px 0">✦ ${esc(a.text||'')}</div>`).join(''):''}</div></div></div>`;
  };
  const paginationHtml=()=>{
   if(totalPages<=1)return '';
