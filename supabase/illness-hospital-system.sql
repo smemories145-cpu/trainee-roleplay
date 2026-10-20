@@ -235,7 +235,7 @@ begin
   for v_expired in
     select * from public.site_hospital_treatments
     where character_id=p_character_id and status='paid_medicine_received'
-      and medicine_expires_at is not null and medicine_expires_at <= clock_timestamp()
+      and medicine_expires_at is not null and medicine_expires_at < clock_timestamp()
     for update
   loop
     if v_expired.medicine_inventory_item_id is not null then
@@ -311,6 +311,7 @@ begin
   if v_treatment.character_id<>p_character_id or v_treatment.owner_app_user_id<>v_profile.app_user_id then raise exception 'รายการรักษาไม่ใช่ของตัวละครนี้'; end if;
   if v_treatment.status='paid_medicine_received' then return jsonb_build_object('ok',true,'already_paid',true,'expires_at',v_treatment.medicine_expires_at); end if;
   if v_treatment.status<>'queued' then raise exception 'รายการรักษานี้ไม่สามารถชำระเงินได้'; end if;
+  v_now := clock_timestamp();
   if p_payment_method='cash' then
     if coalesce((v_char->>'won')::bigint,0)<1000 then raise exception 'เงินสดไม่เพียงพอ'; end if;
     v_char:=jsonb_set(v_char,'{won}',to_jsonb(coalesce((v_char->>'won')::bigint,0)-1000),true);
@@ -384,7 +385,8 @@ values ('items','starlight_medicine_bottle',jsonb_build_object(
  'price',0,'stock',0,'cat','การแพทย์',
  'img','assets/starlight_medicine_bottle.png','usable',true,'hiddenFromShop',true
 ),now())
-on conflict (collection,record_id) do nothing;
+on conflict (collection,record_id) do update
+ set payload=public.site_records.payload || excluded.payload, updated_at=now();
 
 create or replace function public.site_hospital_admin_set_sick(p_character_id text,p_sick boolean)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp as $$
