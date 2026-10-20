@@ -6317,7 +6317,7 @@ async function doReply(e,tid){
    const actual=data?.post||{};
    postedPostId=actual.id||actual.post_id||actual.postId||base.id;
    const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0;
-   if(actual.becameSick)toast('ตัวละครป่วยจากการฝึกทักษะเกิน 10 ครั้งทันที','bad');else if(actual.trainingWarning)toast('ฝึกทักษะครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');else toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
+   if(actual.becameSick)toast('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด','bad');else if(actual.trainingWarning)toast('ฝึกทักษะครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');else toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
   }else{
    let gain=0,capped=false,trainingCount=0,trainingWarning=false,becameSick=false;
    const nc=update('characters',ac.id,o=>{
@@ -6330,10 +6330,11 @@ async function doReply(e,tid){
      trainingWarning=trainingCount===10;
      if(trainingCount===11){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='ฝึกทักษะ '+tr+' เกิน 10 ครั้งในวันเดียว';becameSick=true}
     }
+    if(t.illnessTrigger&&!o.sick){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='กิจกรรม: '+t.title;becameSick=true}
    });
    const w=Number(t.won)||0;if(w)addWon(ac.id,w,'โพสต์: '+t.title);
    posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w,trainingCount,trainingWarning,becameSick});DB.set('posts',posts);
-   if(becameSick)toast('ฝึกครั้งที่ 11 แล้ว! ตัวละครติดสถานะป่วยทันที','bad');
+   if(becameSick)toast('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด','bad');
    else if(trainingWarning)toast('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');
    else toast('+'+t.exp+' EXP'+(w?' · +'+wonFmt(w):'')+(tr?' · '+statOf(tr).n+' +'+gain:'')+(capped?' (ถึงเพดานขั้นนี้แล้ว)':'')+(eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''));
 
@@ -6805,7 +6806,7 @@ async function deleteGroup(id){if(!hasAdminPermission('manage_groups')||!await a
 
 /* ================= ADMIN: THREADS ================= */
 function threadForm(t,preForumId){
- const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',authorMode:t?.authorMode||(t?.type==='notice'?'gm':'character'),...(t||{})};
+ const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',illnessTrigger:false,authorMode:t?.authorMode||(t?.type==='notice'?'gm':'character'),...(t||{})};
  const so=sel=>STAGES.map((s,i)=>`<option value="${i}" ${i==sel?'selected':''}>${i} — ${esc(s.n)}</option>`).join('');
  return `<form class="card topic-composer thread-composer" onsubmit="doSaveThread(event,'${t?.id||''}')">
   <div class="topic-composer-heading"><h2>${t?'✏️ แก้ไขกระทู้':'🆕 สร้างกระทู้ใหม่'}</h2><p>กำหนดหัวข้อ เนื้อเรื่อง และเงื่อนไขของกระทู้</p></div>
@@ -6816,6 +6817,7 @@ function threadForm(t,preForumId){
    <div class="f1"><label>ซับฟอรั่ม *</label><select name="forumId">${forumOptions(v.forumId)}</select></div>
    <div class="f1"><label>จำกัดเฉพาะค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'ทุกค่าย / ไม่จำกัด')}</select></div>
   </div></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">เงื่อนไขกิจกรรม:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="illnessTrigger" ${v.illnessTrigger?'checked':''} style="margin-top:5px"><span><b>กำหนดให้ตัวละครป่วยเมื่อโพสต์ในกระทู้นี้</b><div class="topic-help">เปิดเฉพาะกระทู้กิจกรรมหรือโรลเพลย์ที่มีเงื่อนไขให้ตัวละครป่วยเท่านั้น การตั้งค่านี้ไม่มีผลต่อกระทู้อื่น</div></span></label></div></div>
   <div class="topic-field-row"><div class="topic-field-label">รางวัลและระดับ:</div><div class="topic-field-value"><div class="topic-compact-row">
    <div class="f1"><label>🏅 EXP ต่อโพสต์</label><input type="number" name="exp" min="0" max="200" value="${v.exp}"></div>
    <div class="f1"><label>💰 เงินวอนต่อโพสต์</label><input type="number" name="won" min="0" value="${v.won||0}"></div>
@@ -6841,7 +6843,7 @@ function doSaveThread(e,id){
  const authorMode=E.authorMode?.value||'character';
  const d={title:E.title.value.trim(),type:E.type.value,forumId:E.forumId.value,authorMode,authorCharId:authorMode==='character'?(getActiveChar(me())?.id||null):null,exp:+E.exp.value||0,won:Math.max(0,+E.won.value||0),minStage:+E.minStage.value,maxStage:+E.maxStage.value,agencyId:E.agencyId.value,
   train:[...f.querySelectorAll('[name=train]:checked')].map(x=>x.value),statGain:+E.statGain.value||0,
-  plot:plot.content,plotMode:plot.mode,rules:'',rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked};
+  plot:plot.content,plotMode:plot.mode,rules:'',rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked,illnessTrigger:!!E.illnessTrigger.checked};
  if(d.minStage>d.maxStage)return toast('ระดับต่ำสุดต้องไม่มากกว่าระดับสูงสุด','bad');
  if(id){update('threads',id,t=>Object.assign(t,d));toast('บันทึกแล้ว');return go('thread/'+id)}
  const th=DB.get('threads'),nt={id:uid(),authorId:me().id,status:'open',createdAt:Date.now(),...d};th.push(nt);DB.set('threads',th);toast('สร้างกระทู้แล้ว');go('thread/'+nt.id);
