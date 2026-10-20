@@ -509,6 +509,11 @@ begin
 
   v_new := p_payload - 'pass';
 
+  if not v_admin and p_collection='posts' and v_old is not null
+    and (v_new -> 'hospitalAnnotations') is distinct from (v_old -> 'hospitalAnnotations') then
+    raise exception 'Hospital annotations can only be changed by the hospital system';
+  end if;
+
   if coalesce(v_new ->> 'id', p_record_id) <> p_record_id then
     raise exception 'Record ID mismatch';
   end if;
@@ -617,6 +622,9 @@ begin
         or (v_new -> 'gain') is distinct from (v_old -> 'gain')
         or (v_new -> 'wonGain') is distinct from (v_old -> 'wonGain')
         or (v_new -> 'train') is distinct from (v_old -> 'train')
+        or (v_new -> 'trainingCount') is distinct from (v_old -> 'trainingCount')
+        or (v_new -> 'trainingWarning') is distinct from (v_old -> 'trainingWarning')
+        or (v_new -> 'becameSick') is distinct from (v_old -> 'becameSick')
         or (v_new -> 'hospitalAnnotations') is distinct from (v_old -> 'hospitalAnnotations') then
         raise exception 'Reward and authorship data cannot be changed';
       end if;
