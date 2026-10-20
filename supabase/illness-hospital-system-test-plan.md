@@ -16,6 +16,12 @@ This is a manual checklist for the draft hospital migration. Do **not** merge/de
 - [ ] A normal character edit cannot clear `sick`, reset `practiceCounts`, or alter the saved stage/timer; trusted RPCs still work.
 - [ ] Generic post editing cannot fake hospital annotations/training flags, and players cannot delete posts linked to the treatment history.
 
+## Consecutive-post warning
+- [ ] Unmarked threads do not show consecutive-post warnings.
+- [ ] In a thread with the setting enabled, the second directly adjacent post by the same character shows a warning but is not blocked.
+- [ ] If another character or GM posts between two posts, the next post by the original character does not trigger the warning.
+- [ ] The warning is per thread and per character; it never sets the sickness status.
+
 ## Queue assignment
 - [ ] A non-sick character cannot receive a queue.
 - [ ] Invalid URL, post from another character, post from another account, wrong thread, missing `รับบัตรคิว` note, and 70-or-fewer whitespace-separated words are rejected without creating a queue.
@@ -32,6 +38,7 @@ This is a manual checklist for the draft hospital migration. Do **not** merge/de
 - [ ] Bank balance below 1,000 won: no bank deduction and no medicine.
 - [ ] Bank payment: exactly 1,000 won deducted, one transaction recorded, and one medicine item added.
 - [ ] Repeat submission/payment for the same treatment does not charge twice or add another item.
+- [ ] A second different treatment-post link cannot replace the room post already linked to an active queue, including two concurrent payment submissions.
 - [ ] Medicine used before (or at) the 3-hour expiry cures the character, consumes only the matching bottle, and restores the saved stage.
 - [ ] Medicine used after expiry is consumed, but the character remains sick and the stage is not restored.
 - [ ] Submitting a new queue after expiry clears the expired queue/medicine and permits a new 1,000-won payment and new 3-hour timer.
