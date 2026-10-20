@@ -1,6 +1,8 @@
 -- STARLIGHT RP illness and hospital treatment system
--- Safe to run repeatedly. Review and run manually in Supabase SQL Editor after reviewing the PR.
--- This migration does not modify existing records except when a player triggers a qualifying training post.
+-- PREREQUISITES: apply supabase/setup.sql and supabase/banking-phone-migration.sql first.
+-- Review and run manually in Supabase SQL Editor only after testing on a backed-up staging dataset.
+-- Do not merge/deploy the frontend before this migration is applied and the end-to-end checklist passes.
+-- Re-running is intended to be safe; first-time execution creates the hospital table and seeds the reserved medicine item.
 
 create table if not exists public.site_hospital_treatments (
   id bigint generated always as identity primary key,
