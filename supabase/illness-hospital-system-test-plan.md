@@ -12,6 +12,7 @@ This is a manual checklist for the draft hospital migration. Do **not** merge/de
 - [ ] Training through a thread's skill selector shares the same per-character/per-skill counter.
 - [ ] A sick character cannot train until cured.
 - [ ] Admin/manual sickness controls work only for admin or `manage_characters`.
+- [ ] Unmarked threads never trigger sickness automatically; a staff-marked activity thread marks the posting character sick only after a valid post succeeds.
 - [ ] A normal character edit cannot clear `sick`, reset `practiceCounts`, or alter the saved stage/timer; trusted RPCs still work.
 - [ ] Generic post editing cannot fake hospital annotations/training flags, and players cannot delete posts linked to the treatment history.
 
