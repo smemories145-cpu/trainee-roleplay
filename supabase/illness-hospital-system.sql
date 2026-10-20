@@ -70,6 +70,8 @@ declare
   v_practice_day text;
   v_training_count integer := 0;
   v_became_sick boolean := false;
+  v_last_thread_post jsonb;
+  v_consecutive_post_warning boolean := false;
 begin
   if auth.uid() is null then raise exception 'Sign in is required'; end if;
   select * into v_profile from public.site_profiles where auth_user_id = (select auth.uid());
@@ -156,8 +158,21 @@ begin
     v_became_sick := true;
   end if;
 
+  -- In marked roleplay threads, warn only when the immediately previous post in this thread is by the same character.
+  if coalesce((v_thread ->> 'consecutivePostWarning')::boolean,false) then
+    select r.payload into v_last_thread_post
+      from public.site_records r
+      where r.collection='posts' and r.payload ->> 'threadId'=v_tid
+      order by coalesce((r.payload ->> 'createdAt')::numeric,0) desc, r.updated_at desc, r.record_id desc
+      limit 1;
+    if found and v_last_thread_post ->> 'charId'=v_cid
+      and not coalesce((v_last_thread_post ->> 'gm')::boolean,false) then
+      v_consecutive_post_warning := true;
+    end if;
+  end if;
+
   v_post := p_post
-    || jsonb_build_object('charId',v_cid,'gm',false,'train',p_train,
+    || jsonb_build_object('charId',v_cid,'gm',false,'train',p_train,'consecutivePostWarning',v_consecutive_post_warning,
        'gain',v_new_stat-v_old_stat,'wonGain',v_won,'trainingCount',case when p_train is null then null else v_training_count end,'trainingWarning',case when v_training_count=10 then true else false end,'becameSick',v_became_sick,'createdAt',coalesce((p_post ->> 'createdAt')::numeric,v_now_ms));
   insert into public.site_records(collection,record_id,payload,updated_at,updated_by)
   values ('posts',v_id,v_post,now(),auth.uid());
@@ -645,6 +660,7 @@ begin
         or (v_new -> 'trainingCount') is distinct from (v_old -> 'trainingCount')
         or (v_new -> 'trainingWarning') is distinct from (v_old -> 'trainingWarning')
         or (v_new -> 'becameSick') is distinct from (v_old -> 'becameSick')
+        or (v_new -> 'consecutivePostWarning') is distinct from (v_old -> 'consecutivePostWarning')
         or (v_new -> 'hospitalAnnotations') is distinct from (v_old -> 'hospitalAnnotations') then
         raise exception 'Reward and authorship data cannot be changed';
       end if;
