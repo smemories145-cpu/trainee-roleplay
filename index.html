@@ -6272,6 +6272,7 @@ function pageThread(id,view=''){
     <div class="thread-opening-meta"><span class="mut">${esc(threadAuthorName(t))} · ${fmt(t.createdAt)}</span><span class="mut"><button type="button" class="post-number-link" title="คัดลอกลิงก์โพสต์ #1" aria-label="คัดลอกลิงก์โพสต์ #1" onclick="copyPostLink('${t.id}','opening')">#1 <span aria-hidden="true">↗</span></button> · กระทู้ต้นเรื่อง</span></div>
     <div class="row" style="gap:7px;margin-bottom:8px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${closed?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}${ag?agencyBadge(ag.id):''}</div>
     <h2 class="thread-opening-title">${esc(t.title)}</h2>
+    ${t.illnessTrigger?'<div role="note" style="margin:12px 0;padding:10px 13px;border-left:3px solid #b97842;border-radius:0 8px 8px 0;background:#fff7ef;color:#88562f;font-size:13px;line-height:1.8">⚠️ เงื่อนไขกิจกรรม: ตัวละครจะติดสถานะป่วยหลังส่งโพสต์ที่ผ่านระบบ</div>':''}
     ${t.type!=='notice'&&!t.characterBio?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
     <h3 class="thread-opening-story-title">📖 เนื้อเรื่อง</h3>
     ${renderBody(t.plot,t.plotMode,t.css,t.characterBio===true)}
