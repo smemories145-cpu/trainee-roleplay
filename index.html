@@ -5364,10 +5364,19 @@ async function phoneDeleteMailMessage(id,folder){
 
 function phoneInventoryMarkup(c){
  if(!c)return '<div class="phone-not-ready">เลือกตัวละครที่อนุมัติแล้วก่อนเปิดกระเป๋า</div>';
- const items=DB.get('items'),inv=(c.inv||[]).map(x=>({...x,item:items.find(i=>i.id===x.iid)})).filter(x=>x.item),grouped=new Map();
- inv.forEach(x=>{if(!grouped.has(x.iid))grouped.set(x.iid,{item:x.item,count:0});grouped.get(x.iid).count++});
+ const items=DB.get('items'),inv=(c.inv||[]).map(x=>({...x,item:items.find(i=>i.id===x.iid)})).filter(x=>x.item),grouped=new Map(),owner=me()?.id===c.ownerId;
+ inv.forEach(x=>{
+  if(!grouped.has(x.iid))grouped.set(x.iid,{item:x.item,count:0,instances:[]});
+  const g=grouped.get(x.iid);g.count++;g.instances.push(x);
+ });
  let html=phoneAppBack('กระเป๋าไอเทม')+'<div class="phone-home-card"><div class="phone-eyebrow">INVENTORY</div><h2 style="margin:5px 0">'+esc(c.stageName||c.name)+'</h2><div class="phone-msg-muted">'+inv.length+' ชิ้น · '+grouped.size+' ประเภท</div></div>';
- html+=grouped.size?'<div class="phone-msg-list">'+Array.from(grouped.values()).map(x=>'<div class="phone-contact-card">'+(x.item.img&&/^https?:\/\//i.test(x.item.img)?phoneImage(x.item.img):'<span class="phone-msg-avatar">🎁</span>')+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(x.item.name)+'</div><div class="phone-contact-meta">'+esc(x.item.cat||'ไอเทม')+' · '+x.count+' ชิ้น</div></div><span class="badge">'+(x.item.transferable===false?'ส่งต่อไม่ได้':'ส่งต่อได้')+'</span></div>').join('')+'</div>':'<div class="phone-msg-card"><b>กระเป๋ายังว่างอยู่</b><p class="phone-msg-muted">ซื้อไอเทมได้จากแอปร้านค้า</p><button class="btn" onclick="openPhoneFloatApp(\'shop\')">เปิดร้านค้า</button></div>';
+ html+=grouped.size?'<div class="phone-msg-list">'+Array.from(grouped.values()).map(x=>{
+  const src=String(x.item.img||'');
+  const hasImage=src.startsWith('https://')||src.startsWith('http://')||src.startsWith('assets/');
+  const image=hasImage?'<img src="'+esc(src)+'" alt="" loading="lazy" style="width:48px;height:48px;object-fit:contain;border-radius:10px;background:var(--card2);padding:3px">':'<span class="phone-msg-avatar">🎁</span>';
+  const useMedicine=owner&&x.item.id==='starlight_medicine_bottle'?'<button type="button" class="btn sm" onclick="useHospitalMedicine(this.dataset.cid,this.dataset.iid)" data-cid="'+esc(c.id)+'" data-iid="'+esc(x.instances[0]?.id||'')+'">💊 ใช้ยา</button>':'';
+  return '<div class="phone-contact-card">'+image+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(x.item.name)+'</div><div class="phone-contact-meta">'+esc(x.item.cat||'ไอเทม')+' · '+x.count+' ชิ้น</div>'+(x.item.id==='starlight_medicine_bottle'?'<div class="phone-msg-muted">ใช้ได้ 1 ครั้งภายใน 3 ชั่วโมงหลังได้รับยา</div>':'')+'</div>'+useMedicine+'</div>';
+ }).join('')+'</div>':'<div class="phone-msg-card"><b>กระเป๋ายังว่างอยู่</b><p class="phone-msg-muted">ไอเทมที่ได้รับจากระบบรักษาจะปรากฏที่นี่</p><button class="btn" onclick="openPhoneFloatApp(\'shop\')">เปิดร้านค้า</button></div>';
  return html;
 }
 function phoneShopMarkup(c){
