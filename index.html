@@ -6467,20 +6467,44 @@ function saveCharAdmin(e,id){
  if(diff)addWon(id,diff,'แอดมินปรับยอดเงิน');
  toast('บันทึกแล้ว');render();
 }
+function bangkokDateKey(){
+ const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const q={};p.forEach(x=>{if(x.type!=='literal')q[x.type]=x.value});
+ return (q.year||'1970')+'-'+(q.month||'01')+'-'+(q.day||'01');
+}
+function todayPracticeCount(c,k){
+ const p=c?.practiceCounts||{};
+ return p.date===bangkokDateKey()?Math.max(0,Number(p.counts?.[k])||0):0;
+}
 async function practice(id,k){
  const u=me(),c=DB.get('characters').find(x=>x.id===id),st=statOf(k);
  if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
- const left=(c.lastPractice||0)+PRACTICE_CD-Date.now();if(left>0)return toast(`ยังเหนื่อยอยู่! ซ้อมได้อีกใน ${fmtLeft(left)}`,'bad');
- const cap=statCap(c.stage);if((c.stats[k]||0)>=cap)return toast(`${st.n}ถึงเพดานของขั้นนี้แล้ว (${cap})`,'bad');
+ if(c.sick)return toast('ตัวละครป่วยอยู่ ต้องรักษาให้หายก่อนจึงจะฝึกได้','bad');
+ const count=todayPracticeCount(c,k);
+ if(count>=11)return toast('ฝึกทักษะนี้ครบกำหนดของวันนี้แล้ว','bad');
+ const cap=statCap(c.stage);if((c.stats[k]||0)>=cap)return toast(st.n+' ถึงเพดานของขั้นนี้แล้ว ('+cap+')','bad');
  if(cloudReady){
   const {data,error}=await supaClient.rpc('site_practice',{p_character_id:id,p_stat:k});
   if(error)return toast('ซ้อมไม่สำเร็จ: '+error.message,'bad');
   await cloudRefresh(false);
-  toast(`${Number(data?.gain)===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':''}${st.e} ${st.n} +${Number(data?.gain)||0} · +${Number(data?.exp_gain)||PRACTICE_EXP} EXP`);render();return;
+  if(data?.became_sick)toast('ฝึกครั้งที่ 11 แล้ว! ตัวละครติดสถานะป่วยทันที','bad');
+  else if(data?.warning)toast('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');
+  else toast((Number(data?.gain)===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':'')+st.e+' '+st.n+' +'+(Number(data?.gain)||0)+' · +'+(Number(data?.exp_gain)||PRACTICE_EXP)+' EXP');
+  render();return;
  }
- const g=Math.random()<.3?2:1;
- update('characters',id,o=>{o.stats[k]=Math.min(cap,(o.stats[k]||0)+g);o.exp+=PRACTICE_EXP;o.lastPractice=Date.now()});
- toast(`${g===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':''}${st.e} ${st.n} +${g} · +${PRACTICE_EXP} EXP`);render();
+ let warning=false,becameSick=false;
+ update('characters',id,o=>{
+  const day=bangkokDateKey(),counts=o.practiceCounts||{};
+  const today=counts.date===day?{...(counts.counts||{})}:{};
+  const next=(Number(today[k])||0)+1;today[k]=next;o.practiceCounts={date:day,counts:today};
+  const g=Math.min(Math.random()<.3?2:1,cap-(o.stats[k]||0));o.stats[k]=(o.stats[k]||0)+g;o.exp+=PRACTICE_EXP;o.lastPractice=Date.now();
+  warning=next===10;
+  if(next===11){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='ฝึกทักษะ '+k+' เกิน 10 ครั้งในวันเดียว';becameSick=true}
+ });
+ if(becameSick)toast('ฝึกครั้งที่ 11 แล้ว! ตัวละครติดสถานะป่วยทันที','bad');
+ else if(warning)toast('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');
+ else toast(st.e+' '+st.n+' ฝึกสำเร็จ');
+ render();
 }
 async function claimSalary(id){
  const u=me(),c=DB.get('characters').find(x=>x.id===id);if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
