@@ -314,6 +314,10 @@ begin
     select * into v_treatment from public.site_hospital_treatments
       where character_id=p_character_id and status='queued' order by created_at desc limit 1 for update;
     if not found then raise exception 'ไม่พบคิวรักษาที่รอชำระเงิน'; end if;
+    if v_treatment.treatment_post_id is not null
+      and v_treatment.treatment_post_id is distinct from p_treatment_post_id then
+      raise exception 'คิวนี้ผูกกับโพสต์เข้าห้องตรวจอื่นแล้ว กรุณาใช้โพสต์เดิม';
+    end if;
     if coalesce(((regexp_match(coalesce(v_thread->>'title',''),'ห้องตรวจหมายเลข[[:space:]]*([1-3])'))[1])::integer,0) <> v_treatment.room_number then
       raise exception 'โพสต์นี้อยู่คนละห้องตรวจกับคิวที่ได้รับ กรุณาใช้ห้องตรวจหมายเลข %',v_treatment.room_number;
     end if;
