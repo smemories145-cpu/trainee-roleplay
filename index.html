@@ -5364,14 +5364,23 @@ async function phoneDeleteMailMessage(id,folder){
 
 function phoneInventoryMarkup(c){
  if(!c)return '<div class="phone-not-ready">เลือกตัวละครที่อนุมัติแล้วก่อนเปิดกระเป๋า</div>';
- const items=DB.get('items'),inv=(c.inv||[]).map(x=>({...x,item:items.find(i=>i.id===x.iid)})).filter(x=>x.item),grouped=new Map();
- inv.forEach(x=>{if(!grouped.has(x.iid))grouped.set(x.iid,{item:x.item,count:0});grouped.get(x.iid).count++});
+ const items=DB.get('items'),inv=(c.inv||[]).map(x=>({...x,item:items.find(i=>i.id===x.iid)})).filter(x=>x.item),grouped=new Map(),owner=me()?.id===c.ownerId;
+ inv.forEach(x=>{
+  if(!grouped.has(x.iid))grouped.set(x.iid,{item:x.item,count:0,instances:[]});
+  const g=grouped.get(x.iid);g.count++;g.instances.push(x);
+ });
  let html=phoneAppBack('กระเป๋าไอเทม')+'<div class="phone-home-card"><div class="phone-eyebrow">INVENTORY</div><h2 style="margin:5px 0">'+esc(c.stageName||c.name)+'</h2><div class="phone-msg-muted">'+inv.length+' ชิ้น · '+grouped.size+' ประเภท</div></div>';
- html+=grouped.size?'<div class="phone-msg-list">'+Array.from(grouped.values()).map(x=>'<div class="phone-contact-card">'+(x.item.img&&/^https?:\/\//i.test(x.item.img)?phoneImage(x.item.img):'<span class="phone-msg-avatar">🎁</span>')+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(x.item.name)+'</div><div class="phone-contact-meta">'+esc(x.item.cat||'ไอเทม')+' · '+x.count+' ชิ้น</div></div><span class="badge">'+(x.item.transferable===false?'ส่งต่อไม่ได้':'ส่งต่อได้')+'</span></div>').join('')+'</div>':'<div class="phone-msg-card"><b>กระเป๋ายังว่างอยู่</b><p class="phone-msg-muted">ซื้อไอเทมได้จากแอปร้านค้า</p><button class="btn" onclick="openPhoneFloatApp(\'shop\')">เปิดร้านค้า</button></div>';
+ html+=grouped.size?'<div class="phone-msg-list">'+Array.from(grouped.values()).map(x=>{
+  const src=String(x.item.img||'');
+  const hasImage=src.startsWith('https://')||src.startsWith('http://')||src.startsWith('assets/');
+  const image=hasImage?'<img src="'+esc(src)+'" alt="" loading="lazy" style="width:48px;height:48px;object-fit:contain;border-radius:10px;background:var(--card2);padding:3px">':'<span class="phone-msg-avatar">🎁</span>';
+  const useMedicine=owner&&x.item.id==='starlight_medicine_bottle'?'<button type="button" class="btn sm" onclick="useHospitalMedicine(this.dataset.cid,this.dataset.iid)" data-cid="'+esc(c.id)+'" data-iid="'+esc(x.instances[0]?.id||'')+'">💊 ใช้ยา</button>':'';
+  return '<div class="phone-contact-card">'+image+'<div class="phone-contact-info"><div class="phone-contact-name">'+esc(x.item.name)+'</div><div class="phone-contact-meta">'+esc(x.item.cat||'ไอเทม')+' · '+x.count+' ชิ้น</div>'+(x.item.id==='starlight_medicine_bottle'?'<div class="phone-msg-muted">ใช้ได้ 1 ครั้งภายใน 3 ชั่วโมงหลังได้รับยา</div>':'')+'</div>'+useMedicine+'</div>';
+ }).join('')+'</div>':'<div class="phone-msg-card"><b>กระเป๋ายังว่างอยู่</b><p class="phone-msg-muted">ไอเทมที่ได้รับจากระบบรักษาจะปรากฏที่นี่</p><button class="btn" onclick="openPhoneFloatApp(\'shop\')">เปิดร้านค้า</button></div>';
  return html;
 }
 function phoneShopMarkup(c){
- const items=DB.get('items')||[];let html=phoneAppBack('ร้านค้า');
+ const items=(DB.get('items')||[]).filter(i=>!i.hiddenFromShop&&i.id!=='starlight_medicine_bottle');let html=phoneAppBack('ร้านค้า');
  if(c)html+='<div class="phone-home-card"><div class="phone-eyebrow">CASH WALLET</div><div class="phone-balance">'+bankMoney(c.won)+'</div><div class="phone-msg-muted">'+esc(c.stageName||c.name)+'</div></div>';
  html+=items.length?'<div class="phone-msg-list">'+items.map(i=>{
   const owned=c&&(c.inv||[]).some(x=>x.iid===i.id);
@@ -6129,9 +6138,67 @@ async function copyPostLink(threadId,postId){
  }catch(e){}
  prompt('คัดลอกลิงก์โพสต์นี้',url);
 }
+function hospitalPostIdFromLink(value){
+ const raw=String(value||'').trim();if(!raw)return '';
+ try{const u=new URL(raw,location.href);const m=(u.hash||'').match(/post-([^/?#]+)/);if(m)return decodeURIComponent(m[1]);}catch(e){}
+ const m=raw.match(/post-([^/?#]+)/);return m?decodeURIComponent(m[1]):raw;
+}
+function openHospitalModal(kind,threadId){
+ const c=getActiveChar(me());
+ if(!me())return toast('กรุณาเข้าสู่ระบบก่อน','bad');
+ if(!c||c.status!=='approved')return toast('กรุณาเลือกตัวละครที่ผ่านการอนุมัติ','bad');
+ if(!cloudReady||!supaClient)return toast('ระบบโรงพยาบาลต้องเชื่อมต่อฐานข้อมูลออนไลน์ก่อน','bad');
+ if(kind==='queue'&&!c.sick)return toast('ตัวละครนี้ไม่ได้อยู่ในสถานะป่วย','bad');
+ const queue=kind==='queue',dlg=document.createElement('dialog');dlg.id='hospitalActionDialog';
+ dlg.style.cssText='width:min(520px,calc(100% - 28px));border:1px solid #d7e1d5;border-radius:18px;padding:24px;color:#35483b;background:#fff;box-shadow:0 24px 80px #0006;max-height:90vh;overflow:auto';
+ dlg.innerHTML='<div style="font-size:10px;letter-spacing:2px;color:#7b927c">STARLIGHT MEDICAL CENTER</div><h2 style="margin:6px 0 0">'+(queue?'รับบัตรคิว':'ชำระค่ารักษา')+'</h2><p style="line-height:1.8;color:#68786b">'+(queue?'แนบลิงก์โพสต์รับบัตรคิวในกระทู้แผนกรักษาทั่วไป ต้องมีโรลเพลย์มากกว่า 70 คำและหมายเหตุ “รับบัตรคิว”':'แนบลิงก์โพสต์เข้าห้องตรวจ ต้องมีโรลเพลย์มากกว่า 70 คำและหมายเหตุ “รับการรักษา” ค่ารักษา 1,000 won')+'</p><form id="hospitalActionForm"><label>ลิงก์โพสต์โรลเพลย์</label><input name="postLink" type="url" required placeholder="วางลิงก์โพสต์ที่นี่" style="width:100%;margin:7px 0 14px"><div style="display:'+(queue?'none':'block')+'"><label>ช่องทางชำระเงิน</label><select name="paymentMethod" style="width:100%;margin:7px 0 14px"><option value="cash">เงินสด</option><option value="bank">บัญชีธนาคาร</option></select></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button type="button" class="btn ghost" id="hospitalCancel">ยกเลิก</button><button type="submit" class="btn">'+(queue?'ยืนยันรับคิว':'ชำระ 1,000 won')+'</button></div></form>';
+ document.body.appendChild(dlg);
+ dlg.addEventListener('close',()=>dlg.remove(),{once:true});
+ dlg.querySelector('#hospitalCancel').onclick=()=>dlg.close();
+ dlg.showModal();
+ dlg.querySelector('form').onsubmit=async e=>{
+  e.preventDefault();const f=e.currentTarget,postId=hospitalPostIdFromLink(f.elements.postLink.value),button=f.querySelector('[type="submit"]');
+  if(!postId)return toast('อ่านรหัสโพสต์ไม่สำเร็จ กรุณาคัดลอกลิงก์โพสต์จากเว็บ','bad');
+  button.disabled=true;button.textContent='กำลังตรวจสอบ…';
+  try{
+   let data,error;
+   if(queue){({data,error}=await supaClient.rpc('site_hospital_submit_queue',{p_character_id:c.id,p_post_id:postId}));}
+   else{({data,error}=await supaClient.rpc('site_hospital_pay',{p_character_id:c.id,p_treatment_post_id:postId,p_payment_method:f.elements.paymentMethod.value,p_request_id:uid()}));}
+   if(error)throw error;
+   await cloudRefresh(false);dlg.close();
+   if(queue)toast('จัดคิวสำเร็จ: ห้องตรวจหมายเลข '+data.room_number+' พบ'+data.doctor_name);
+   else toast(data.already_paid?'รายการนี้ชำระเงินแล้ว':'ชำระเงินสำเร็จ ได้รับขวดยารักษาแล้ว');
+   go('thread/'+threadId+'/post-'+encodeURIComponent(postId));
+  }catch(err){toast('ดำเนินการไม่สำเร็จ: '+(err.message||err),'bad');button.disabled=false;button.textContent=queue?'ยืนยันรับคิว':'ชำระ 1,000 won';}
+ };
+}
+async function useHospitalMedicine(characterId,inventoryItemId){
+ const u=me(),c=DB.get('characters').find(x=>x.id===characterId);
+ if(!u||!c||c.ownerId!==u.id)return toast('ใช้ไอเทมได้เฉพาะตัวละครของคุณ','bad');
+ if(!cloudReady||!supaClient)return toast('ระบบใช้ยาออนไลน์ยังไม่พร้อม','bad');
+ if(!await ask('ใช้ขวดยารักษา 1 ครั้งหรือไม่? หากยาหมดอายุจะต้องเริ่มรักษาใหม่'))return;
+ try{
+  const {data,error}=await supaClient.rpc('site_hospital_use_medicine',{p_character_id:characterId,p_inventory_item_id:inventoryItemId});
+  if(error)throw error;
+  await cloudRefresh(false);
+  if(data?.expired){toast('ยาหมดอายุแล้ว ตัวละครยังป่วย ต้องรับคิวและชำระเงินใหม่','bad');render();return;}
+  if(data?.cured){toast('ใช้ยาสำเร็จ ตัวละครหายป่วยและได้รับยศเดิมคืน');render();return;}
+  toast('ระบบยังยืนยันผลการใช้ยาไม่ได้','bad');
+ }catch(e){toast('ใช้ยาไม่สำเร็จ: '+(e.message||e),'bad');}
+}
+async function setHospitalSick(characterId,isSick){
+ if(!isAdmin()&&!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการสถานะป่วย','bad');
+ if(!cloudReady||!supaClient)return toast('ระบบสถานะป่วยต้องเชื่อมต่อฐานข้อมูลออนไลน์','bad');
+ try{const {error}=await supaClient.rpc('site_hospital_admin_set_sick',{p_character_id:characterId,p_sick:!!isSick});if(error)throw error;await cloudRefresh(false);toast(isSick?'กำหนดให้ตัวละครป่วยแล้ว':'คืนสถานะตัวละครแล้ว');render();}
+ catch(e){toast('เปลี่ยนสถานะไม่สำเร็จ: '+(e.message||e),'bad');}
+}
+
 function pageThread(id,view=''){
  const t=DB.get('threads').find(x=>x.id===id);if(!t)return app('<div class="card">ไม่พบกระทู้</div>');
  const u=me(),chars=DB.get('characters'),users=DB.get('users'),ty=TYPES[t.type]||TYPES.main,closed=isClosed(t),train=t.train||[],ag=agencyOf(t.agencyId),fo=DB.get('forums').find(f=>f.id===t.forumId);
+ const hospitalKind=/แผนกต้อนรับ|แผนกรักษาทั่วไป/.test(String(t.title||''))?'queue':(/ห้องตรวจหมายเลข\s*[1-3]/.test(String(t.title||''))?'treatment':'');
+ const hospitalNoteField=hospitalKind?'<div class="topic-field-row"><label class="topic-field-label" for="postNote">หมายเหตุสำหรับระบบโรงพยาบาล</label><div class="topic-field-value"><input id="postNote" name="postNote" maxlength="80" placeholder="'+(hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษ')+'" required></div></div>':'';
+ const hospitalPanel=hospitalKind&&u?'<section class="card" style="margin:16px 0;border-color:#b9cbb8;background:#f4f8f2;color:#35483b"><div style="font-size:10px;letter-spacing:2px;color:#7b927c">STARLIGHT MEDICAL CENTER</div><h3 style="margin:7px 0;color:#35483b">'+(hospitalKind==='queue'?'แผนกรักษาทั่วไป · รับบัตรคิว':'ห้องตรวจ · ชำระค่ารักษา')+'</h3><p style="color:#68786b;line-height:1.8">'+(hospitalKind==='queue'?'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับบัตรคิว” แล้วกดปุ่มด้านล่าง':'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับการรักษา” แล้วแนบลิงก์เพื่อชำระค่ารักษา 1,000 won')+'</p><button class="btn" type="button" onclick="openHospitalModal(\''+(hospitalKind==='queue'?'queue':'treatment')+'\',\''+t.id+'\')">'+(hospitalKind==='queue'?'รับการรักษา · รับบัตรคิว':'ชำระค่ารักษา 1,000 won')+'</button></section>':'';
  const all=DB.get('posts'),posts=all.filter(p=>p.threadId===id).sort((a,b)=>a.createdAt-b.createdAt);
  const postsPerPage=15,totalPages=Math.max(1,Math.ceil(posts.length/postsPerPage));
  let requestedPage=1,targetPostId='';
@@ -6157,7 +6224,7 @@ function pageThread(id,view=''){
   return `<div id="post-${esc(p.id)}" class="card post ${p.gm?'gm':''}${isTarget?' post-permalink-target':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
    <div class="post-content-column" style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
    ${p.subject?`<h3 class="post-subject">${esc(p.subject)}</h3>`:''}
-   ${renderBody(p.content,p.mode,t.css)}</div></div></div>`;
+   ${renderBody(p.content,p.mode,t.css)}${Array.isArray(p.hospitalAnnotations)?p.hospitalAnnotations.map(a=>`<div role="status" style="margin-top:16px;padding:12px 16px;border-left:4px solid #39804b;background:#eff8ef;color:#28743c;font-size:15px;font-weight:650;line-height:1.8;border-radius:0 8px 8px 0">✦ ${esc(a.text||'')}</div>`).join(''):''}</div></div></div>`;
  };
  const paginationHtml=()=>{
   if(totalPages<=1)return '';
@@ -6183,7 +6250,7 @@ function pageThread(id,view=''){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
    form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" onsubmit="doReply(event,'${t.id}')">
-    <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>
+    <div class="topic-composer-heading"><h2>✍️ ตอบกลับโพสต์ใหม่</h2><p>เขียนข้อความตอบกลับในกระทู้นี้</p></div>${hospitalNoteField}
     <div class="preview topic-preview reply-preview" hidden></div>
     <div class="topic-field-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
     <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
@@ -6205,6 +6272,7 @@ function pageThread(id,view=''){
     <div class="thread-opening-meta"><span class="mut">${esc(threadAuthorName(t))} · ${fmt(t.createdAt)}</span><span class="mut"><button type="button" class="post-number-link" title="คัดลอกลิงก์โพสต์ #1" aria-label="คัดลอกลิงก์โพสต์ #1" onclick="copyPostLink('${t.id}','opening')">#1 <span aria-hidden="true">↗</span></button> · กระทู้ต้นเรื่อง</span></div>
     <div class="row" style="gap:7px;margin-bottom:8px;flex-wrap:wrap">${t.pinned?'<span class="badge" style="--c:var(--warn)">📌 ปักหมุด</span>':''}<span class="badge" style="--c:${ty.c}">${ty.n}</span>${closed?'<span class="badge" style="--c:var(--bad)">🔒 ปิดแล้ว</span>':'<span class="badge" style="--c:var(--ok)">เปิดรับโพสต์</span>'}${ag?agencyBadge(ag.id):''}</div>
     <h2 class="thread-opening-title">${esc(t.title)}</h2>
+    ${t.illnessTrigger?'<div role="note" style="margin:12px 0;padding:10px 13px;border-left:3px solid #b97842;border-radius:0 8px 8px 0;background:#fff7ef;color:#88562f;font-size:13px;line-height:1.8">⚠️ เงื่อนไขกิจกรรม: ตัวละครจะติดสถานะป่วยหลังส่งโพสต์ที่ผ่านระบบ</div>':''}
     ${t.type!=='notice'&&!t.characterBio?`<div class="mut">🎚 ระดับ ${stageBadge(t.minStage)} ถึง ${stageBadge(t.maxStage)} · 🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)}${train.length?` · 🏋️ ฝึก ${train.map(k=>statOf(k).e+' '+statOf(k).n).join(', ')} (+${t.statGain})`:''}${t.deadline?` · ⏰ ปิดรับ ${fmt(t.deadline)}`:''}</div>`:''}
     <h3 class="thread-opening-story-title">📖 เนื้อเรื่อง</h3>
     ${renderBody(t.plot,t.plotMode,t.css,t.characterBio===true)}
@@ -6213,6 +6281,7 @@ function pageThread(id,view=''){
    </div>
   </div></div>
   <div id="thread-replies-heading" class="thread-replies-heading"><h3>💬 โรลเพลย์ (${posts.length})</h3>${totalPages>1?`<span>หน้า ${page} / ${totalPages}</span>`:''}</div>
+  ${hospitalPanel}
   ${paginationHtml()}
   ${pagePosts.map((p,i)=>postHtml(p,startIndex+i)).join('')||'<div class="card mut">ยังไม่มีโพสต์ — เป็นคนแรกที่เริ่มเรื่องสิ!</div>'}
   ${paginationHtml()}`}
@@ -6230,7 +6299,7 @@ async function doReply(e,tid){
  const {content,mode}=edGet(edOf(f,'content'));
  if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
  if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
- const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),createdAt:Date.now()};let postedPostId=base.id;
+ const posts=DB.get('posts'),base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),note:(f.elements.postNote?.value||'').trim(),createdAt:Date.now()};let postedPostId=base.id;
  if(hasAdminPermission('manage_threads')&&E.as?.value==='gm'){
   posts.push({...base,charId:null,gm:true});DB.set('posts',posts);
   if(cloudReady)await cloudQueue;
@@ -6239,6 +6308,10 @@ async function doReply(e,tid){
   const ac=getActiveChar(u);if(ac&&characterBioExpired(ac)&&!isAdmin())return toast('ตัวละครเลยกำหนด 5 วันแล้ว กรุณาแนบลิงก์ประวัติในหน้าแก้ไขตัวละครก่อนโพสต์','bad');if(!ac||!canPost(ac,t,u))return toast('ตัวละครที่ใช้อยู่ไม่ตรงเงื่อนไขกระทู้นี้','bad');
   const len=textLen(content,mode);if(len<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร (ตอนนี้ ${len})`,'bad');
   const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;
+  const previousThreadPost=posts.filter(p=>p.threadId===tid).sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0))[0];
+  const localConsecutiveWarning=!!t.consecutivePostWarning&&!!previousThreadPost&&previousThreadPost.charId===ac.id&&!previousThreadPost.gm;
+  if(tr&&ac.sick)return toast('ตัวละครป่วยอยู่ ต้องรักษาให้หายก่อนจึงจะฝึกทักษะได้','bad');
+  if(tr&&todayPracticeCount(ac,tr)>=11)return toast('ฝึกทักษะนี้ครบกำหนดของวันนี้แล้ว','bad');
   if(cloudReady){
    const cloudPost={...base,charId:ac.id,gm:false,train:tr};
    const {data,error}=await supaClient.rpc('site_create_post',{p_post:cloudPost,p_train:tr});
@@ -6246,15 +6319,29 @@ async function doReply(e,tid){
    await cloudRefresh(false);
    const actual=data?.post||{};
    postedPostId=actual.id||actual.post_id||actual.postId||base.id;
-   const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0;
-   toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
+   const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0,alerts=[];
+   if(actual.becameSick)alerts.push('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด');else if(actual.trainingWarning)alerts.push('ฝึกทักษะครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ');
+   if(actual.consecutivePostWarning)alerts.push('คำเตือน: ตัวละครโพสต์ติดกันในกระทู้นี้ กรุณารอให้ตัวละครอื่นตอบกลับก่อน');
+   if(alerts.length)toast(alerts.join(' · '),'bad');else toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
   }else{
-   let gain=0,capped=false;
-   const nc=update('characters',ac.id,o=>{o.exp+=Number(t.exp)||0;
-    if(tr){const cap=statCap(o.stage),old=o.stats[tr]||0;o.stats[tr]=Math.max(old,Math.min(cap,old+(Number(t.statGain)||0)));gain=o.stats[tr]-old;capped=old>=cap}});
+   let gain=0,capped=false,trainingCount=0,trainingWarning=false,becameSick=false;
+   const nc=update('characters',ac.id,o=>{
+    o.exp+=Number(t.exp)||0;
+    if(tr){
+     const cap=statCap(o.stage),old=o.stats[tr]||0;
+     o.stats[tr]=Math.max(old,Math.min(cap,old+(Number(t.statGain)||0)));gain=o.stats[tr]-old;capped=old>=cap;
+     const day=bangkokDateKey(),pc=o.practiceCounts||{},counts=pc.date===day?{...(pc.counts||{})}:{};
+     trainingCount=(Number(counts[tr])||0)+1;counts[tr]=trainingCount;o.practiceCounts={date:day,counts};
+     trainingWarning=trainingCount===10;
+     if(trainingCount===11){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='ฝึกทักษะ '+tr+' เกิน 10 ครั้งในวันเดียว';becameSick=true}
+    }
+    if(t.illnessTrigger&&!o.sick){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='กิจกรรม: '+t.title;becameSick=true}
+   });
    const w=Number(t.won)||0;if(w)addWon(ac.id,w,'โพสต์: '+t.title);
-   posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w});DB.set('posts',posts);
-   toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}${capped?' (ถึงเพดานขั้นนี้แล้ว)':''}${eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''}`);
+   posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w,trainingCount,trainingWarning,becameSick,consecutivePostWarning:localConsecutiveWarning});DB.set('posts',posts);
+   const alerts=[];if(becameSick)alerts.push('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด');else if(trainingWarning)alerts.push('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ');if(localConsecutiveWarning)alerts.push('คำเตือน: ตัวละครโพสต์ติดกันในกระทู้นี้ กรุณารอให้ตัวละครอื่นตอบกลับก่อน');
+   if(alerts.length)toast(alerts.join(' · '),'bad');else toast('+'+t.exp+' EXP'+(w?' · +'+wonFmt(w):'')+(tr?' · '+statOf(tr).n+' +'+gain:'')+(capped?' (ถึงเพดานขั้นนี้แล้ว)':'')+(eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''));
+
   }
  }
  store.removeItem('sa_draft_'+tid);
@@ -6350,7 +6437,7 @@ function pageChar(id){
  if(c.status!=='approved'&&!isOwner&&!isAdmin())return app('<div class="card">ตัวละครนี้ยังไม่เปิดเผย</div>');
  const next=STAGES[c.stage+1],pct=next?Math.min(100,c.exp/next.exp*100):100,threads=DB.get('threads'),s=ST[c.status],g=groupOf(c.id),cap=statCap(c.stage),items=DB.get('items');
  const posts=DB.get('posts').filter(p=>p.charId===id).sort((a,b)=>b.createdAt-a.createdAt);
- const cd=(c.lastPractice||0)+PRACTICE_CD-Date.now(),sl=(c.lastSalary||0)+SALARY_CD-Date.now();
+ const sl=(c.lastSalary||0)+SALARY_CD-Date.now();
  const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
  
  app(`<div class="profile-wrap">
@@ -6359,7 +6446,7 @@ function pageChar(id){
   <div class="profile-info">
    <h2>${esc(c.stageName||c.name)}</h2>
    <div class="mut">${esc(c.name)} · ${c.age} ปี · ผู้เล่น: <a href="#profile/${owner?.id}">${esc(owner?.username||'-')}</a></div>
-   <div class="row" style="justify-content:center;margin:8px 0">${c.status==='approved'?stageBadge(c.stage):''}<span class="badge" style="--c:${s[1]}">${s[0]}</span>${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อมเลื่อนขั้น</span>':''}${agencyBadge(c.agencyId)}
+   <div class="row" style="justify-content:center;margin:8px 0">${c.status==='approved'?stageBadge(c.stage):''}<span class="badge" style="--c:${s[1]}">${s[0]}</span>${c.sick?'<span class="badge" style="--c:#4f8a60">🤒 ป่วย</span>':''}${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อมเลื่อนขั้น</span>':''}${agencyBadge(c.agencyId)}
    ${g?`<a href="#group/${g.id}" class="badge" style="--c:${esc(g.color)}">🎤 ${esc(g.name)} · ${esc(g.members.find(m=>m.charId===c.id)?.role||'')}</a>`:''}</div>
    ${c.status==='rejected'&&c.reason?`<div class="rules">เหตุผลที่ไม่ผ่าน: ${esc(c.reason)}</div>`:''}
    ${c.status==='approved'?`<div style="max-width:400px;margin:8px auto"><div class="row between mut" style="font-size:.8rem"><span>EXP ${c.exp}${next?` / ${next.exp}`:''}</span><span>${next?'ขั้นถัดไป: '+esc(next.n):'สูงสุด ✨'}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`:''}
@@ -6369,6 +6456,7 @@ function pageChar(id){
     ${(isOwner&&c.status!=='approved')||isAdmin()||hasAdminPermission('manage_characters')?`<button class="btn sm bad" onclick="deleteChar('${c.id}')">ลบตัวละคร</button>`:''}
    </div>
   </div>
+  ${(isAdmin()||hasAdminPermission('manage_characters'))&&c.status==='approved'?'<div class="row" style="justify-content:center;margin:10px 0"><button type="button" class="btn sm ghost" onclick="setHospitalSick(this.dataset.cid,'+(c.sick?'false':'true')+')" data-cid="'+c.id+'">'+(c.sick?'คืนสถานะป่วย':'กำหนดให้ป่วย')+'</button></div>':''}
   <div class="profile-main-layout">
    <div>${sideCard(c,owner,posts.length)}</div>
    <div style="min-width:0">
@@ -6381,11 +6469,11 @@ function pageChar(id){
      ${isOwner&&c.status==='approved'?`<br><div class="row"><button class="btn sm ${sl>0?'ghost':''}" ${sl>0?'disabled':''} onclick="claimSalary('${c.id}')">💵 รับเงินเดือน ${wonFmt(salaryOf(c.stage))}</button><span class="mut">${sl>0?'รับได้อีกใน '+fmtLeft(sl):'พร้อมรับแล้ว!'}</span><a class="btn sm ghost" href="#shop">🛍 ไปร้านค้า</a></div>
      <p class="mut" style="margin:12px 0 0">ปิดการโอนเงินสดข้ามตัวละครจากหน้านี้แล้ว การโอนระหว่างตัวละครจะทำผ่านแอปธนาคารเท่านั้น</p>`:''}
      ${(isOwner||isAdmin())&&(c.ledger||[]).length?`<details><summary>📒 สมุดบัญชี (${c.ledger.length} รายการล่าสุด)</summary>${c.ledger.map(l=>`<div class="row between" style="padding:5px 0;border-bottom:1px solid var(--line);font-size:.85rem"><span>${esc(l.note)} <span class="mut">· ${fmt(l.at)}</span></span><b style="color:${l.amt<0?'var(--bad)':'var(--ok)'}">${l.amt>0?'+':''}${wonFmt(l.amt)}</b></div>`).join('')}</details>`:''}</div>
-    <div class="card"><h3 style="margin-top:0">🎒 ของสะสม (${inv.length})</h3>${inv.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${inv.map(x=>`<div class="side-box" style="text-align:center">${x.it.img?`<img src="${esc(x.it.img)}" loading="lazy">`:'<div style="font-size:2rem">🎁</div>'}<b>${esc(x.it.name)}</b><div class="mut" style="font-size:.75rem">${esc(x.it.cat)}</div></div>`).join('')}</div>`:`<p class="mut">ยังไม่มีของ${isOwner?' · <a href="#shop">ไปร้านค้า</a>':''}</p>`}</div>
+    <div class="card"><h3 style="margin-top:0">🎒 ของสะสม (${inv.length})</h3>${inv.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${inv.map(x=>`<div class="side-box" style="text-align:center">${x.it.img?`<img src="${esc(x.it.img)}" loading="lazy">`:'<div style="font-size:2rem">🎁</div>'}<b>${esc(x.it.name)}</b><div class="mut" style="font-size:.75rem">${esc(x.it.cat)}</div>${isOwner&&x.it.id==='starlight_medicine_bottle'?'<button type="button" class="btn sm" style="margin-top:8px;width:100%" onclick="useHospitalMedicine(this.dataset.cid,this.dataset.iid)" data-cid="'+c.id+'" data-iid="'+x.id+'">💊 ใช้ยา</button>':''}</div>`).join('')}</div>`:`<p class="mut">ยังไม่มีของ${isOwner?' · <a href="#shop">ไปร้านค้า</a>':''}</p>`}</div>
     <div class="card"><div class="row between"><h3 style="margin:0">📊 ค่าสถานะ</h3><span class="mut">เพดานขั้นนี้ ${cap} · พลังรวม ⚡${sum(c.stats)}</span></div>
      <div class="row" style="gap:24px"><div>${radar(c.stats)}</div><div class="f1">${statBars(c.stats,cap)}</div></div>
-     ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ซ้อมทุก ${PRACTICE_CD/3600e3} ชม. ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${cd>0?`· ⏳ ซ้อมได้อีกใน ${fmtLeft(cd)}`:'· ✅ พร้อมซ้อม!'}</p>
-     <div class="row">${STATS.map(st=>{const dis=cd>0||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n}</button>`}).join('')}</div>`:''}</div>
+     ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ฝึกได้ไม่เกิน 10 ครั้งต่อทักษะต่อวัน · ครั้งที่ 10 เตือน และครั้งที่ 11 ทำให้ป่วย · ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${c.sick?'· ต้องรักษาให้หายก่อน':''}</p>
+     <div class="row">${STATS.map(st=>{const count=todayPracticeCount(c,st.k),dis=c.sick||count>=11||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} title="วันนี้ ${count}/10 ครั้ง" onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n} <small>(${count}/10)</small></button>`}).join('')}</div>`:''}</div>
     ${hasAdminPermission('manage_characters')&&c.status==='approved'?adminCharForm(c):''}
    </div>
   </div>
@@ -6408,20 +6496,44 @@ function saveCharAdmin(e,id){
  if(diff)addWon(id,diff,'แอดมินปรับยอดเงิน');
  toast('บันทึกแล้ว');render();
 }
+function bangkokDateKey(){
+ const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const q={};p.forEach(x=>{if(x.type!=='literal')q[x.type]=x.value});
+ return (q.year||'1970')+'-'+(q.month||'01')+'-'+(q.day||'01');
+}
+function todayPracticeCount(c,k){
+ const p=c?.practiceCounts||{};
+ return p.date===bangkokDateKey()?Math.max(0,Number(p.counts?.[k])||0):0;
+}
 async function practice(id,k){
  const u=me(),c=DB.get('characters').find(x=>x.id===id),st=statOf(k);
  if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
- const left=(c.lastPractice||0)+PRACTICE_CD-Date.now();if(left>0)return toast(`ยังเหนื่อยอยู่! ซ้อมได้อีกใน ${fmtLeft(left)}`,'bad');
- const cap=statCap(c.stage);if((c.stats[k]||0)>=cap)return toast(`${st.n}ถึงเพดานของขั้นนี้แล้ว (${cap})`,'bad');
+ if(c.sick)return toast('ตัวละครป่วยอยู่ ต้องรักษาให้หายก่อนจึงจะฝึกได้','bad');
+ const count=todayPracticeCount(c,k);
+ if(count>=11)return toast('ฝึกทักษะนี้ครบกำหนดของวันนี้แล้ว','bad');
+ const cap=statCap(c.stage);if((c.stats[k]||0)>=cap)return toast(st.n+' ถึงเพดานของขั้นนี้แล้ว ('+cap+')','bad');
  if(cloudReady){
   const {data,error}=await supaClient.rpc('site_practice',{p_character_id:id,p_stat:k});
   if(error)return toast('ซ้อมไม่สำเร็จ: '+error.message,'bad');
   await cloudRefresh(false);
-  toast(`${Number(data?.gain)===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':''}${st.e} ${st.n} +${Number(data?.gain)||0} · +${Number(data?.exp_gain)||PRACTICE_EXP} EXP`);render();return;
+  if(data?.became_sick)toast('ฝึกครั้งที่ 11 แล้ว! ตัวละครติดสถานะป่วยทันที','bad');
+  else if(data?.warning)toast('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');
+  else toast((Number(data?.gain)===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':'')+st.e+' '+st.n+' +'+(Number(data?.gain)||0)+' · +'+(Number(data?.exp_gain)||PRACTICE_EXP)+' EXP');
+  render();return;
  }
- const g=Math.random()<.3?2:1;
- update('characters',id,o=>{o.stats[k]=Math.min(cap,(o.stats[k]||0)+g);o.exp+=PRACTICE_EXP;o.lastPractice=Date.now()});
- toast(`${g===2?'🔥 ซ้อมได้ผลดีเป็นพิเศษ! ':''}${st.e} ${st.n} +${g} · +${PRACTICE_EXP} EXP`);render();
+ let warning=false,becameSick=false;
+ update('characters',id,o=>{
+  const day=bangkokDateKey(),counts=o.practiceCounts||{};
+  const today=counts.date===day?{...(counts.counts||{})}:{};
+  const next=(Number(today[k])||0)+1;today[k]=next;o.practiceCounts={date:day,counts:today};
+  const g=Math.min(Math.random()<.3?2:1,cap-(o.stats[k]||0));o.stats[k]=(o.stats[k]||0)+g;o.exp+=PRACTICE_EXP;o.lastPractice=Date.now();
+  warning=next===10;
+  if(next===11){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='ฝึกทักษะ '+k+' เกิน 10 ครั้งในวันเดียว';becameSick=true}
+ });
+ if(becameSick)toast('ฝึกครั้งที่ 11 แล้ว! ตัวละครติดสถานะป่วยทันที','bad');
+ else if(warning)toast('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ','bad');
+ else toast(st.e+' '+st.n+' ฝึกสำเร็จ');
+ render();
 }
 async function claimSalary(id){
  const u=me(),c=DB.get('characters').find(x=>x.id===id);if(!c||c.ownerId!==u?.id||c.status!=='approved')return;
@@ -6503,7 +6615,7 @@ function doEditChar(e,id){
 
 /* ================= SHOP ================= */
 function pageShop(cat){
- const u=me(),c=u&&getActiveChar(u),items=DB.get('items'),list=cat?items.filter(i=>i.cat===cat):items;
+ const u=me(),c=u&&getActiveChar(u),items=(DB.get('items')||[]).filter(i=>!i.hiddenFromShop&&i.id!=='starlight_medicine_bottle'),list=cat?items.filter(i=>i.cat===cat):items;
  const rich=DB.get('characters').filter(x=>x.status==='approved').sort((a,b)=>(b.won||0)-(a.won||0)).slice(0,5);
  const cats=[...new Set(items.map(i=>i.cat))];
  app(`<div class="row between"><h2>🛍 ร้านค้า</h2>${hasAdminPermission('manage_shop')?'<a class="btn sm ghost" href="#admin/shop">⚙️ จัดการสินค้า</a>':''}</div>
@@ -6698,7 +6810,7 @@ async function deleteGroup(id){if(!hasAdminPermission('manage_groups')||!await a
 
 /* ================= ADMIN: THREADS ================= */
 function threadForm(t,preForumId){
- const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',authorMode:t?.authorMode||(t?.type==='notice'?'gm':'character'),...(t||{})};
+ const v={title:'',type:'main',exp:10,won:300,minStage:0,maxStage:STAGES.length-1,forumId:preForumId||DB.get('forums')[0]?.id||'',plot:'',plotMode:'text',rules:'',rulesMode:'text',deadline:'',pinned:false,train:[],statGain:1,agencyId:'',css:'',tpl:'',illnessTrigger:false,consecutivePostWarning:false,authorMode:t?.authorMode||(t?.type==='notice'?'gm':'character'),...(t||{})};
  const so=sel=>STAGES.map((s,i)=>`<option value="${i}" ${i==sel?'selected':''}>${i} — ${esc(s.n)}</option>`).join('');
  return `<form class="card topic-composer thread-composer" onsubmit="doSaveThread(event,'${t?.id||''}')">
   <div class="topic-composer-heading"><h2>${t?'✏️ แก้ไขกระทู้':'🆕 สร้างกระทู้ใหม่'}</h2><p>กำหนดหัวข้อ เนื้อเรื่อง และเงื่อนไขของกระทู้</p></div>
@@ -6709,6 +6821,8 @@ function threadForm(t,preForumId){
    <div class="f1"><label>ซับฟอรั่ม *</label><select name="forumId">${forumOptions(v.forumId)}</select></div>
    <div class="f1"><label>จำกัดเฉพาะค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'ทุกค่าย / ไม่จำกัด')}</select></div>
   </div></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">เงื่อนไขกิจกรรม:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="illnessTrigger" ${v.illnessTrigger?'checked':''} style="margin-top:5px"><span><b>กำหนดให้ตัวละครป่วยเมื่อโพสต์ในกระทู้นี้</b><div class="topic-help">เปิดเฉพาะกระทู้กิจกรรมหรือโรลเพลย์ที่มีเงื่อนไขให้ตัวละครป่วยเท่านั้น การตั้งค่านี้ไม่มีผลต่อกระทู้อื่น</div></span></label></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">คำเตือนการโพสต์:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="consecutivePostWarning" ${v.consecutivePostWarning?'checked':''} style="margin-top:5px"><span><b>เตือนเมื่อโพสต์ติดกันด้วยตัวละครเดิม</b><div class="topic-help">ตรวจเฉพาะโพสต์ล่าสุดที่อยู่ติดกันในกระทู้นี้ของตัวละครคนเดิม เตือนเมื่อมีโพสต์ถัดกันตั้งแต่ครั้งที่ 2 ไม่บล็อกโพสต์และไม่ทำให้ป่วยอัตโนมัติ</div></span></label></div></div>
   <div class="topic-field-row"><div class="topic-field-label">รางวัลและระดับ:</div><div class="topic-field-value"><div class="topic-compact-row">
    <div class="f1"><label>🏅 EXP ต่อโพสต์</label><input type="number" name="exp" min="0" max="200" value="${v.exp}"></div>
    <div class="f1"><label>💰 เงินวอนต่อโพสต์</label><input type="number" name="won" min="0" value="${v.won||0}"></div>
@@ -6734,7 +6848,7 @@ function doSaveThread(e,id){
  const authorMode=E.authorMode?.value||'character';
  const d={title:E.title.value.trim(),type:E.type.value,forumId:E.forumId.value,authorMode,authorCharId:authorMode==='character'?(getActiveChar(me())?.id||null):null,exp:+E.exp.value||0,won:Math.max(0,+E.won.value||0),minStage:+E.minStage.value,maxStage:+E.maxStage.value,agencyId:E.agencyId.value,
   train:[...f.querySelectorAll('[name=train]:checked')].map(x=>x.value),statGain:+E.statGain.value||0,
-  plot:plot.content,plotMode:plot.mode,rules:'',rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked};
+  plot:plot.content,plotMode:plot.mode,rules:'',rulesMode:'rich',css:E.css.value,tpl:E.tpl.value,deadline:E.deadline.value,pinned:E.pinned.checked,illnessTrigger:!!E.illnessTrigger.checked,consecutivePostWarning:!!E.consecutivePostWarning.checked};
  if(d.minStage>d.maxStage)return toast('ระดับต่ำสุดต้องไม่มากกว่าระดับสูงสุด','bad');
  if(id){update('threads',id,t=>Object.assign(t,d));toast('บันทึกแล้ว');return go('thread/'+id)}
  const th=DB.get('threads'),nt={id:uid(),authorId:me().id,status:'open',createdAt:Date.now(),...d};th.push(nt);DB.set('threads',th);toast('สร้างกระทู้แล้ว');go('thread/'+nt.id);
