@@ -2430,6 +2430,35 @@ nav{
 @media(max-width:850px){.hospital-roleplay-layout{grid-template-columns:minmax(0,1fr)}.hospital-patient-card{max-width:none}.hospital-editor-card .ed-area{min-height:210px}}
 @media(max-width:600px){.hospital-roleplay-layout{padding:10px;gap:10px}.hospital-patient-inner{padding:13px}.hospital-editor-heading{padding:14px}.hospital-editor-fields{padding:0 12px 12px}.hospital-editor-card .topic-field-row{grid-template-columns:1fr;gap:6px}.hospital-editor-card .topic-field-label{padding-top:0}.hospital-patient-card .hospital-photo-preview{width:68px;height:88px;flex-basis:68px}.hospital-editor-label{font-size:9px;padding:4px 6px}}
 </style>
+
+<style id="hospital-form-enforcement">
+/* Hospital threads use one mandatory composer, not the generic reply rows. */
+.hospital-author-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;background:#f8faf6;border-bottom:1px solid #e4eae1;color:#263c35}
+.hospital-author-strip span,.hospital-author-strip small{display:block;font-size:11px;color:#718078}
+.hospital-author-strip b{display:block;margin:2px 0;font-size:13px;color:#355b4b}
+.hospital-editor-card .hospital-content-row{grid-template-columns:minmax(0,1fr)!important;padding:14px 0 12px!important}
+.hospital-editor-card .hospital-content-row>.topic-field-label{display:none!important}
+.hospital-editor-card .hospital-content-row>.topic-field-value{width:100%}
+#reply-composer[data-hospital-kind="queue"] .hospital-thread-context-row,
+#reply-composer[data-hospital-kind="treatment"] .hospital-thread-context-row,
+#reply-composer[data-hospital-kind="queue"] .hospital-training-row,
+#reply-composer[data-hospital-kind="treatment"] .hospital-training-row{display:none!important}
+#reply-composer[data-hospital-kind="queue"][data-hospital-admin="0"] .hospital-identity-row,
+#reply-composer[data-hospital-kind="treatment"][data-hospital-admin="0"] .hospital-identity-row{display:none!important}
+#reply-composer[data-hospital-kind="queue"] .hospital-note-box,
+#reply-composer[data-hospital-kind="treatment"] .hospital-note-box{margin-top:12px}
+#reply-composer[data-hospital-kind="queue"] .hospital-roleplay-layout,
+#reply-composer[data-hospital-kind="treatment"] .hospital-roleplay-layout{width:100%;grid-template-columns:minmax(225px,275px) minmax(0,1fr);align-items:stretch}
+#reply-composer[data-hospital-kind="queue"] .hospital-editor-card,
+#reply-composer[data-hospital-kind="treatment"] .hospital-editor-card{display:flex;flex-direction:column}
+#reply-composer[data-hospital-kind="queue"] .hospital-editor-fields,
+#reply-composer[data-hospital-kind="treatment"] .hospital-editor-fields{flex:1}
+@media(max-width:850px){
+ #reply-composer[data-hospital-kind="queue"] .hospital-roleplay-layout,
+ #reply-composer[data-hospital-kind="treatment"] .hospital-roleplay-layout{grid-template-columns:minmax(0,1fr)}
+ .hospital-author-strip{padding:10px 13px}
+}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
@@ -6299,6 +6328,7 @@ function pageThread(id,view=''){
  const viewingChar=getActiveChar(me());if(viewingChar?.sick&&!hospitalThreadKind(t))return app(sickHospitalAccessNotice());
  const u=me(),chars=DB.get('characters'),users=DB.get('users'),ty=TYPES[t.type]||TYPES.main,closed=isClosed(t),train=t.train||[],ag=agencyOf(t.agencyId),fo=DB.get('forums').find(f=>f.id===t.forumId);
  const hospitalKind=hospitalThreadKind(t),hospitalActiveChar=getActiveChar(u);
+ const hospitalAuthorLabel=esc(hospitalActiveChar?.stageName||hospitalActiveChar?.name||u?.username||'ผู้ใช้');
  const hospitalNoteField='';
  const hospitalPhotoUrl=String(hospitalActiveChar?.portrait||hospitalActiveChar?.avatar||'').trim();
  const hospitalPhotoSrc=/^https?:\/\//i.test(hospitalPhotoUrl)?hospitalPhotoUrl:'';
@@ -6324,6 +6354,7 @@ function pageThread(id,view=''){
   </aside>
   <section class="hospital-editor-card">
    <div class="hospital-editor-heading"><div><h3>02 · เนื้อหาโรลเพลย์</h3><p>เขียนการกระทำ บรรยากาศ และบทสนทนาของตัวละครในช่องด้านล่าง</p></div><span class="hospital-editor-label">● ฟอร์มโรงพยาบาล</span></div>
+   <div class="hospital-author-strip"><div><span>โพสต์ในนาม</span><b>${hospitalAuthorLabel}</b><small>บัญชีผู้ใช้ · ${esc(u?.username||'—')}</small></div></div>
    <div class="hospital-editor-fields">` : '';
  const hospitalWordCountField=hospitalKind?`<div class="hospital-word-counter"><span>จำนวนคำโรลเพลย์</span><b data-hospital-word-count>0</b><span>คำ · ต้องมากกว่า 70 คำ</span></div>` : '';
  const hospitalNoteEditorField=hospitalKind?`<section class="hospital-note-box">
@@ -6383,14 +6414,14 @@ function pageThread(id,view=''){
   else if(!canChar&&!isAdmin()){
    form=`<div class="card mut">⚠️ ${ac?`ตัวละครที่ใช้อยู่ (<b>${esc(ac.stageName||ac.name)}</b>) ยังไม่ตรงเงื่อนไขกระทู้นี้ (ระดับ ${esc(STAGES[t.minStage]?.n)} – ${esc(STAGES[t.maxStage]?.n)}${ag?` · เฉพาะค่าย ${esc(ag.name)}`:''}) — ลองสลับตัวละครที่มุมขวาบน`:'คุณยังไม่มีตัวละครที่ผ่านการอนุมัติ · <a href="#newchar">ลงทะเบียนตัวละคร</a>'}</div>`;
   }else{
-   form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" data-hospital-kind="${hospitalKind}" onsubmit="doReply(event,'${t.id}')">
+   form=`<form id="reply-composer" class="card topic-composer reply-composer" data-tid="${t.id}" data-hospital-kind="${hospitalKind}" data-hospital-admin="${isAdmin() ? '1' : '0'}" onsubmit="doReply(event,'${t.id}')">
     <div class="topic-composer-heading"><h2>${hospitalKind?'🩺 บันทึกโรลโรงพยาบาล':'✍️ ตอบกลับโพสต์ใหม่'}</h2><p>${hospitalKind?'กรอกข้อมูลคนไข้และเขียนโรลในฟอร์มนี้ก่อนส่ง':'เขียนข้อความตอบกลับในกระทู้นี้'}</p></div>${hospitalPatientFields}
     <div class="preview topic-preview reply-preview" hidden></div>
-    <div class="topic-field-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
-    <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
+    <div class="topic-field-row hospital-thread-context-row"><div class="topic-field-label">ตอบกระทู้:</div><div class="topic-field-value"><div class="row" style="gap:9px"><a class="badge" style="--c:${ty.c}" href="#thread/${t.id}">${esc(ty.n)}</a><b>${esc(t.title)}</b></div></div></div>
+    <div class="topic-field-row hospital-identity-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
     ${isAdmin()?`<div class="topic-role-choice">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div>`:''}</div></div>
-    ${train.length&&canChar?`<div class="topic-field-row"><div class="topic-field-label">ตัวเลือกเพิ่มเติม:</div><div class="topic-field-value"><div style="font-weight:600;margin-bottom:8px">🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</div><div class="chk">${todayPracticeTotal(ac)>=10?'<div class="topic-help">วันนี้ฝึกครบ 10 ครั้งแล้ว โพสต์นี้ยังเขียนโรลได้ แต่จะไม่ฝึกเพิ่ม</div>':train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div></div></div>`:''}
-    <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl,ph:hospitalKind?'เริ่มเขียนโรลเพลย์ของคนไข้ที่นี่…':'เริ่มเขียนได้เลย…'})}</div></div></div>${hospitalWordCountField}${hospitalNoteEditorField}
+    ${train.length&&canChar?`<div class="topic-field-row hospital-training-row"><div class="topic-field-label">ตัวเลือกเพิ่มเติม:</div><div class="topic-field-value"><div style="font-weight:600;margin-bottom:8px">🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</div><div class="chk">${todayPracticeTotal(ac)>=10?'<div class="topic-help">วันนี้ฝึกครบ 10 ครั้งแล้ว โพสต์นี้ยังเขียนโรลได้ แต่จะไม่ฝึกเพิ่ม</div>':train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div></div></div>`:''}
+    <div class="topic-field-row hospital-content-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl,ph:hospitalKind?'เริ่มเขียนโรลเพลย์ของคนไข้ที่นี่…':'เริ่มเขียนได้เลย…'})}</div></div></div>${hospitalWordCountField}${hospitalNoteEditorField}
     <div class="topic-field-row"><div class="topic-field-label">รายละเอียดโพสต์:</div><div class="topic-field-value"><div class="topic-reward-line">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</div><p class="topic-help">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</p></div></div>
     <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">${hospitalKind?'📨 ส่งโรลโรงพยาบาล':'📨 ตอบกระทู้'}</button></div>
    ${hospitalEndLayout}
