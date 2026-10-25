@@ -73,7 +73,7 @@ summary{cursor:pointer;font-weight:600}
 .rich summary{color:var(--warn)}
 .rich iframe{max-width:100%;border-radius:10px;border:0}
 .rich hr{border:0;border-top:1px solid var(--line);margin:14px 0}
-.rich pre{background:var(--card2);padding:10px;border-radius:8px;overflow:auto}
+.rich pre{box-sizing:border-box;background:#fff!important;color:#24242a!important;border:1px solid #dedee4;padding:14px 16px;border-radius:10px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2;font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;font-size:.875em;line-height:1.7;max-width:100%}.rich pre>code{background:transparent!important;color:inherit!important;white-space:inherit;overflow-wrap:inherit;font:inherit}
 
 /* ---------- กล่องเขียนข้อความ ---------- */
 .ed{border:1px solid var(--line);border-radius:12px;background:var(--card2);margin:6px 0 14px;overflow:hidden}
@@ -3344,6 +3344,9 @@ img,video{height:auto}
 html,body{height:auto!important;min-height:0!important;max-height:none!important}
 body{box-sizing:border-box}
 body>*{box-sizing:border-box}
+/* Keep code samples readable in the embedded HTML renderer, independently of site theme. */
+pre:has(> code){box-sizing:border-box!important;background:#fff!important;color:#24242a!important;border:1px solid #dedee4!important;border-radius:10px!important;padding:14px 16px!important;max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2;font-family:ui-monospace,SFMono-Regular,Consolas,'Liberation Mono',monospace;font-size:13px;line-height:1.7}
+pre:has(> code)>code{background:transparent!important;color:inherit!important;white-space:inherit;overflow-wrap:inherit;font:inherit}
 
 </style>
 </head><body${fullDoc?bodyAttrs:''}>${body||''}
@@ -6043,6 +6046,9 @@ function characterBioReadableLength(content,mode){
  return readable.length;
 }
 async function doCreateCharacterBioThread(e){
+ return runFormSubmitOnce(e,()=>doCreateCharacterBioThreadCore(e),{busyText:'กำลังเผยแพร่…',errorPrefix:'เผยแพร่กระทู้ประวัติไม่สำเร็จ: ',logLabel:'Character bio thread submission failed'});
+}
+async function doCreateCharacterBioThreadCore(e){
  e.preventDefault();const u=me(),f=e.target,E=f.elements;if(!u)return go('login');
  if(!E.confirmSecondary?.checked)return toast('กรุณาตรวจสอบและยืนยันว่ากำลังใช้บัญชีรองที่ถูกต้องก่อนลงประวัติ','bad');
  const title=E.title.value.trim(),bio=edGet(edOf(f,'background'));
@@ -6585,7 +6591,40 @@ function pageThread(id,view=''){
   });
  }
 }
+const FORM_SUBMISSION_LOCKS=new WeakSet();
+async function runFormSubmitOnce(e,action,options={}){
+ if(e&&typeof e.preventDefault==='function')e.preventDefault();
+ const form=e?.currentTarget||e?.target;
+ if(!form||typeof form.querySelectorAll!=='function')return false;
+ if(FORM_SUBMISSION_LOCKS.has(form))return false;
+ FORM_SUBMISSION_LOCKS.add(form);
+ const buttons=[...form.querySelectorAll('button[type="submit"],button:not([type])')];
+ const prior=buttons.map(button=>({button,disabled:button.disabled,html:button.innerHTML,ariaBusy:button.getAttribute('aria-busy')}));
+ buttons.forEach(button=>{
+  button.disabled=true;
+  button.setAttribute('aria-busy','true');
+  if(options.busyText)button.textContent=options.busyText;
+ });
+ try{
+  return await action();
+ }catch(error){
+  console.error(options.logLabel||'Form submission failed',error);
+  toast((options.errorPrefix||'ดำเนินการไม่สำเร็จ: ')+(error?.message||String(error)),'bad');
+  return false;
+ }finally{
+  FORM_SUBMISSION_LOCKS.delete(form);
+  for(const state of prior){
+   state.button.disabled=state.disabled;
+   state.button.innerHTML=state.html;
+   if(state.ariaBusy===null)state.button.removeAttribute('aria-busy');
+   else state.button.setAttribute('aria-busy',state.ariaBusy);
+  }
+ }
+}
 async function doReply(e,tid){
+ return runFormSubmitOnce(e,()=>doReplyCore(e,tid),{busyText:'กำลังส่งโพสต์…',errorPrefix:'โพสต์ไม่สำเร็จ: ',logLabel:'Reply submission failed'});
+}
+async function doReplyCore(e,tid){
  e.preventDefault();const f=e.target,E=f.elements,u=me();if(!u)return;
  const t=DB.get('threads').find(x=>x.id===tid);if(!t||isClosed(t))return toast('กระทู้นี้ปิดแล้ว','bad');
  const {content,mode}=edGet(edOf(f,'content'));
@@ -7119,7 +7158,10 @@ function threadForm(t,preForumId){
  </form>`;
 }
 async function fillSample(f){const E=f.elements;if((E.css.value||E.tpl.value)&&!await ask('แทนที่โค้ดเดิม?'))return;E.css.value=SAMPLE_CSS;E.tpl.value=SAMPLE_TPL}
-function doSaveThread(e,id){
+async function doSaveThread(e,id){
+ return runFormSubmitOnce(e,()=>doSaveThreadCore(e,id),{busyText:'กำลังบันทึก…',errorPrefix:'บันทึกกระทู้ไม่สำเร็จ: ',logLabel:'Thread save failed'});
+}
+function doSaveThreadCore(e,id){
  e.preventDefault();if(!hasAdminPermission('manage_threads'))return toast('ไม่มีสิทธิ์จัดการกระทู้','bad');const f=e.target,E=f.elements;
  const plot=edGet(edOf(f,'plot'));
  if(!plot.content)return toast('กรุณาเขียนเนื้อเรื่อง','bad');
