@@ -2357,29 +2357,78 @@ nav{
 }
 </style>
 <style id="starlight-hospital-editor-styles">
-.hospital-intake-row{margin:0}
-.hospital-intake-kicker{margin:0 0 10px;color:var(--mut);font-size:.72rem;font-weight:750;letter-spacing:1.4px}
-.hospital-intake-grid{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:12px;align-items:start}
-.hospital-intake-inputs{min-width:0}
-.hospital-intake-inputs label{display:block;margin:0 0 6px;color:var(--txt);font-size:.86rem;font-weight:600}
-.hospital-intake-inputs input{width:100%;max-width:none;margin:0 0 12px;background:var(--field);color:var(--txt)}
-.hospital-intake-input{width:100%;max-width:none}
-.hospital-photo-preview{width:84px;height:108px;margin-top:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);font-size:10px;letter-spacing:.3px}
+/* Dedicated, enforced hospital roleplay form */
+.reply-composer[data-hospital-kind]{padding:0;overflow:hidden;border-color:#d6e1d3;background:#f2f4ef;color:#263c35}
+.reply-composer[data-hospital-kind]>.topic-composer-heading{margin:0;padding:18px 20px;background:#fff;border-bottom:1px solid #dfe6dc;color:#263c35}
+.reply-composer[data-hospital-kind]>.topic-composer-heading h2{margin:0 0 4px;color:#355b4b}
+.reply-composer[data-hospital-kind]>.topic-composer-heading p{margin:0;color:#718078}
+.hospital-roleplay-layout{display:grid;grid-template-columns:minmax(225px,275px) minmax(0,1fr);gap:16px;align-items:start;padding:16px;background:#f2f4ef}
+.hospital-patient-card,.hospital-editor-card{min-width:0;border:1px solid #dfe6dc;border-radius:15px;background:#fff;color:#263c35;overflow:hidden}
+.hospital-patient-inner{padding:17px}
+.hospital-form-brand{font-size:10px;letter-spacing:.15em;font-weight:800;color:#557b6b}
+.hospital-form-subbrand{font-size:11px;color:#718078;margin-top:2px}
+.hospital-form-section-title{display:flex;align-items:center;gap:9px;margin:15px 0 14px;font-size:15px;font-weight:750;color:#263c35}
+.hospital-form-section-number{display:grid;place-items:center;width:27px;height:27px;border-radius:8px;background:#e7f0e8;color:#355b4b;font-size:12px}
+.hospital-patient-preview{display:flex;align-items:center;gap:11px;margin:0 0 17px;padding:11px;background:#f8faf6;border:1px solid #e4eae1;border-radius:11px}
+.hospital-photo-preview{width:72px;height:92px;flex:0 0 72px;border:1px solid #cbd8cb;border-radius:8px;overflow:hidden;background:#e9eee7;display:flex;align-items:center;justify-content:center;text-align:center;color:#80968a;font-size:10px;letter-spacing:.04em}
 .hospital-photo-preview img{width:100%;height:100%;object-fit:cover}
-.hospital-intake-help{margin:0 0 10px}
-.hospital-word-counter{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0;padding:9px 0 0;border-top:1px solid var(--line);font-size:.78rem;color:var(--mut)}
-.hospital-word-counter b{font-size:.8rem;color:var(--txt);background:var(--card2);border:1px solid var(--line);padding:2px 7px;border-radius:5px}
-.hospital-note-row{margin:0}
-.hospital-note-row .topic-field-value>input{width:100%;max-width:none}
-.hospital-patient-meta{background:var(--card2);border-color:var(--line);color:var(--txt)}
-.hospital-patient-meta b{color:var(--txt)}
-.hospital-patient-meta small{color:var(--mut)}
-.hospital-post-note{border-left-color:var(--pri);background:var(--card2);color:var(--txt)}
+.hospital-patient-meta-preview{min-width:0}
+.hospital-patient-meta-preview .eyebrow{font-size:10px;letter-spacing:.09em;color:#718078}
+.hospital-patient-meta-preview b{display:block;margin-top:4px;font-size:14px;line-height:1.4;overflow-wrap:anywhere;color:#263c35}
+.hospital-patient-meta-preview small{display:block;margin-top:3px;font-size:11px;color:#718078;overflow-wrap:anywhere}
+.hospital-patient-card label{display:block;margin:11px 0 6px;color:#4c6056;font-size:12px;font-weight:700}
+.hospital-patient-card input[type=text],.hospital-patient-card input[type=url]{width:100%;min-width:0;margin:0;padding:10px 11px;background:#f8faf6;border:1px solid #dfe6dc;border-radius:9px;color:#263c35;font:inherit;font-size:13px}
+.hospital-patient-card input:focus,.hospital-note-box textarea:focus{outline:0;border-color:#8dad98;box-shadow:0 0 0 3px #557b6b1a;background:#fff}
+.hospital-patient-help{margin:7px 0 0;font-size:11px;line-height:1.6;color:#718078}
+.hospital-patient-foot{margin-top:15px;padding-top:12px;border-top:1px solid #e4eae1;font-size:11px;line-height:1.6;color:#718078}
+.hospital-editor-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:17px 18px 14px;border-bottom:1px solid #e4eae1;background:#fff}
+.hospital-editor-heading h3{margin:0;font-size:15px;color:#263c35}
+.hospital-editor-heading p{margin:4px 0 0;color:#718078;font-size:12px;line-height:1.6}
+.hospital-editor-label{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:20px;background:#e7f0e8;color:#355b4b;font-size:10px;font-weight:700;white-space:nowrap}
+.hospital-editor-fields{padding:0 16px 16px;background:#fff}
+.hospital-editor-card .topic-field-row{grid-template-columns:minmax(95px,19%) minmax(0,1fr);gap:12px;padding:11px 0;background:#fff;border-bottom:1px solid #e9eee8;color:#263c35}
+.hospital-editor-card .topic-field-label{padding-top:5px;color:#4c6056;font-size:12px}
+.hospital-editor-card .topic-field-value{color:#263c35}
+.hospital-editor-card .topic-identity small,.hospital-editor-card .topic-help{color:#718078}
+.hospital-editor-card .topic-identity b{color:#263c35}
+.hospital-editor-card .topic-reward-line{color:#557b6b}
+.hospital-editor-card .topic-role-choice label{background:#f8faf6;border-color:#dfe6dc;color:#263c35}
+.hospital-editor-card .ed{border:1px solid #dfe6dc;border-radius:10px;overflow:hidden;background:#fff;color:#263c35}
+.hospital-editor-card .ed-head,.hospital-editor-card .ed-foot{background:#f8faf6;color:#718078;border-color:#dfe6dc}
+.hospital-editor-card .ed-title,.hospital-editor-card .ed-count{color:#355b4b}
+.hospital-editor-card .ed-bar{background:#f8faf6;border-color:#dfe6dc;color:#4c6056}
+.hospital-editor-card .ed-bar button,.hospital-editor-card .ed-c{color:#52685c}
+.hospital-editor-card .ed-bar select{background:#fff;color:#263c35;border-color:#dfe6dc}
+.hospital-editor-card .ed-area{min-height:245px;max-height:52vh;background:#fff;color:#263c35}
+.hospital-editor-card .ed-area:empty:before{color:#a2aca5}
+.hospital-editor-card .ed-area.rich{color:#263c35}
+.hospital-editor-card .ed-source-area{background:#fff;color:#263c35}
+.hospital-editor-card .ed.html-source-mode .ed-area{background:#f8faf6;color:#263c35}
+.hospital-editor-card .ed-foot .ed-hint{font-size:0}
+.hospital-editor-card .ed-foot .ed-hint:after{content:"💡 ใช้แถบเครื่องมือจัดรูปแบบได้เลย ระบบนี้นับเฉพาะเนื้อหาโรลเพลย์";font-size:11px;line-height:1.6}
+.hospital-editor-card .ed-g-insert button[title="แทรกโค้ด HTML"]{display:none!important}
+.hospital-word-counter{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:13px 0 0;padding-top:11px;border-top:1px solid #e4eae1;font-size:12px;color:#718078}
+.hospital-word-counter b{font-size:13px;font-variant-numeric:tabular-nums;color:#355b4b;background:#e7f0e8;border:1px solid #d6e3d7;padding:3px 8px;border-radius:7px}
+.hospital-note-box{margin-top:14px;padding:14px 15px;background:#f7f3e9;border:1px solid #e9dfc8;border-radius:12px}
+.hospital-note-title{display:flex;align-items:center;gap:7px;color:#72654b;font-size:13px;font-weight:750;margin-bottom:8px}
+.hospital-note-title small{font-size:11px;font-weight:500;color:#8d8167}
+.hospital-note-box textarea{width:100%;min-height:68px;resize:vertical;display:block;padding:10px 12px;background:#ffffffc7;border:1px solid #e7dec9;border-radius:9px;color:#263c35;font:inherit;font-size:13px;line-height:1.75}
+.hospital-note-help{font-size:11px;line-height:1.6;color:#8d8167;margin:7px 0 0}
+.hospital-editor-card .topic-actions{margin:0;padding:14px 0 0;background:#fff;border-top:1px solid #e4eae1}
+.hospital-editor-card .topic-actions .btn{border-color:#cbd8cb;background:#fff;color:#4e6257}
+.hospital-editor-card .topic-actions .btn:last-child{background:#557b6b;border-color:#557b6b;color:#fff}
+.hospital-patient-meta{display:flex;gap:12px;align-items:center;padding:11px 13px;margin:0 0 14px;border:1px solid #dfe6dc;border-radius:11px;background:#f8faf6;color:#263c35}
+.hospital-patient-meta img{width:58px;height:72px;object-fit:cover;border-radius:7px;border:1px solid #cbd8cb;background:#e9eee7}
+.hospital-patient-meta b{display:block;color:#263c35;font-size:14px}
+.hospital-patient-meta small{display:block;color:#718078;font-size:11px;margin-top:3px}
+.hospital-post-note{margin-top:16px;padding:11px 14px;border-left:3px solid #c8b98e;border-radius:0 9px 9px 0;background:#f7f3e9;color:#766b52;font-size:12px;line-height:1.8;white-space:pre-wrap}
+.hospital-post-note b{display:block;font-size:10px;letter-spacing:.08em;margin-bottom:3px}
 .side-sick .side-por{border:2px solid #bd7378!important;box-shadow:0 0 0 3px #bd73781c}
 .side-sick .side-por>img{filter:saturate(.65);opacity:.9}
 .sick-character-name a{color:#b64f56!important}
 .sick-character-subtitle{color:#b64f56!important;font-weight:750}
-@media(max-width:600px){.hospital-intake-grid{grid-template-columns:minmax(0,1fr) 70px;gap:9px}.hospital-photo-preview{width:70px;height:94px}.hospital-intake-row,.hospital-note-row{grid-template-columns:1fr;gap:7px}.hospital-intake-row .topic-field-label,.hospital-note-row .topic-field-label{padding-top:0}}
+@media(max-width:850px){.hospital-roleplay-layout{grid-template-columns:minmax(0,1fr)}.hospital-patient-card{max-width:none}.hospital-editor-card .ed-area{min-height:210px}}
+@media(max-width:600px){.hospital-roleplay-layout{padding:10px;gap:10px}.hospital-patient-inner{padding:13px}.hospital-editor-heading{padding:14px}.hospital-editor-fields{padding:0 12px 12px}.hospital-editor-card .topic-field-row{grid-template-columns:1fr;gap:6px}.hospital-editor-card .topic-field-label{padding-top:0}.hospital-patient-card .hospital-photo-preview{width:68px;height:88px;flex-basis:68px}.hospital-editor-label{font-size:9px;padding:4px 6px}}
 </style>
 </head>
 <body>
@@ -6253,30 +6302,36 @@ function pageThread(id,view=''){
  const hospitalNoteField='';
  const hospitalPhotoUrl=String(hospitalActiveChar?.portrait||hospitalActiveChar?.avatar||'').trim();
  const hospitalPhotoSrc=/^https?:\/\//i.test(hospitalPhotoUrl)?hospitalPhotoUrl:'';
- const hospitalPatientFields=hospitalKind?`<div class="topic-field-row hospital-intake-row">
-   <div class="topic-field-label">ข้อมูลคนไข้</div>
-   <div class="topic-field-value">
-    <div class="hospital-intake-kicker">STARLIGHT MEDICAL CENTER · ID PHOTO</div>
-    <div class="hospital-intake-grid">
-     <div class="hospital-intake-inputs">
-      <label for="hospitalPatientName">ชื่อคนไข้ *</label>
-      <input id="hospitalPatientName" class="topic-subject hospital-intake-input" name="hospitalPatientName" maxlength="100" required value="${esc(hospitalActiveChar?.stageName||hospitalActiveChar?.name||'')}" placeholder="ชื่อ-นามสกุลคนไข้">
-      <label for="hospitalPatientPhoto">ลิงก์รูปภาพ ID Photo (URL)</label>
-      <input id="hospitalPatientPhoto" class="topic-subject hospital-intake-input" name="hospitalPatientPhoto" type="url" placeholder="https://..." value="${esc(hospitalPhotoUrl)}">
-     </div>
+ const hospitalPatientFields=hospitalKind?`<div class="hospital-roleplay-layout">
+  <aside class="hospital-patient-card">
+   <div class="hospital-patient-inner">
+    <div class="hospital-form-brand">STARLIGHT MEDICAL CENTER</div>
+    <div class="hospital-form-subbrand">Hospital Roleplay · Patient Intake</div>
+    <h3 class="hospital-form-section-title"><span class="hospital-form-section-number">01</span> ข้อมูลคนไข้</h3>
+    <div class="hospital-patient-preview">
      <div class="hospital-photo-preview"><img data-hospital-photo-preview alt="ID Photo" src="${esc(hospitalPhotoSrc)}" style="${hospitalPhotoSrc?'':'display:none'}"><span data-hospital-photo-placeholder style="${hospitalPhotoSrc?'display:none':''}">ID PHOTO</span></div>
+     <div class="hospital-patient-meta-preview"><div class="eyebrow">PATIENT PROFILE</div><b data-hospital-patient-name-preview>${esc(hospitalActiveChar?.stageName||hospitalActiveChar?.name||'ชื่อคนไข้')}</b><small data-hospital-patient-id-preview>${esc(hospitalActiveChar?.id?'รหัสผู้ป่วย · '+hospitalActiveChar.id:'รหัสผู้ป่วย · ยังไม่ระบุ')}</small></div>
     </div>
-    <p class="topic-help hospital-intake-help">ใส่ลิงก์รูปโดยตรง เช่น JPG, PNG หรือ WEBP · หากไม่ใส่รูป ระบบจะแสดงช่อง ID PHOTO</p>
-    <div class="hospital-word-counter"><span>จำนวนคำโรลเพลย์</span><b data-hospital-word-count>0</b><span>คำ · ต้องมากกว่า 70 คำ</span></div>
+    <label for="hospitalPatientName">ชื่อคนไข้ <span style="color:#b56b6b">*</span></label>
+    <input id="hospitalPatientName" type="text" name="hospitalPatientName" maxlength="100" required value="${esc(hospitalActiveChar?.stageName||hospitalActiveChar?.name||'')}" placeholder="ระบุชื่อคนไข้">
+    <label for="hospitalPatientId">รหัสผู้ป่วย <span style="color:#8b978d;font-weight:500">(ไม่จำเป็น)</span></label>
+    <input id="hospitalPatientId" type="text" name="hospitalPatientId" maxlength="40" value="${esc(hospitalActiveChar?.id||'')}" placeholder="เช่น SMC-001">
+    <label for="hospitalPatientPhoto">ลิงก์รูปภาพ ID Photo</label>
+    <input id="hospitalPatientPhoto" type="url" name="hospitalPatientPhoto" value="${esc(hospitalPhotoUrl)}" placeholder="https://example.com/photo.jpg">
+    <p class="hospital-patient-help">ใช้ลิงก์รูปโดยตรง เช่น JPG, PNG หรือ WEBP ระบบจะแสดงภาพขนาดเล็กแบบรูปติดบัตร</p>
+    <div class="hospital-patient-foot">ข้อมูลนี้จะติดไปกับโพสต์โรงพยาบาลโดยอัตโนมัติ ไม่ต้องใส่ซ้ำในเนื้อหาโรล</div>
    </div>
-  </div>` : '';
- const hospitalNoteEditorField=hospitalKind?`<div class="topic-field-row hospital-note-row">
-   <label class="topic-field-label" for="postNote">หมายเหตุสำหรับระบบโรงพยาบาล</label>
-   <div class="topic-field-value">
-    <input id="postNote" name="postNote" class="topic-subject hospital-intake-input" maxlength="160" required value="${hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษา'}" placeholder="${hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษา'}">
-    <p class="topic-help">หมายเหตุจะแสดงแยกท้ายโพสต์ และไม่รวมในการนับคำโรลเพลย์</p>
-   </div>
-  </div>` : '';
+  </aside>
+  <section class="hospital-editor-card">
+   <div class="hospital-editor-heading"><div><h3>02 · เนื้อหาโรลเพลย์</h3><p>เขียนการกระทำ บรรยากาศ และบทสนทนาของตัวละครในช่องด้านล่าง</p></div><span class="hospital-editor-label">● ฟอร์มโรงพยาบาล</span></div>
+   <div class="hospital-editor-fields">` : '';
+ const hospitalWordCountField=hospitalKind?`<div class="hospital-word-counter"><span>จำนวนคำโรลเพลย์</span><b data-hospital-word-count>0</b><span>คำ · ต้องมากกว่า 70 คำ</span></div>` : '';
+ const hospitalNoteEditorField=hospitalKind?`<section class="hospital-note-box">
+   <div class="hospital-note-title">▤ หมายเหตุ <small>· อยู่ภายในฟอร์ม</small></div>
+   <textarea id="postNote" name="postNote" rows="3" maxlength="500" required placeholder="${hospitalKind==='queue'?'ระบุหมายเหตุและต้องมีคำว่า รับบัตรคิว':'ระบุหมายเหตุและต้องมีคำว่า รับการรักษ'}">${hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษา'}</textarea>
+   <p class="hospital-note-help">หมายเหตุจะแสดงเป็นส่วนแยกท้ายโพสต์ และไม่นับรวมกับจำนวนคำโรลเพลย์</p>
+  </section>` : '';
+ const hospitalEndLayout=hospitalKind?`</div></section></div>` : '';
  const hospitalPanel=hospitalKind&&u?'<section class="card" style="margin:16px 0;border-color:#b9cbb8;background:#f4f8f2;color:#35483b"><div style="font-size:10px;letter-spacing:2px;color:#7b927c">STARLIGHT MEDICAL CENTER</div><h3 style="margin:7px 0;color:#35483b">'+(hospitalKind==='queue'?'แผนกรักษาทั่วไป · รับบัตรคิว':'ห้องตรวจ · ชำระค่ารักษา')+'</h3><p style="color:#68786b;line-height:1.8">'+(hospitalKind==='queue'?'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับบัตรคิว” แล้วกดปุ่มด้านล่าง':'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับการรักษา” แล้วแนบลิงก์เพื่อชำระค่ารักษา 1,000 won')+'</p><button class="btn" type="button" onclick="openHospitalModal(\''+(hospitalKind==='queue'?'queue':'treatment')+'\',\''+t.id+'\')">'+(hospitalKind==='queue'?'รับการรักษา · รับบัตรคิว':'ชำระค่ารักษา 1,000 won')+'</button></section>':'';
  const all=DB.get('posts'),posts=all.filter(p=>p.threadId===id).sort((a,b)=>a.createdAt-b.createdAt);
  const postsPerPage=15,totalPages=Math.max(1,Math.ceil(posts.length/postsPerPage));
@@ -6303,7 +6358,7 @@ function pageThread(id,view=''){
   return `<div id="post-${esc(p.id)}" class="card post ${p.gm?'gm':''}${isTarget?' post-permalink-target':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
    <div class="post-content-column" style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
    ${p.subject?`<h3 class="post-subject">${esc(p.subject)}</h3>`:''}
-   ${p.hospitalPatientName||p.hospitalPatientPhoto ? '<div class="hospital-patient-meta">'+(/^https?:\/\//i.test(p.hospitalPatientPhoto||'')?'<img src="'+esc(p.hospitalPatientPhoto)+'" alt="ID Photo" loading="lazy" onerror="this.remove()">':'')+'<div><b>'+esc(p.hospitalPatientName||c?.stageName||c?.name||'คนไข้')+'</b><small>STARLIGHT MEDICAL CENTER · ผู้เข้ารับการรักษา</small></div></div>' : ''}${renderBody(p.content,p.mode,t.css)}${p.hospitalWordCount&&p.note ? '<div class="hospital-post-note"><b>หมายเหตุ</b>'+esc(p.note)+'</div>' : ''}${Array.isArray(p.hospitalAnnotations)?p.hospitalAnnotations.map(a=>`<div role="status" style="margin-top:16px;padding:12px 16px;border-left:4px solid #39804b;background:#eff8ef;color:#28743c;font-size:15px;font-weight:650;line-height:1.8;border-radius:0 8px 8px 0">✦ ${esc(a.text||'')}</div>`).join(''):''}</div></div></div>`;
+   ${p.hospitalPatientName||p.hospitalPatientPhoto ? '<div class="hospital-patient-meta">'+(/^https?:\/\//i.test(p.hospitalPatientPhoto||'')?'<img src="'+esc(p.hospitalPatientPhoto)+'" alt="ID Photo" loading="lazy" onerror="this.remove()">':'')+'<div><b>'+esc(p.hospitalPatientName||c?.stageName||c?.name||'คนไข้')+'</b><small>'+(p.hospitalPatientId?'รหัสผู้ป่วย · '+esc(p.hospitalPatientId)+' · ':'')+'STARLIGHT MEDICAL CENTER · ผู้เข้ารับการรักษา</small></div></div>' : ''}${renderBody(p.content,p.mode,t.css)}${p.hospitalWordCount&&p.note ? '<div class="hospital-post-note"><b>หมายเหตุ</b>'+esc(p.note)+'</div>' : ''}${Array.isArray(p.hospitalAnnotations)?p.hospitalAnnotations.map(a=>`<div role="status" style="margin-top:16px;padding:12px 16px;border-left:4px solid #39804b;background:#eff8ef;color:#28743c;font-size:15px;font-weight:650;line-height:1.8;border-radius:0 8px 8px 0">✦ ${esc(a.text||'')}</div>`).join(''):''}</div></div></div>`;
  };
  const paginationHtml=()=>{
   if(totalPages<=1)return '';
@@ -6335,9 +6390,10 @@ function pageThread(id,view=''){
     <div class="topic-field-row"><div class="topic-field-label">ชื่อผู้ใช้:</div><div class="topic-field-value"><div class="topic-identity">${canChar?`${avatar(ac,42)}<div><b>${esc(ac.stageName||ac.name)}</b> ${stageBadge(ac.stage)}<small>บัญชี: ${esc(u.username)} · 💰 ${wonFmt(ac.won)}</small></div>`:`${avatar(u,42)}<div><b>${esc(u.username)}</b><small>กำลังเขียนในนามบัญชีผู้ใช้</small></div>`}</div>
     ${isAdmin()?`<div class="topic-role-choice">${canChar?`<label><input type="radio" name="as" value="char" checked><span>🎭 ตัวละคร</span></label>`:''}<label><input type="radio" name="as" value="gm" ${canChar?'':'checked'}><span>📢 ผู้ดำเนินเรื่อง (GM)</span></label></div>`:''}</div></div>
     ${train.length&&canChar?`<div class="topic-field-row"><div class="topic-field-label">ตัวเลือกเพิ่มเติม:</div><div class="topic-field-value"><div style="font-weight:600;margin-bottom:8px">🏋️ ทักษะที่ฝึกในโพสต์นี้ (+${t.statGain})</div><div class="chk">${todayPracticeTotal(ac)>=10?'<div class="topic-help">วันนี้ฝึกครบ 10 ครั้งแล้ว โพสต์นี้ยังเขียนโรลได้ แต่จะไม่ฝึกเพิ่ม</div>':train.map((k,i)=>`<label><input type="radio" name="train" value="${k}" ${i?'':'checked'}>${statOf(k).e} ${statOf(k).n}</label>`).join('')}</div></div></div>`:''}
-    <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl})}</div></div></div>${hospitalNoteEditorField}
+    <div class="topic-field-row"><div class="topic-field-label">ข้อความของคุณ:</div><div class="topic-field-value"><div class="topic-editor-wrap">${richEditor('content','',{code:true,draft:t.id,tpl:t.tpl,ph:hospitalKind?'เริ่มเขียนโรลเพลย์ของคนไข้ที่นี่…':'เริ่มเขียนได้เลย…'})}</div></div></div>${hospitalWordCountField}${hospitalNoteEditorField}
     <div class="topic-field-row"><div class="topic-field-label">รายละเอียดโพสต์:</div><div class="topic-field-value"><div class="topic-reward-line">🏅 +${t.exp} EXP · 💰 +${wonFmt(t.won)} ต่อโพสต์ · ขั้นต่ำ ${MIN_POST} ตัวอักษร</div><p class="topic-help">💡 ระบบบันทึกฉบับร่างอัตโนมัติในเบราว์เซอร์เครื่องนี้</p></div></div>
-    <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">📨 ตอบกระทู้</button></div>
+    <div class="topic-actions"><button type="button" class="btn ghost" data-editor-action="preview">👁 ดูตัวอย่างโพสต์</button><button class="btn">📨 ส่งโรลโรงพยาบาล</button></div>
+   ${hospitalEndLayout}
    </form>`;
   }
  }
@@ -6378,14 +6434,15 @@ async function doReply(e,tid){
  const {content,mode}=edGet(edOf(f,'content'));
  if(!content)return toast('ยังไม่ได้เขียนอะไรเลย','bad');
  if(mode==='html'&&!canCode())return toast('แอดมินปิดการใช้โค้ดอยู่','bad');
- const posts=DB.get('posts'),hospitalKind=hospitalThreadKind(t),hospitalPatientName=(f.elements.hospitalPatientName?.value||'').trim(),hospitalPatientPhoto=(f.elements.hospitalPatientPhoto?.value||'').trim(),hospitalNote=(f.elements.postNote?.value||'').trim(),hospitalWordCount=hospitalKind?hospitalCountWords(content):0;
+ if(hospitalThreadKind(DB.get('threads').find(x=>x.id===tid))&&(mode==='html'||mode==='bbcode'||document.querySelector('#reply-composer[data-hospital-kind] .ed')?.dataset.htmlSource==='1'))return toast('กระทู้โรงพยาบาลให้ใช้ฟอร์มและแถบจัดรูปแบบนี้โดยตรง ไม่รองรับโหมดโค้ด HTML/BBCode','bad');
+ const posts=DB.get('posts'),hospitalKind=hospitalThreadKind(t),hospitalPatientName=(f.elements.hospitalPatientName?.value||'').trim(),hospitalPatientId=(f.elements.hospitalPatientId?.value||'').trim(),hospitalPatientPhoto=(f.elements.hospitalPatientPhoto?.value||'').trim(),hospitalNote=(f.elements.postNote?.value||'').trim(),hospitalWordCount=hospitalKind?hospitalCountWords(content):0;
  if(hospitalKind){
   if(!hospitalPatientName)return toast('กรุณาระบุชื่อคนไข้','bad');
   if(hospitalWordCount<=70)return toast('โรลโรงพยาบาลต้องมีมากกว่า 70 คำ (ตอนนี้ '+hospitalWordCount+' คำ)','bad');
   const requiredNote=hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษ';
   if(!hospitalNote.includes(requiredNote))return toast('หมายเหตุต้องมีคำว่า “'+requiredNote+'”','bad');
  }
- const base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),note:hospitalNote,createdAt:Date.now(),...(hospitalKind?{hospitalPatientName,hospitalPatientPhoto,hospitalWordCount}: {})};let postedPostId=base.id;
+ const base={id:uid(),threadId:tid,userId:u.id,content,mode,subject:(f.elements.postSubject?.value||'').trim(),note:hospitalNote,createdAt:Date.now(),...(hospitalKind?{hospitalPatientName,hospitalPatientId,hospitalPatientPhoto,hospitalWordCount}: {})};let postedPostId=base.id;
  if(hasAdminPermission('manage_threads')&&E.as?.value==='gm'){
   posts.push({...base,charId:null,gm:true});DB.set('posts',posts);
   if(cloudReady)await cloudQueue;
@@ -7345,6 +7402,14 @@ document.addEventListener('input',event=>{
   const src=String(event.target.value||'').trim(),img=form.querySelector('[data-hospital-photo-preview]'),placeholder=form.querySelector('[data-hospital-photo-placeholder]');
   if(img&&/^https?:\/\//i.test(src)){img.src=src;img.style.display='block';if(placeholder)placeholder.style.display='none';}
   else if(img){img.removeAttribute('src');img.style.display='none';if(placeholder)placeholder.style.display='';}
+ }
+ if(event.target.name==='hospitalPatientName'){
+  const target=form.querySelector('[data-hospital-patient-name-preview]');
+  if(target)target.textContent=event.target.value.trim()||'ชื่อคนไข้';
+ }
+ if(event.target.name==='hospitalPatientId'){
+  const target=form.querySelector('[data-hospital-patient-id-preview]');
+  if(target)target.textContent=event.target.value.trim()?'รหัสผู้ป่วย · '+event.target.value.trim():'รหัสผู้ป่วย · ยังไม่ระบุ';
  }
 });
 
