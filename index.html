@@ -5475,7 +5475,7 @@ function phoneJobsMarkup(c){
  if(!c)return '<div class="phone-not-ready">ต้องมีตัวละครที่อนุมัติก่อนเข้าร่วมงาน</div>';
  const left=(c.lastSalary||0)+SALARY_CD-Date.now(),salaryReady=left<=0,practiceLeft=(c.lastPractice||0)+PRACTICE_CD-Date.now(),cap=statCap(c.stage);
  let html=phoneAppBack('งานพิเศษและฝึกฝน')+'<div class="phone-home-card"><div class="phone-eyebrow">DAILY PAY</div><div class="phone-balance">'+bankMoney(salaryOf(c.stage))+'</div><div class="phone-msg-muted">เงินเดือนตามระดับ · '+esc(STAGES[c.stage]?.n||'')+'</div><div class="phone-msg-muted" style="margin-top:7px">'+(salaryReady?'พร้อมรับเงินเดือน':'รับได้อีกใน '+fmtLeft(left))+'</div><button class="btn" style="width:100%;margin-top:10px" '+(!salaryReady?'disabled':'')+' onclick="phoneClaimSalary(\''+c.id+'\')">'+(salaryReady?'รับเงินเดือน':'ยังไม่ถึงเวลารับเงินเดือน')+'</button></div>';
- html+='<div class="phone-msg-card"><h3 style="margin-top:0">ฝึกทักษะประจำวัน</h3><p class="phone-msg-muted">'+(practiceLeft>0?'กลับมาฝึกได้อีกใน '+fmtLeft(practiceLeft):'เลือกทักษะที่จะฝึกเพื่อรับ EXP และพัฒนาตัวละคร')+'</p><div class="phone-msg-list">'+STATS.map(st=>'<div class="row between" style="gap:7px"><div class="phone-contact-info"><b>'+st.e+' '+esc(st.n)+'</b><div class="phone-contact-meta">ระดับ '+esc((c.stats||{})[st.k]||0)+'/'+cap+'</div></div><button class="btn sm ghost" '+(practiceLeft>0||((c.stats||{})[st.k]||0)>=cap?'disabled':'')+' onclick="phonePractice(\''+c.id+'\',\''+st.k+'\')">ฝึก</button></div>').join('')+'</div></div>';
+ html+='<div class="phone-msg-card"><h3 style="margin-top:0">ฝึกทักษะประจำวัน</h3><p class="phone-msg-muted">'+(practiceLeft>0?'กลับมาฝึกได้อีกใน '+fmtLeft(practiceLeft):'การฝึกนับจากโพสต์โรลเพลย์ในกระทู้ที่กำหนดเท่านั้น ไม่ใช่การกดจากหน้านี้')+'</p><div class="phone-msg-list">'+STATS.map(st=>'<div class="row between" style="gap:7px"><div class="phone-contact-info"><b>'+st.e+' '+esc(st.n)+'</b><div class="phone-contact-meta">ระดับ '+esc((c.stats||{})[st.k]||0)+'/'+cap+'</div></div><button class="btn sm ghost" '+(practiceLeft>0||((c.stats||{})[st.k]||0)>=cap?'disabled':'')+' onclick="phonePractice(\''+c.id+'\',\''+st.k+'\')">ฝึก</button></div>').join('')+'</div></div>';
  return html;
 }
 async function phoneClaimSalary(id){await claimSalary(id);await cloudRefresh(false);openPhoneFloatApp('jobs')}
@@ -6379,8 +6379,8 @@ async function doReply(e,tid){
    const actual=data?.post||{};
    postedPostId=actual.id||actual.post_id||actual.postId||base.id;
    const gain=Number(actual.gain)||0,w=Number(actual.wonGain)||0,alerts=[];
-   if(actual.becameSick)alerts.push('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด');else if(actual.trainingWarning)alerts.push('ฝึกทักษะครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ');
-   if(actual.consecutivePostWarning)alerts.push('คำเตือน: ตัวละครโพสต์ติดกันในกระทู้นี้ กรุณารอให้ตัวละครอื่นตอบกลับก่อน');
+   if(actual.becameSick)alerts.push('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด');else if(actual.trainingWarning)alerts.push('วันนี้ฝึกจากโรลเพลย์ครบ 10 ครั้งแล้ว ระบบจะหยุดนับการฝึกเพิ่มจนถึงวันถัดไป');
+   if(actual.consecutivePostWarning)alerts.push('ตัวละครโพสต์ติดกันในกระทู้นี้ จึงติดสถานะป่วยและต้องรักษาก่อนกลับไปโรลเพลย์ที่อื่น');
    if(alerts.length)toast(alerts.join(' · '),'bad');else toast(`+${t.exp} EXP${w?` · +${wonFmt(w)}`:''}${tr?` · ${statOf(tr).n} +${gain}`:''}`);
   }else{
    let gain=0,capped=false,trainingCount=0,trainingWarning=false,becameSick=false;
@@ -6392,13 +6392,13 @@ async function doReply(e,tid){
      const day=bangkokDateKey(),pc=o.practiceCounts||{},counts=pc.date===day?{...(pc.counts||{})}:{};
      trainingCount=Object.values(counts).reduce((sum,n)=>sum+Math.max(0,Number(n)||0),0)+1;counts[tr]=(Number(counts[tr])||0)+1;o.practiceCounts={date:day,counts};
      trainingWarning=trainingCount===10;
-     if(trainingCount===11){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='ฝึกทักษะ '+tr+' เกิน 10 ครั้งในวันเดียว';becameSick=true}
+     /* The daily cap is checked before this point; training itself does not cause illness. */
     }
     if(localConsecutiveWarning&&!o.sick){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='โพสต์ติดกันในกระทู้โรลเพลย์';becameSick=true}if(t.illnessTrigger&&!o.sick){o.sick=true;o.illnessOriginalStage=Number(o.stage)||0;o.sickSince=Date.now();o.sickReason='กิจกรรม: '+t.title;becameSick=true}
    });
    const w=Number(t.won)||0;if(w)addWon(ac.id,w,'โพสต์: '+t.title);
    posts.push({...base,charId:ac.id,gm:false,train:tr,gain,wonGain:w,trainingCount,trainingWarning,becameSick,consecutivePostWarning:localConsecutiveWarning});DB.set('posts',posts);
-   const alerts=[];if(becameSick)alerts.push('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด');else if(trainingWarning)alerts.push('ฝึกครบ 10 ครั้งแล้ว ฝึกหนักไป ระวังป่วยนะ');if(localConsecutiveWarning)alerts.push('คำเตือน: ตัวละครโพสต์ติดกันในกระทู้นี้ กรุณารอให้ตัวละครอื่นตอบกลับก่อน');
+   const alerts=[];if(becameSick)alerts.push('ตัวละครติดสถานะป่วยตามเงื่อนไขที่กำหนด');else if(trainingWarning)alerts.push('วันนี้ฝึกจากโรลเพลย์ครบ 10 ครั้งแล้ว ระบบจะหยุดนับการฝึกเพิ่มจนถึงวันถัดไป');if(localConsecutiveWarning)alerts.push('ตัวละครโพสต์ติดกันในกระทู้นี้ จึงติดสถานะป่วยและต้องรักษาก่อนกลับไปโรลเพลย์ที่อื่น');
    if(alerts.length)toast(alerts.join(' · '),'bad');else toast('+'+t.exp+' EXP'+(w?' · +'+wonFmt(w):'')+(tr?' · '+statOf(tr).n+' +'+gain:'')+(capped?' (ถึงเพดานขั้นนี้แล้ว)':'')+(eligible(nc)?' · 🎉 พร้อมเลื่อนขั้น':''));
 
   }
@@ -6531,7 +6531,7 @@ function pageChar(id){
     <div class="card"><h3 style="margin-top:0">🎒 ของสะสม (${inv.length})</h3>${inv.length?`<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${inv.map(x=>`<div class="side-box" style="text-align:center">${x.it.img?`<img src="${esc(x.it.img)}" loading="lazy">`:'<div style="font-size:2rem">🎁</div>'}<b>${esc(x.it.name)}</b><div class="mut" style="font-size:.75rem">${esc(x.it.cat)}</div>${isOwner&&x.it.id==='starlight_medicine_bottle'?'<button type="button" class="btn sm" style="margin-top:8px;width:100%" onclick="useHospitalMedicine(this.dataset.cid,this.dataset.iid)" data-cid="'+c.id+'" data-iid="'+x.id+'">💊 ใช้ยา</button>':''}</div>`).join('')}</div>`:`<p class="mut">ยังไม่มีของ${isOwner?' · <a href="#shop">ไปร้านค้า</a>':''}</p>`}</div>
     <div class="card"><div class="row between"><h3 style="margin:0">📊 ค่าสถานะ</h3><span class="mut">เพดานขั้นนี้ ${cap} · พลังรวม ⚡${sum(c.stats)}</span></div>
      <div class="row" style="gap:24px"><div>${radar(c.stats)}</div><div class="f1">${statBars(c.stats,cap)}</div></div>
-     ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ฝึกผ่านโรลเพลย์ได้รวมไม่เกิน 10 ครั้งต่อวัน · ครั้งที่ 10 เตือน และครั้งที่ 11 ทำให้ป่วย · ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${c.sick?'· ต้องรักษาให้หายก่อน':''}</p>
+     ${isOwner&&c.status==='approved'?`<h3>🏋️ ห้องซ้อม</h3><p class="mut">ฝึกผ่านโรลเพลย์ได้รวมไม่เกิน 10 ครั้งต่อวัน · ครั้งที่ 10 เตือน และหลังครบ 10 ครั้งระบบจะบล็อกการฝึกเพิ่ม · ได้ +1~2 แต้ม และ +${PRACTICE_EXP} EXP ${c.sick?'· ต้องรักษาให้หายก่อน':''}</p>
      <div class="row">${STATS.map(st=>{const count=todayPracticeCount(c,st.k),dis=c.sick||count>=11||(c.stats[st.k]||0)>=cap;return `<button class="btn sm ${dis?'ghost':''}" ${dis?'disabled':''} title="วันนี้ ${count}/10 ครั้ง" onclick="practice('${c.id}','${st.k}')">${st.e} ซ้อม${st.n} <small>(${count}/10)</small></button>`}).join('')}</div>`:''}</div>
     ${hasAdminPermission('manage_characters')&&c.status==='approved'?adminCharForm(c):''}
    </div>
@@ -6858,7 +6858,7 @@ function threadForm(t,preForumId){
    <div class="f1"><label>จำกัดเฉพาะค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'ทุกค่าย / ไม่จำกัด')}</select></div>
   </div></div></div>
   <div class="topic-field-row"><div class="topic-field-label">เงื่อนไขกิจกรรม:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="illnessTrigger" ${v.illnessTrigger?'checked':''} style="margin-top:5px"><span><b>กำหนดให้ตัวละครป่วยเมื่อโพสต์ในกระทู้นี้</b><div class="topic-help">เปิดเฉพาะกระทู้กิจกรรมหรือโรลเพลย์ที่มีเงื่อนไขให้ตัวละครป่วยเท่านั้น การตั้งค่านี้ไม่มีผลต่อกระทู้อื่น</div></span></label></div></div>
-  <div class="topic-field-row"><div class="topic-field-label">คำเตือนการโพสต์:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="consecutivePostWarning" ${v.consecutivePostWarning?'checked':''} style="margin-top:5px"><span><b>เตือนเมื่อโพสต์ติดกันด้วยตัวละครเดิม</b><div class="topic-help">ตรวจเฉพาะโพสต์ล่าสุดที่อยู่ติดกันในกระทู้นี้ของตัวละครคนเดิม เตือนเมื่อมีโพสต์ถัดกันตั้งแต่ครั้งที่ 2 ไม่บล็อกโพสต์และไม่ทำให้ป่วยอัตโนมัติ</div></span></label></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">คำเตือนการโพสต์:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="consecutivePostWarning" ${v.consecutivePostWarning?'checked':''} style="margin-top:5px"><span><b>เตือนเมื่อโพสต์ติดกันด้วยตัวละครเดิม</b><div class="topic-help">ตรวจเฉพาะโพสต์ล่าสุดของตัวละครคนเดิมในกระทู้นี้ เมื่อโพสต์ติดกันครั้งที่ 2 ระบบจะกำหนดสถานะป่วย และต้องรักษาก่อนกลับไปโรลเพลย์ที่อื่น</div></span></label></div></div>
   <div class="topic-field-row"><div class="topic-field-label">รางวัลและระดับ:</div><div class="topic-field-value"><div class="topic-compact-row">
    <div class="f1"><label>🏅 EXP ต่อโพสต์</label><input type="number" name="exp" min="0" max="200" value="${v.exp}"></div>
    <div class="f1"><label>💰 เงินวอนต่อโพสต์</label><input type="number" name="won" min="0" value="${v.won||0}"></div>
