@@ -6455,8 +6455,12 @@ async function copyPostLink(threadId,postId){
 }
 function hospitalPostIdFromLink(value){
  const raw=String(value||'').trim();if(!raw)return '';
- try{const u=new URL(raw,location.href);const m=(u.hash||'').match(/post-([^/?#]+)/);if(m)return decodeURIComponent(m[1]);}catch(e){}
- const m=raw.match(/post-([^/?#]+)/);return m?decodeURIComponent(m[1]):raw;
+ try{
+  const u=new URL(raw,location.href);
+  const m=(u.hash||'').match(/^#thread\/([^/?#]+)\/post-([^/?#]+)$/);
+  if(!m||u.origin!==location.origin)return '';
+  return decodeURIComponent(m[2]);
+ }catch(e){return '';}
 }
 function openHospitalModal(kind,threadId){
  const c=getActiveChar(me());
@@ -6473,7 +6477,11 @@ function openHospitalModal(kind,threadId){
  dlg.showModal();
  dlg.querySelector('form').onsubmit=async e=>{
   e.preventDefault();const f=e.currentTarget,postId=hospitalPostIdFromLink(f.elements.postLink.value),button=f.querySelector('[type="submit"]');
-  if(!postId)return toast('อ่านรหัสโพสต์ไม่สำเร็จ กรุณาคัดลอกลิงก์โพสต์จากเว็บ','bad');
+  if(!postId)return toast('ลิงก์ไม่ถูกต้อง กรุณากดคัดลอกลิงก์จากโพสต์ในเว็บ STARLIGHT โดยตรง','bad');
+  const linkedPost=DB.get('posts').find(p=>p.id===postId);
+  if(!linkedPost)return toast('ไม่พบโพสต์นี้ในระบบ อาจถูกลบไปแล้ว กรุณาเปิดโพสต์ต้นทางแล้วคัดลอกลิงก์ใหม่','bad');
+  if(linkedPost.userId!==me()?.id||linkedPost.charId!==c.id)return toast('รับบัตรคิวได้เฉพาะโพสต์ของบัญชีและตัวละครที่เลือกอยู่เท่านั้น','bad');
+  if(queue&&linkedPost.threadId!==threadId)return toast('กรุณาใช้ลิงก์โพสต์จากกระทู้แผนกรับบัตรคิวที่เปิดอยู่นี้','bad');
   button.disabled=true;button.textContent='กำลังตรวจสอบ…';
   try{
    let data,error;
@@ -6481,7 +6489,7 @@ function openHospitalModal(kind,threadId){
    else{({data,error}=await supaClient.rpc('site_hospital_pay',{p_character_id:c.id,p_treatment_post_id:postId,p_payment_method:f.elements.paymentMethod.value,p_request_id:uid()}));}
    if(error)throw error;
    await cloudRefresh(false);dlg.close();
-   if(queue)toast('จัดคิวสำเร็จ: ห้องตรวจหมายเลข '+data.room_number+' พบ'+data.doctor_name);
+   if(queue)toast('รับบัตรคิวแล้ว พบ'+data.doctor_name+' ที่ห้องตรวจหมายเลข '+data.room_number);
    else toast(data.already_paid?'รายการนี้ชำระเงินแล้ว':'ชำระเงินสำเร็จ ได้รับขวดยารักษาแล้ว');
    go('thread/'+threadId+'/post-'+encodeURIComponent(postId));
   }catch(err){toast('ดำเนินการไม่สำเร็จ: '+(err.message||err),'bad');button.disabled=false;button.textContent=queue?'ยืนยันรับคิว':'ชำระ 1,000 won';}
