@@ -2429,6 +2429,25 @@ nav{
 .sick-character-subtitle{color:#b64f56!important;font-weight:750}
 @media(max-width:850px){.hospital-roleplay-layout{grid-template-columns:minmax(0,1fr)}.hospital-patient-card{max-width:none}.hospital-editor-card .ed-area{min-height:210px}}
 @media(max-width:600px){.hospital-roleplay-layout{padding:10px;gap:10px}.hospital-patient-inner{padding:13px}.hospital-editor-heading{padding:14px}.hospital-editor-fields{padding:0 12px 12px}.hospital-editor-card .topic-field-row{grid-template-columns:1fr;gap:6px}.hospital-editor-card .topic-field-label{padding-top:0}.hospital-patient-card .hospital-photo-preview{width:68px;height:88px;flex-basis:68px}.hospital-editor-label{font-size:9px;padding:4px 6px}}
+/* Published hospital roleplay document treatment */
+.hospital-post-document{box-sizing:border-box;position:relative;width:100%;max-width:100%;margin:16px 0 18px;overflow:hidden;border:1px solid #d9e4d9;border-radius:14px;background:#fff;color:#304238;box-shadow:0 8px 24px #00000012}
+.hospital-post-document-head{display:flex;align-items:center;gap:12px;padding:15px 18px;background:linear-gradient(115deg,#f0f6ef 0%,#fff 78%);border-bottom:1px solid #e0e9de}
+.hospital-post-document-symbol{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:11px;background:#557b6b;color:#fff;font-size:22px;font-weight:700;box-shadow:inset 0 0 0 1px #ffffff55}
+.hospital-post-document-heading{min-width:0;flex:1}
+.hospital-post-document-heading b{display:block;color:#2f5141;font-size:12px;font-weight:800;letter-spacing:.12em;line-height:1.6}
+.hospital-post-document-heading span{display:block;margin-top:2px;color:#718477;font-size:11px;line-height:1.6}
+.hospital-post-document-badge{flex:0 0 auto;padding:5px 9px;border:1px solid #d6e4d5;border-radius:999px;background:#f7fbf5;color:#52735f;font-size:10px;font-weight:750;white-space:nowrap}
+.hospital-post-document-body{padding:clamp(16px,2.3vw,26px);background:#fff}
+.hospital-post-document-body>.rich{color:#34443a!important;font-family:'Noto Sans Thai','Sarabun','Leelawadee UI',Tahoma,sans-serif;font-size:16px;line-height:1.95;letter-spacing:.005em;overflow-wrap:anywhere}
+.hospital-post-document-body>.rich p{margin:0 0 1em}
+.hospital-post-document-body>.rich p:last-child{margin-bottom:0}
+.hospital-post-document-body>.rich h1,.hospital-post-document-body>.rich h2,.hospital-post-document-body>.rich h3,.hospital-post-document-body>.rich h4{color:#2f614a;line-height:1.55;margin:1.15em 0 .55em}
+.hospital-post-document-body>.rich blockquote{margin:15px 0;padding:11px 15px;border-left:3px solid #8eaa91;border-radius:0 9px 9px 0;background:#f4f8f2;color:#52695a}
+.hospital-post-document-body>.rich hr{border:0;border-top:1px solid #e2eae0;margin:18px 0}
+.hospital-post-document-body>.rich pre{background:#fff!important;color:#24242a!important;border:1px solid #dedee4!important;border-radius:9px;padding:13px 15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.hospital-post-document-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 17px;background:#f7faf5;border-top:1px solid #e5ece3;color:#819084;font-size:9px;letter-spacing:.09em}
+.hospital-post-document-foot span:last-child{font-weight:750;color:#66836b}
+@media(max-width:600px){.hospital-post-document{margin:12px 0 14px;border-radius:11px}.hospital-post-document-head{gap:9px;padding:12px}.hospital-post-document-symbol{width:32px;height:32px;flex-basis:32px;font-size:19px}.hospital-post-document-heading b{font-size:10px;letter-spacing:.08em}.hospital-post-document-heading span{font-size:10px}.hospital-post-document-badge{font-size:9px;padding:4px 6px}.hospital-post-document-body{padding:15px}.hospital-post-document-body>.rich{font-size:15.5px;line-height:1.85}.hospital-post-document-foot{padding:8px 12px;font-size:8px}}
 </style>
 
 <style id="hospital-form-enforcement">
@@ -3266,6 +3285,19 @@ function renderBody(content,mode,css,allowCharacterHtmlFallback=false){
  // threads whose mode was saved as rich/text before the source editor preserved code.
  if(mode==='html'||isStandaloneHtmlSource(source)||(allowCharacterHtmlFallback&&/<style\b/i.test(source)))return codeFrame(source,css,true);
  return `<div class="rich">${sanitize(toRich(content,mode))}</div>`;
+}
+function renderHospitalPostBody(post,thread,hospitalKind){
+ const source=String(post?.content||'');
+ // Explicit HTML documents own their design; preserve them unchanged.
+ if(post?.mode==='html'||isStandaloneHtmlSource(source))return renderBody(source,post.mode,thread?.css||'');
+ const inner=renderBody(source,post?.mode,thread?.css||'');
+ const kind=hospitalKind==='queue'?'INTAKE NOTE · บันทึกการรับบัตรคิว':'CLINICAL NOTE · บันทึกการตรวจรักษา';
+ const badge=hospitalKind==='queue'?'PATIENT INTAKE':'MEDICAL RECORD';
+ return '<section class="hospital-post-document" aria-label="บันทึกโรลเพลย์โรงพยาบาล">'+
+  '<header class="hospital-post-document-head"><span class="hospital-post-document-symbol" aria-hidden="true">✚</span><div class="hospital-post-document-heading"><b>STARLIGHT MEDICAL CENTER</b><span>'+kind+'</span></div><span class="hospital-post-document-badge">'+badge+'</span></header>'+
+  '<div class="hospital-post-document-body">'+inner+'</div>'+
+  '<footer class="hospital-post-document-foot"><span>STARLIGHT RP · HOSPITAL ROLEPLAY</span><span>CARE • RECORD • RECOVER</span></footer>'+
+ '</section>';
 }
 function codeFrame(html,css='',isolated=false){
  const id='cf'+uid();
@@ -6521,7 +6553,7 @@ function pageThread(id,view=''){
   return `<div id="post-${esc(p.id)}" class="card post ${p.gm?'gm':''}${isTarget?' post-permalink-target':''}"><div class="post-layout">${p.gm?gmSide():sideCard(c,o,c?cnt(c.id):0)}
    <div class="post-content-column" style="min-width:0"><div class="row between post-top"><span class="mut">${info}</span><span class="mut">${tools}</span></div>
    ${p.subject?`<h3 class="post-subject">${esc(p.subject)}</h3>`:''}
-   ${p.hospitalPatientName||p.hospitalPatientPhoto ? '<div class="hospital-patient-meta">'+(/^https?:\/\//i.test(p.hospitalPatientPhoto||'')?'<img src="'+esc(p.hospitalPatientPhoto)+'" alt="ID Photo" loading="lazy" onerror="this.remove()">':'')+'<div><b>'+esc(p.hospitalPatientName||c?.stageName||c?.name||'คนไข้')+'</b><small>'+(p.hospitalPatientId?'รหัสผู้ป่วย · '+esc(p.hospitalPatientId)+' · ':'')+'STARLIGHT MEDICAL CENTER · ผู้เข้ารับการรักษา</small></div></div>' : ''}${renderBody(p.content,p.mode,t.css)}${p.hospitalWordCount&&p.note ? '<div class="hospital-post-note"><b>หมายเหตุ</b>'+esc(p.note)+'</div>' : ''}${Array.isArray(p.hospitalAnnotations)?p.hospitalAnnotations.map(a=>`<div role="status" style="margin-top:16px;padding:12px 16px;border-left:4px solid #39804b;background:#eff8ef;color:#28743c;font-size:15px;font-weight:650;line-height:1.8;border-radius:0 8px 8px 0">✦ ${esc(a.text||'')}</div>`).join(''):''}</div></div></div>`;
+   ${p.hospitalPatientName||p.hospitalPatientPhoto ? '<div class="hospital-patient-meta">'+(/^https?:\/\//i.test(p.hospitalPatientPhoto||'')?'<img src="'+esc(p.hospitalPatientPhoto)+'" alt="ID Photo" loading="lazy" onerror="this.remove()">':'')+'<div><b>'+esc(p.hospitalPatientName||c?.stageName||c?.name||'คนไข้')+'</b><small>'+(p.hospitalPatientId?'รหัสผู้ป่วย · '+esc(p.hospitalPatientId)+' · ':'')+'STARLIGHT MEDICAL CENTER · ผู้เข้ารับการรักษา</small></div></div>' : ''}${p.hospitalWordCount||p.hospitalPatientName||p.hospitalPatientPhoto?renderHospitalPostBody(p,t,hospitalKind):renderBody(p.content,p.mode,t.css)}${p.hospitalWordCount&&p.note ? '<div class="hospital-post-note"><b>หมายเหตุ</b>'+esc(p.note)+'</div>' : ''}${Array.isArray(p.hospitalAnnotations)?p.hospitalAnnotations.map(a=>`<div role="status" style="margin-top:16px;padding:12px 16px;border-left:4px solid #39804b;background:#eff8ef;color:#28743c;font-size:15px;font-weight:650;line-height:1.8;border-radius:0 8px 8px 0">✦ ${esc(a.text||'')}</div>`).join(''):''}</div></div></div>`;
  };
  const paginationHtml=()=>{
   if(totalPages<=1)return '';
