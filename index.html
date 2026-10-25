@@ -2618,6 +2618,44 @@ nav{
  #reply-composer[data-hospital-kind="treatment"] .hospital-roleplay-layout{padding:9px;gap:10px}
 }
 </style>
+
+<style id="starlightCheckboxHexSizingFix2026">
+/* Compact, consistently aligned thread settings checkboxes. */
+.thread-composer .thread-condition-toggle{
+ display:flex!important;align-items:flex-start!important;gap:10px;
+ width:fit-content;max-width:100%;margin:0;padding:2px 0;
+ line-height:1.55;color:var(--txt);cursor:pointer;
+}
+.thread-composer .thread-condition-toggle>input[type="checkbox"]{
+ display:block;flex:0 0 16px!important;width:16px!important;min-width:16px!important;max-width:16px!important;
+ height:16px!important;min-height:16px!important;max-height:16px!important;
+ margin:5px 0 0!important;padding:0!important;border-radius:3px;accent-color:var(--pri);
+}
+.thread-composer .thread-condition-toggle>span{display:block;flex:1 1 0;min-width:0;max-width:100%}
+.thread-composer .thread-condition-toggle>span>b{display:block;line-height:1.55;font-size:.92rem}
+.thread-composer .thread-condition-toggle .topic-help{margin-top:4px;line-height:1.65}
+/* Keep HEX fields in the reply editor small and prevent mobile rules from crushing the whole color tool. */
+.ed-bar .ed-color-tool{
+ flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;
+ padding:0 5px!important;gap:5px!important;
+}
+.ed-bar .ed-color-tool input[type="color"]{
+ flex:0 0 21px!important;width:21px!important;min-width:21px!important;max-width:21px!important;
+ height:21px!important;min-height:21px!important;max-height:21px!important;padding:0!important;margin:0!important;
+}
+.ed-bar .ed-color-tool .ed-hex{
+ flex:0 0 61px!important;width:61px!important;min-width:61px!important;max-width:61px!important;
+ height:24px!important;min-height:24px!important;max-height:24px!important;
+ margin:0!important;padding:2px 4px!important;border-radius:5px!important;
+ font-size:10px!important;line-height:1.2!important;letter-spacing:0!important;box-sizing:border-box!important;
+}
+@media(max-width:760px){
+ .ed-bar .ed-color-tool{width:auto!important;min-width:0!important;height:32px!important;max-width:none!important;padding:0 5px!important;flex:0 0 auto!important}
+ .ed-bar .ed-color-tool input[type="color"]{flex-basis:19px!important;width:19px!important;min-width:19px!important;max-width:19px!important;height:19px!important;min-height:19px!important;max-height:19px!important}
+ .ed-bar .ed-color-tool .ed-hex{flex-basis:55px!important;width:55px!important;min-width:55px!important;max-width:55px!important;height:22px!important;min-height:22px!important;max-height:22px!important;font-size:10px!important}
+}
+</style>
+
 </head>
 <body>
 <nav id="nav"></nav>
@@ -7291,8 +7329,8 @@ function threadForm(t,preForumId){
    <div class="f1"><label>ซับฟอรั่ม *</label><select name="forumId">${forumOptions(v.forumId)}</select></div>
    <div class="f1"><label>จำกัดเฉพาะค่าย</label><select name="agencyId">${agencyOptions(v.agencyId,'ทุกค่าย / ไม่จำกัด')}</select></div>
   </div></div></div>
-  <div class="topic-field-row"><div class="topic-field-label">เงื่อนไขกิจกรรม:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="illnessTrigger" ${v.illnessTrigger?'checked':''} style="margin-top:5px"><span><b>กำหนดให้ตัวละครป่วยเมื่อโพสต์ในกระทู้นี้</b><div class="topic-help">เปิดเฉพาะกระทู้กิจกรรมหรือโรลเพลย์ที่มีเงื่อนไขให้ตัวละครป่วยเท่านั้น การตั้งค่านี้ไม่มีผลต่อกระทู้อื่น</div></span></label></div></div>
-  <div class="topic-field-row"><div class="topic-field-label">คำเตือนการโพสต์:</div><div class="topic-field-value"><label style="display:flex;align-items:flex-start;gap:9px;line-height:1.7"><input type="checkbox" name="consecutivePostWarning" ${v.consecutivePostWarning?'checked':''} style="margin-top:5px"><span><b>เตือนเมื่อโพสต์ติดกันด้วยตัวละครเดิม</b><div class="topic-help">ตรวจเฉพาะโพสต์ล่าสุดของตัวละครคนเดิมในกระทู้นี้ เมื่อโพสต์ติดกันครั้งที่ 2 ระบบจะกำหนดสถานะป่วย และต้องรักษาก่อนกลับไปโรลเพลย์ที่อื่น</div></span></label></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">เงื่อนไขกิจกรรม:</div><div class="topic-field-value"><label class="thread-condition-toggle"><input type="checkbox" name="illnessTrigger" ${v.illnessTrigger?'checked':''}><span><b>กำหนดให้ตัวละครป่วยเมื่อโพสต์ในกระทู้นี้</b><div class="topic-help">เปิดเฉพาะกระทู้กิจกรรมหรือโรลเพลย์ที่มีเงื่อนไขให้ตัวละครป่วยเท่านั้น การตั้งค่านี้ไม่มีผลต่อกระทู้อื่น</div></span></label></div></div>
+  <div class="topic-field-row"><div class="topic-field-label">คำเตือนการโพสต์:</div><div class="topic-field-value"><label class="thread-condition-toggle"><input type="checkbox" name="consecutivePostWarning" ${v.consecutivePostWarning?'checked':''}><span><b>เตือนเมื่อโพสต์ติดกันด้วยตัวละครเดิม</b><div class="topic-help">ตรวจเฉพาะโพสต์ล่าสุดของตัวละครคนเดิมในกระทู้นี้ เมื่อโพสต์ติดกันครั้งที่ 2 ระบบจะกำหนดสถานะป่วย และต้องรักษาก่อนกลับไปโรลเพลย์ที่อื่น</div></span></label></div></div>
   <div class="topic-field-row"><div class="topic-field-label">รางวัลและระดับ:</div><div class="topic-field-value"><div class="topic-compact-row">
    <div class="f1"><label>🏅 EXP ต่อโพสต์</label><input type="number" name="exp" min="0" max="200" value="${v.exp}"></div>
    <div class="f1"><label>💰 เงินวอนต่อโพสต์</label><input type="number" name="won" min="0" value="${v.won||0}"></div>
