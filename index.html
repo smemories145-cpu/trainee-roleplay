@@ -6395,7 +6395,8 @@ async function doReply(e,tid){
   const len=textLen(content,mode);if(len<MIN_POST)return toast(`เนื้อหาต้องยาวอย่างน้อย ${MIN_POST} ตัวอักษร (ตอนนี้ ${len})`,'bad');
   const tr=(t.train||[]).includes(E.train?.value)?E.train.value:null;
   const previousThreadPost=posts.filter(p=>p.threadId===tid).sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0))[0];
-  const localConsecutiveWarning=!!t.consecutivePostWarning&&!!previousThreadPost&&previousThreadPost.charId===ac.id&&!previousThreadPost.gm;
+  const elapsedSincePreviousMs=previousThreadPost?Date.now()-(Number(previousThreadPost.createdAt)||0):Infinity;
+  const localConsecutiveWarning=!!t.consecutivePostWarning&&!!previousThreadPost&&previousThreadPost.charId===ac.id&&!previousThreadPost.gm&&elapsedSincePreviousMs>=0&&elapsedSincePreviousMs<15*60*1000;
   if(tr&&ac.sick)return toast('ตัวละครป่วยอยู่ ต้องรักษาให้หายก่อนจึงจะฝึกทักษะได้','bad');
   if(tr&&todayPracticeTotal(ac)>=10)return toast('วันนี้ฝึกจากโรลเพลย์ครบ 10 ครั้งแล้ว ไม่สามารถฝึกเพิ่มได้','bad');
   if(cloudReady){
