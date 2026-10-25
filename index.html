@@ -6534,11 +6534,42 @@ function openHospitalModal(kind,threadId){
    else{({data,error}=await supaClient.rpc('site_hospital_pay',{p_character_id:c.id,p_treatment_post_id:postId,p_payment_method:f.elements.paymentMethod.value,p_request_id:uid()}));}
    if(error)throw error;
    await cloudRefresh(false);dlg.close();
-   if(queue)toast('รับบัตรคิวแล้ว พบ'+data.doctor_name+' ที่ห้องตรวจหมายเลข '+data.room_number);
-   else toast(data.already_paid?'รายการนี้ชำระเงินแล้ว':'ชำระเงินสำเร็จ ได้รับขวดยารักษาแล้ว');
+   if(queue){
+    toast('รับบัตรคิวแล้ว พบ'+data.doctor_name+' ที่ห้องตรวจหมายเลข '+data.room_number);
+   }else if(data.already_paid){
+    toast('รายการนี้ได้รับการชำระเงินแล้ว');
+   }else{
+    toast('ได้รับการรักษาแล้ว อย่าลืมทานยาในสามชั่วโมง');
+   }
    go('thread/'+threadId+'/post-'+encodeURIComponent(postId));
+   if(!queue&&!data.already_paid)showHospitalMedicineReminder(c.id,data.medicine_expires_at);
   }catch(err){toast('ดำเนินการไม่สำเร็จ: '+(err.message||err),'bad');button.disabled=false;button.textContent=queue?'ยืนยันรับคิว':'ชำระ 1,000 won';}
  };
+}
+function closeHospitalMedicineReminder(){
+ const notice=document.getElementById('hospitalMedicineReminder');if(notice)notice.remove();
+}
+function goToHospitalMedicine(characterId){
+ closeHospitalMedicineReminder();
+ go('char/'+encodeURIComponent(characterId));
+}
+function showHospitalMedicineReminder(characterId,expiresAt){
+ closeHospitalMedicineReminder();
+ const c=DB.get('characters').find(x=>x.id===characterId&&x.ownerId===me()?.id);
+ const name=String(c?.stageName||c?.name||'ตัวละครของคุณ');
+ const parsed=expiresAt?new Date(expiresAt):null;
+ const deadline=parsed&&!Number.isNaN(parsed.getTime())?parsed.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'';
+ document.body.insertAdjacentHTML('beforeend',`<div id="hospitalMedicineReminder" role="alertdialog" aria-modal="true" aria-labelledby="hospitalMedicineReminderTitle" style="position:fixed;inset:0;z-index:130010;background:rgba(19,33,25,.68);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px">
+  <section style="width:min(100%,520px);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#f5fbf5,#ffffff 72%);color:#314839;border:1px solid #c8ddc9;border-radius:22px;padding:clamp(22px,4vw,32px);box-shadow:0 28px 90px #10201566">
+   <div style="font-size:.72rem;font-weight:850;letter-spacing:.14em;color:#66856b;margin-bottom:10px">STARLIGHT MEDICAL CENTER · TREATMENT COMPLETE</div>
+   <div style="width:54px;height:54px;border-radius:17px;background:#e2f2e4;display:grid;place-items:center;font-size:28px;margin-bottom:12px">💊</div>
+   <h2 id="hospitalMedicineReminderTitle" style="font-size:clamp(1.3rem,4vw,1.7rem);line-height:1.45;margin:0 0 10px;color:#315f3c">ได้รับการรักษาแล้ว</h2>
+   <p style="font-size:1.05rem;line-height:1.9;margin:0 0 10px">อย่าลืมทานยาใน<strong style="color:#b24d42">สามชั่วโมง</strong></p>
+   <p style="line-height:1.85;margin:0 0 14px">ยารักษาได้รับเข้าไปอยู่ในกระเป๋าของ <strong>${esc(name)}</strong> แล้ว กรุณาใช้ยาภายใน 3 ชั่วโมงหลังรับยา หากยาหมดอายุจะต้องรับคิวและเข้ารับการรักษาใหม่</p>
+   ${deadline?'<div style="border:1px solid #d7e6d8;background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:17px"><span style="display:block;font-size:.73rem;color:#6e8b73;font-weight:800">ยาหมดอายุ</span><b style="display:block;margin-top:4px;color:#385d40">'+esc(deadline)+'</b></div>':''}
+   <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px"><button type="button" class="btn ghost" onclick="closeHospitalMedicineReminder()">รับทราบแล้ว</button><button type="button" class="btn" style="background:#477950;border-color:#477950;color:#fff" onclick="goToHospitalMedicine('${esc(characterId)}')">ไปที่ตัวละครเพื่อทานยา ↗</button></div>
+  </section>
+ </div>`);
 }
 async function useHospitalMedicine(characterId,inventoryItemId){
  const u=me(),c=DB.get('characters').find(x=>x.id===characterId);
