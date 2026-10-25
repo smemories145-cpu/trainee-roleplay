@@ -2538,6 +2538,53 @@ nav{
  .hospital-roleplay-layout{background:#19191d!important}
 }
 </style>
+<style id="hospitalFormLayoutCleanup">
+#reply-composer[data-hospital-kind="queue"],
+#reply-composer[data-hospital-kind="treatment"]{
+ padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important;
+}
+#reply-composer[data-hospital-kind="queue"]>.topic-composer-heading,
+#reply-composer[data-hospital-kind="treatment"]>.topic-composer-heading{
+ padding:16px 18px;margin:0 0 12px;border:1px solid var(--line);border-radius:12px;
+ background:var(--card);color:var(--txt);
+}
+#reply-composer[data-hospital-kind="queue"] .hospital-roleplay-layout,
+#reply-composer[data-hospital-kind="treatment"] .hospital-roleplay-layout{
+ width:100%;grid-template-columns:minmax(225px,275px) minmax(0,1fr);
+ gap:16px;align-items:stretch;padding:14px;margin:0;border:1px solid var(--line);
+ border-radius:15px;background:#f2f4ef;
+}
+#reply-composer[data-hospital-kind="queue"] .hospital-editor-card,
+#reply-composer[data-hospital-kind="treatment"] .hospital-editor-card{display:flex;flex-direction:column;min-width:0}
+#reply-composer[data-hospital-kind="queue"] .hospital-editor-fields,
+#reply-composer[data-hospital-kind="treatment"] .hospital-editor-fields{flex:1;min-width:0}
+#reply-composer[data-hospital-kind="queue"] .hospital-author-strip,
+#reply-composer[data-hospital-kind="treatment"] .hospital-author-strip,
+#reply-composer[data-hospital-kind="queue"] .hospital-thread-context-row,
+#reply-composer[data-hospital-kind="treatment"] .hospital-thread-context-row,
+#reply-composer[data-hospital-kind="queue"] .hospital-identity-row,
+#reply-composer[data-hospital-kind="treatment"] .hospital-identity-row,
+#reply-composer[data-hospital-kind="queue"] .hospital-training-row,
+#reply-composer[data-hospital-kind="treatment"] .hospital-training-row,
+#reply-composer[data-hospital-kind="queue"] .hospital-editor-fields>.topic-field-row:not(.hospital-content-row),
+#reply-composer[data-hospital-kind="treatment"] .hospital-editor-fields>.topic-field-row:not(.hospital-content-row){display:none!important}
+#reply-composer[data-hospital-kind="queue"] .hospital-content-row,
+#reply-composer[data-hospital-kind="treatment"] .hospital-content-row{display:block!important;padding:13px 0 0!important;border:0!important}
+#reply-composer[data-hospital-kind="queue"] .hospital-content-row>.topic-field-label,
+#reply-composer[data-hospital-kind="treatment"] .hospital-content-row>.topic-field-label{display:none!important}
+#reply-composer[data-hospital-kind="queue"] .hospital-editor-card .ed,
+#reply-composer[data-hospital-kind="treatment"] .hospital-editor-card .ed{width:100%;max-width:100%}
+#reply-composer[data-hospital-kind="queue"] .hospital-note-box,
+#reply-composer[data-hospital-kind="treatment"] .hospital-note-box{margin-top:14px}
+@media(max-width:850px){
+ #reply-composer[data-hospital-kind="queue"] .hospital-roleplay-layout,
+ #reply-composer[data-hospital-kind="treatment"] .hospital-roleplay-layout{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:600px){
+ #reply-composer[data-hospital-kind="queue"] .hospital-roleplay-layout,
+ #reply-composer[data-hospital-kind="treatment"] .hospital-roleplay-layout{padding:9px;gap:10px}
+}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
