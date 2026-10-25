@@ -6512,7 +6512,7 @@ async function useHospitalMedicine(characterId,inventoryItemId){
 async function setHospitalSick(characterId,isSick){
  if(!isAdmin()&&!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการสถานะป่วย','bad');
  if(!cloudReady||!supaClient)return toast('ระบบสถานะป่วยต้องเชื่อมต่อฐานข้อมูลออนไลน์','bad');
- try{const {error}=await supaClient.rpc('site_hospital_admin_set_sick',{p_character_id:characterId,p_sick:!!isSick});if(error)throw error;await cloudRefresh(false);toast(isSick?'กำหนดให้ตัวละครป่วยแล้ว':'คืนสถานะตัวละครแล้ว');render();}
+ try{const {data,error}=await supaClient.rpc('site_hospital_admin_set_sick',{p_character_id:characterId,p_sick:!!isSick});if(error)throw error;await cloudRefresh(false);if(isSick){if(data?.room_number){toast(data.room_occupied?'กำหนดให้ป่วยแล้ว · ทุกห้องมีผู้ป่วยอยู่ จึงเลือกห้องตรวจหมายเลข '+data.room_number+' ('+data.doctor_name+') ที่มีคนรอน้อยที่สุด':'กำหนดให้ป่วยแล้ว · จัดห้องตรวจหมายเลข '+data.room_number+' ('+data.doctor_name+')')}else toast('กำหนดให้ป่วยแล้ว แต่ยังไม่ได้จัดห้องตรวจ')}else toast('คืนสถานะตัวละครแล้ว');render();}
  catch(e){toast('เปลี่ยนสถานะไม่สำเร็จ: '+(e.message||e),'bad');}
 }
 
@@ -6847,7 +6847,7 @@ function pageChar(id){
   <div class="profile-info">
    <h2>${esc(c.stageName||c.name)}</h2>
    <div class="mut">${esc(c.name)} · ${c.age} ปี · ผู้เล่น: <a href="#profile/${owner?.id}">${esc(owner?.username||'-')}</a></div>
-   <div class="row" style="justify-content:center;margin:8px 0">${c.status==='approved'?stageBadge(c.stage):''}<span class="badge" style="--c:${s[1]}">${s[0]}</span>${c.sick?'<span class="badge" style="--c:#4f8a60">🤒 ป่วย</span>':''}${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อมเลื่อนขั้น</span>':''}${agencyBadge(c.agencyId)}
+   <div class="row" style="justify-content:center;margin:8px 0">${c.status==='approved'?stageBadge(c.stage):''}<span class="badge" style="--c:${s[1]}">${s[0]}</span>${c.sick?'<span class="badge" style="--c:#4f8a60">🤒 ป่วย</span>':''}${c.sick&&c.hospitalAssignedRoomNumber?'<span class="badge" style="--c:#527e9c">🏥 ห้องตรวจ '+esc(c.hospitalAssignedRoomNumber)+' · '+esc(c.hospitalAssignedDoctorName||'')+'</span>':''}${eligible(c)?'<span class="badge" style="--c:var(--ok)">⬆ พร้อมเลื่อนขั้น</span>':''}${agencyBadge(c.agencyId)}
    ${g?`<a href="#group/${g.id}" class="badge" style="--c:${esc(g.color)}">🎤 ${esc(g.name)} · ${esc(g.members.find(m=>m.charId===c.id)?.role||'')}</a>`:''}</div>
    ${c.status==='rejected'&&c.reason?`<div class="rules">เหตุผลที่ไม่ผ่าน: ${esc(c.reason)}</div>`:''}
    ${c.status==='approved'?`<div style="max-width:400px;margin:8px auto"><div class="row between mut" style="font-size:.8rem"><span>EXP ${c.exp}${next?` / ${next.exp}`:''}</span><span>${next?'ขั้นถัดไป: '+esc(next.n):'สูงสุด ✨'}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`:''}
