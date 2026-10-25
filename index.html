@@ -6309,7 +6309,7 @@ function pageThread(id,view=''){
     <div class="hospital-form-subbrand">Hospital Roleplay · Patient Intake</div>
     <h3 class="hospital-form-section-title"><span class="hospital-form-section-number">01</span> ข้อมูลคนไข้</h3>
     <div class="hospital-patient-preview">
-     <div class="hospital-photo-preview"><img data-hospital-photo-preview alt="ID Photo" src="${esc(hospitalPhotoSrc)}" style="${hospitalPhotoSrc?'':'display:none'}"><span data-hospital-photo-placeholder style="${hospitalPhotoSrc?'display:none':''}">ID PHOTO</span></div>
+     <div class="hospital-photo-preview"><img data-hospital-photo-preview alt="ID Photo" src="${esc(hospitalPhotoSrc)}" style="${hospitalPhotoSrc?'':'display:none'}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span data-hospital-photo-placeholder style="${hospitalPhotoSrc?'display:none':''}">ID PHOTO</span></div>
      <div class="hospital-patient-meta-preview"><div class="eyebrow">PATIENT PROFILE</div><b data-hospital-patient-name-preview>${esc(hospitalActiveChar?.stageName||hospitalActiveChar?.name||'ชื่อคนไข้')}</b><small data-hospital-patient-id-preview>${esc(hospitalActiveChar?.id?'รหัสผู้ป่วย · '+hospitalActiveChar.id:'รหัสผู้ป่วย · ยังไม่ระบุ')}</small></div>
     </div>
     <label for="hospitalPatientName">ชื่อคนไข้ <span style="color:#b56b6b">*</span></label>
