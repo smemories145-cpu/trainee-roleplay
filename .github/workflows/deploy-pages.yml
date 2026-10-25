@@ -1,8 +1,8 @@
 name: Deploy STARLIGHT RP to GitHub Pages
 
+# GitHub Pages' built-in pages-build-deployment workflow already auto-deploys main.
+# Keep this workflow manual-only to avoid racing two deployments for the same commit.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
