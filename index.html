@@ -3199,9 +3199,53 @@ function hospitalThreadKind(t){
  if(/ห้องตรวจหมายเลข\s*[1-3]/.test(title))return 'treatment';
  return '';
 }
-function sickHospitalAccessNotice(){
+function sickHospitalAccessNotice(character){
+ const c=character||getActiveChar(me());
  const forum=DB.get('forums').find(f=>String(f.name||'').includes('โรงพยาบาล'));
- return '<div class="card" style="border-color:#d8b4b4;background:#fff8f7;color:#74464a"><h2 style="margin-top:0">🩺 ตัวละครกำลังพักรักษาตัว</h2><p style="line-height:1.8">ระหว่างที่ตัวละครป่วย จะไม่สามารถเข้าถึงกระทู้โรลเพลย์อื่นหรือทำกิจกรรมทั่วไปได้ กรุณาดำเนินการรักษาที่โรงพยาบาลก่อน</p>'+(forum?'<a class="btn" href="#forum/'+esc(forum.id)+'">ไปที่โรงพยาบาล</a>':'')+'</div>';
+ const reason=String(c?.sickReason||'ระบบตรวจพบสถานะป่วย');
+ const room=Number(c?.hospitalAssignedRoomNumber)||0;
+ const doctor=String(c?.hospitalAssignedDoctorName||'');
+ const roomLink=c?.hospitalAssignedRoomThreadId?'<a class="btn" href="#thread/'+esc(c.hospitalAssignedRoomThreadId)+'">🏥 ไปห้องตรวจหมายเลข '+room+(doctor?' · '+esc(doctor):'')+'</a>':'';
+ return '<div class="card" style="border:1px solid #d8a2a7;background:linear-gradient(135deg,#fff7f6,#fffdfb);color:#74464a;box-shadow:0 12px 32px #8e414014"><div style="font-size:.75rem;font-weight:800;letter-spacing:.14em;color:#b4515b">URGENT · MEDICAL NOTICE</div><h2 style="margin:8px 0;color:#9f3f49">🚨 คุณติดป่วยเนื่องจาก '+esc(reason)+'</h2><p style="line-height:1.9;margin:8px 0 14px">กรุณาเข้ารับการรักษาด่วนที่ STARLIGHT MEDICAL CENTER ระหว่างที่ยังป่วย จะไม่สามารถเข้าถึงกระทู้โรลเพลย์อื่นหรือทำกิจกรรมทั่วไปได้</p>'+(room?'<p style="margin:0 0 14px;font-weight:750">ห้องตรวจหมายเลข '+room+(doctor?' · '+esc(doctor):'')+'</p>':'')+(roomLink|| (forum?'<a class="btn" href="#forum/'+esc(forum.id)+'">🏥 ไปที่โรงพยาบาล</a>':''))+'</div>';
+}
+function sickHospitalNoticeEpisode(c){return String(c?.sickSince||'legacy')}
+function sickHospitalNoticeKey(c){return 'sa_sick_notice_seen_'+c.id+'_'+sickHospitalNoticeEpisode(c)}
+function dismissSickHospitalNotice(characterId,episode){
+ store.setItem('sa_sick_notice_seen_'+characterId+'_'+String(episode||'legacy'),'1');
+ const root=document.getElementById('sickHospitalUrgentNotice');if(root)root.remove();
+}
+function goSickHospitalRoom(characterId,episode){
+ const u=me(),c=DB.get('characters').find(x=>x.id===characterId&&x.ownerId===u?.id);
+ dismissSickHospitalNotice(characterId,episode);
+ if(c?.hospitalAssignedRoomThreadId)return go('thread/'+c.hospitalAssignedRoomThreadId);
+ const forum=DB.get('forums').find(f=>String(f.name||'').includes('โรงพยาบาล'));
+ go(forum?'forum/'+forum.id:'threads');
+}
+function renderSickHospitalNoticePopup(){
+ const old=document.getElementById('sickHospitalUrgentNotice');if(old)old.remove();
+ const u=me();if(!u)return;
+ const activeId=store.getItem('sa_active_char_'+u.id);
+ const sickChars=DB.get('characters').filter(c=>c.ownerId===u.id&&c.status==='approved'&&c.sick)
+  .sort((a,b)=>(a.id===activeId?-1:0)-(b.id===activeId?-1:0));
+ const c=sickChars.find(x=>store.getItem(sickHospitalNoticeKey(x))!=='1');
+ if(!c)return;
+ const episode=sickHospitalNoticeEpisode(c);
+ const reason=String(c.sickReason||'ระบบตรวจพบสถานะป่วย');
+ const room=Number(c.hospitalAssignedRoomNumber)||0;
+ const doctor=String(c.hospitalAssignedDoctorName||'');
+ const characterName=String(c.stageName||c.name||'ตัวละครของคุณ');
+ const destination=c.hospitalAssignedRoomThreadId?'thread/'+c.hospitalAssignedRoomThreadId:('forum/'+(DB.get('forums').find(f=>String(f.name||'').includes('โรงพยาบาล'))?.id||''));
+ document.body.insertAdjacentHTML('beforeend',`<div id="sickHospitalUrgentNotice" role="alertdialog" aria-modal="true" aria-labelledby="sickHospitalUrgentTitle" style="position:fixed;inset:0;z-index:130000;background:rgba(30,15,20,.72);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px">
+  <section style="position:relative;width:min(100%,560px);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#fff7f6,#ffffff 72%);color:#50363a;border:1px solid #e0afb2;border-radius:22px;padding:clamp(22px,4vw,34px);box-shadow:0 28px 90px #16080c66">
+   <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;color:#a9444e;font-size:.72rem;font-weight:850;letter-spacing:.14em"><span style="width:8px;height:8px;border-radius:50%;background:#c94f5a;box-shadow:0 0 0 5px #c94f5a1c"></span> STARLIGHT MEDICAL CENTER · URGENT</div>
+   <h2 id="sickHospitalUrgentTitle" style="font-size:clamp(1.35rem,4vw,1.8rem);line-height:1.45;margin:0 0 8px;color:#963c46">🚨 แจ้งเตือนสถานะสุขภาพ</h2>
+   <p style="margin:0 0 8px;font-weight:750">ตัวละคร: ${esc(characterName)}</p>
+   <p style="font-size:1.03rem;line-height:1.9;margin:0 0 14px">คุณติดป่วยเนื่องจาก <strong style="color:#a13c47">${esc(reason)}</strong></p>
+   <p style="line-height:1.85;margin:0 0 14px">กรุณาเข้ารับการรักษาด่วนที่โรงพยาบาล ระหว่างที่ยังป่วยจะไม่สามารถเข้าถึงกระทู้โรลเพลย์อื่นหรือทำกิจกรรมทั่วไปได้</p>
+   ${room?'<div style="border:1px solid #e6c4c5;background:#fff;border-radius:13px;padding:13px 15px;margin:0 0 17px"><div style="font-size:.73rem;font-weight:800;color:#9c666b;letter-spacing:.1em">ASSIGNED EXAMINATION ROOM</div><b style="display:block;margin-top:5px;color:#843c44">ห้องตรวจหมายเลข '+room+(doctor?' · '+esc(doctor):'')+'</b></div>':''}
+   <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px"><button type="button" class="btn ghost" onclick="dismissSickHospitalNotice('${esc(c.id)}','${esc(episode)}')">รับทราบแล้ว</button><button type="button" class="btn" style="background:#a7434d;border-color:#a7434d;color:white" onclick="goSickHospitalRoom('${esc(c.id)}','${esc(episode)}')">${room?'🏥 ไปห้องตรวจ':'🏥 ไปโรงพยาบาล'} ↗</button></div>
+  </section>
+ </div>`);
 }
 function hospitalPlainText(content){
  const node=document.createElement('div');
@@ -5844,6 +5888,7 @@ function render(){
   if(p==='phone'||p==='bankadmin'){
    pageHome();openPhoneFloatApp(p==='bankadmin'?'bankadmin':(param||'home'));
   }else (routes[p]||pageHome)(param,sub);
+  renderSickHospitalNoticePopup();
   /* Reply posts do not have their own title: remove any stale subject field left by cached/legacy markup. */
   document.querySelectorAll('#reply-composer .topic-field-row').forEach(row=>{
    const subjectInput=row.querySelector('input[name="postSubject"],#replySubject');
@@ -6512,8 +6557,24 @@ async function useHospitalMedicine(characterId,inventoryItemId){
 async function setHospitalSick(characterId,isSick){
  if(!isAdmin()&&!hasAdminPermission('manage_characters'))return toast('ไม่มีสิทธิ์จัดการสถานะป่วย','bad');
  if(!cloudReady||!supaClient)return toast('ระบบสถานะป่วยต้องเชื่อมต่อฐานข้อมูลออนไลน์','bad');
- try{const {data,error}=await supaClient.rpc('site_hospital_admin_set_sick',{p_character_id:characterId,p_sick:!!isSick});if(error)throw error;await cloudRefresh(false);if(isSick){if(data?.room_number){toast(data.room_occupied?'กำหนดให้ป่วยแล้ว · ทุกห้องมีผู้ป่วยอยู่ จึงเลือกห้องตรวจหมายเลข '+data.room_number+' ('+data.doctor_name+') ที่มีคนรอน้อยที่สุด':'กำหนดให้ป่วยแล้ว · จัดห้องตรวจหมายเลข '+data.room_number+' ('+data.doctor_name+')')}else toast('กำหนดให้ป่วยแล้ว แต่ยังไม่ได้จัดห้องตรวจ')}else toast('คืนสถานะตัวละครแล้ว');render();}
- catch(e){toast('เปลี่ยนสถานะไม่สำเร็จ: '+(e.message||e),'bad');}
+ let reason='';
+ if(isSick){
+  const answer=await askText('ระบุสาเหตุที่กำหนดให้ตัวละครป่วย\nข้อความนี้จะแสดงในประกาศแจ้งเตือนของผู้เล่น (ไม่เกิน 240 ตัวอักษร)','');
+  if(answer===null)return;
+  reason=String(answer).trim();
+  if(!reason)return toast('กรุณาระบุสาเหตุที่ทำให้ตัวละครป่วย','bad');
+  if(reason.length>240)return toast('สาเหตุป่วยต้องไม่เกิน 240 ตัวอักษร','bad');
+ }
+ try{
+  const {data,error}=await supaClient.rpc('site_hospital_admin_set_sick',{p_character_id:characterId,p_sick:!!isSick,p_reason:isSick?reason:null});
+  if(error)throw error;
+  await cloudRefresh(false);
+  if(isSick){
+   if(data?.room_number)toast(data.room_occupied?'กำหนดให้ป่วยแล้ว · ห้องตรวจหมายเลข '+data.room_number+' ('+data.doctor_name+') มีผู้ป่วยอยู่ จึงจัดเข้าห้องที่มีคิวน้อยที่สุด':'กำหนดให้ป่วยแล้ว · ห้องตรวจหมายเลข '+data.room_number+' ('+data.doctor_name+')');
+   else toast('กำหนดให้ป่วยแล้ว แต่ยังไม่ได้จัดห้องตรวจ');
+  }else toast('คืนสถานะตัวละครแล้ว');
+  render();
+ }catch(e){toast('เปลี่ยนสถานะไม่สำเร็จ: '+(e.message||e),'bad');}
 }
 
 function pageThread(id,view=''){
