@@ -6317,7 +6317,7 @@ function pageThread(id,view=''){
     <label for="hospitalPatientId">รหัสผู้ป่วย <span style="color:#8b978d;font-weight:500">(ไม่จำเป็น)</span></label>
     <input id="hospitalPatientId" type="text" name="hospitalPatientId" maxlength="40" value="${esc(hospitalActiveChar?.id||'')}" placeholder="เช่น SMC-001">
     <label for="hospitalPatientPhoto">ลิงก์รูปภาพ ID Photo</label>
-    <input id="hospitalPatientPhoto" type="url" name="hospitalPatientPhoto" value="${esc(hospitalPhotoUrl)}" placeholder="https://example.com/photo.jpg">
+    <input id="hospitalPatientPhoto" type="url" name="hospitalPatientPhoto" value="${esc(hospitalPhotoSrc)}" placeholder="https://example.com/photo.jpg">
     <p class="hospital-patient-help">ใช้ลิงก์รูปโดยตรง เช่น JPG, PNG หรือ WEBP ระบบจะแสดงภาพขนาดเล็กแบบรูปติดบัตร</p>
     <div class="hospital-patient-foot">ข้อมูลนี้จะติดไปกับโพสต์โรงพยาบาลโดยอัตโนมัติ ไม่ต้องใส่ซ้ำในเนื้อหาโรล</div>
    </div>
