@@ -2656,6 +2656,19 @@ nav{
 }
 </style>
 
+
+<style id="starlightProfileBannerClarityFix20261026">
+/* Profile covers: use a less panoramic crop so artwork is not excessively zoomed. */
+.profile-banner{height:clamp(190px,26vw,310px)!important}
+.profile-banner img{object-position:center 42%!important;image-rendering:auto}
+.profile-banner-quality-note{position:absolute;z-index:3;right:10px;bottom:10px;max-width:calc(100% - 20px);padding:6px 9px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:rgba(8,8,10,.78);color:#fff;font-size:11px;line-height:1.45;backdrop-filter:blur(8px);pointer-events:none}
+.profile-banner-quality-note[hidden]{display:none!important}
+@media(max-width:600px){.profile-banner{height:clamp(150px,40vw,220px)!important}.profile-banner-quality-note{font-size:10px;right:7px;bottom:7px;max-width:calc(100% - 14px)}}
+/* Let artwork show more clearly in the small phone-profile preview too. */
+.phone-profile-cover img{opacity:.92!important}
+.phone-profile-cover:after{background:linear-gradient(180deg,transparent 48%,color-mix(in srgb,var(--card) 44%,transparent))!important}
+</style>
+
 </head>
 <body>
 <nav id="nav"></nav>
@@ -6937,7 +6950,7 @@ function pageNewChar(){
    <label>📊 ค่าสถานะเริ่มต้น — ทุกด้านเริ่มที่ ${STAT_BASE} แจกแต้มโบนัสได้ ${STAT_POOL} แต้ม (ด้านละไม่เกิน ${STAT_PER})</label>
    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 12px;margin-top:6px">${STATS.map(st=>`<div><label>${st.e} ${st.n}</label><input type="number" name="b_${st.k}" min="0" max="${STAT_PER}" value="0" oninput="ptsLeft(this.form)"></div>`).join('')}</div>
    <p class="pts" style="margin-top:0">เหลือ ${STAT_POOL} แต้ม</p>
-   <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (URL)</label><input name="avatar" type="url" placeholder="https://..."></div><div class="f1"><label>ภาพปก Banner (URL)</label><input name="banner" type="url" placeholder="https://..."></div></div>
+   <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (URL)</label><input name="avatar" type="url" placeholder="https://..."></div><div class="f1"><label>ภาพปก Banner (URL)</label><input name="banner" type="url" placeholder="https://..."><small class="mut">ใช้ลิงก์ภาพต้นฉบับ แนะนำกว้างอย่างน้อย 1600 px · หลีกเลี่ยงภาพย่อจาก Google Images เพราะจะเบลอเมื่อขยาย</small></div></div>
    <label>รูปข้างแนวตั้ง (URL) · แนะนำสัดส่วน 3:5</label><input name="portrait" type="url" placeholder="https://...">
    <label>คำแนะนำตัวแบบสั้น (แสดงบนหน้าโปรไฟล์ · ไม่เกิน 360 ตัวอักษร)</label><textarea name="summary" rows="3" maxlength="360" placeholder="เขียนให้คนอ่านรู้จักตัวละครคร่าว ๆ เช่น บุคลิกเด่น ความฝัน หรือคำโปรยสั้น ๆ"></textarea>
    <label class="row" style="color:var(--txt)"><input type="checkbox" name="agree" required style="width:auto;margin:0"> ข้าพเจ้าอ่านและยอมรับกฎของบอร์ดแล้ว</label>
@@ -6961,6 +6974,16 @@ function doNewChar(e){
   profileHtml:'',status:'pending',reason:'',stage:0,exp:0,createdAt:Date.now(),bioDueAt:Date.now()+5*24*60*60*1000});
  DB.set('characters',cs);toast('ส่งใบสมัครแล้ว! แอดมินจะตรวจข้อมูลและกระทู้ประวัติ');go('mychars');
 }
+function checkProfileBannerQuality(img){
+ if(!img||img.dataset.profileBannerOwner!=='1')return;
+ const width=Number(img.naturalWidth)||0,wrap=img.closest('.profile-banner'),note=wrap?.querySelector('.profile-banner-quality-note');
+ if(!width||!note)return;
+ const recommended=Math.max(1000,Math.ceil((wrap.clientWidth||1000)*.9));
+ if(width<recommended){
+  note.hidden=false;
+  note.textContent='ภาพต้นฉบับกว้าง '+width+' px · แนะนำอย่างน้อย '+recommended+' px เพื่อให้ภาพไม่เบลอ';
+ }
+}
 function pageChar(id){
  const c=DB.get('characters').find(x=>x.id===id);if(!c)return app('<div class="card">ไม่พบตัวละคร</div>');
  const u=me(),owner=DB.get('users').find(x=>x.id===c.ownerId),isOwner=u?.id===c.ownerId;
@@ -6972,7 +6995,7 @@ function pageChar(id){
  const inv=(c.inv||[]).map(x=>({...x,it:items.find(i=>i.id===x.iid)})).filter(x=>x.it);
  
  app(`<div class="profile-wrap">
-  <div class="profile-banner">${/^https?:\/\//.test(c.banner||'')?`<img src="${esc(c.banner)}">`:''}</div>
+  <div class="profile-banner">${/^https?:\/\//.test(c.banner||'')?`<img src="${esc(c.banner)}" alt="ภาพหน้าปก ${esc(c.stageName||c.name)}" loading="eager" data-profile-banner-owner="${isOwner?1:0}" onload="checkProfileBannerQuality(this)">`:''}<span class="profile-banner-quality-note" hidden></span></div>
   <div class="profile-avatar-row">${avatar(c,120)}</div>
   <div class="profile-info">
    <h2>${esc(c.stageName||c.name)}</h2>
@@ -7075,7 +7098,7 @@ function pageEditChar(id){
  ${full?`<div class="row"><div class="f1"><label>ชื่อ-นามสกุล</label><input name="name" required value="${esc(c.name)}"></div><div class="f1"><label>Stage Name</label><input name="stageName" value="${esc(c.stageName)}"></div></div>`:''}
  <div class="row"><div class="f1"><label>🎂 อายุที่แสดงบนรูปข้าง (ปี)</label><input name="age" type="number" min="0" max="999" value="${esc(c.age??'')}" required><small class="field-help">ตัวเลขนี้จะแสดงในช่อง “อายุ” ของรูปข้างทุกโพสต์</small></div></div>
  <div class="row"><div class="f1"><label>รูปโปรไฟล์วงกลม (https://...)</label><input name="avatar" type="url" value="${esc(c.avatar)}"></div>
- <div class="f1"><label>ภาพปก Banner (https://...)</label><input name="banner" type="url" value="${esc(c.banner)}" placeholder="https://..."></div></div></div>
+ <div class="f1"><label>ภาพปก Banner (https://...)</label><input name="banner" type="url" value="${esc(c.banner)}" placeholder="https://..."><small class="mut">ใช้ลิงก์ภาพต้นฉบับ แนะนำกว้างอย่างน้อย 1600 px · หลีกเลี่ยงภาพย่อจาก Google Images เพราะจะเบลอเมื่อขยาย</small></div></div></div>
  <div class="card"><h3 style="margin-top:0">🖼 รูปข้าง (แสดงซ้ายมือทุกโพสต์)</h3>
  <label>ลิงก์รูปแนวตั้ง — แนะนำสัดส่วน 3:5 เช่น 600×1000 px</label><input name="portrait" type="url" value="${esc(c.portrait)}" placeholder="https://...">
  <div class="row"><div class="f1"><label>คำโปรยเหนือชื่อ</label><input name="sideTag" maxlength="30" value="${esc(c.sideTag)}"></div>
