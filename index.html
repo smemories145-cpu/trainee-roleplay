@@ -2459,6 +2459,85 @@ nav{
  .hospital-author-strip{padding:10px 13px}
 }
 </style>
+
+<style id="hospital-reply-dark-surface">
+/* Softer dark surface for hospital reply form; the actual writing/code canvas remains white. */
+.reply-composer[data-hospital-kind="queue"],
+.reply-composer[data-hospital-kind="treatment"]{
+  background:#17171a!important;
+  color:#ededf0!important;
+  border-color:#303036!important;
+}
+.reply-composer[data-hospital-kind]>.topic-composer-heading{
+  background:#19191d!important;
+  color:#ededf0!important;
+  border-color:#303036!important;
+}
+.reply-composer[data-hospital-kind]>.topic-composer-heading h2{color:#ededf0!important}
+.reply-composer[data-hospital-kind]>.topic-composer-heading p{color:#a0a0aa!important}
+.hospital-roleplay-layout{background:#19191d!important}
+.hospital-patient-card,.hospital-editor-card{
+  background:#202024!important;
+  color:#ededf0!important;
+  border-color:#36363d!important;
+}
+.hospital-form-brand{color:#a7c7b0!important}
+.hospital-form-subbrand,.hospital-patient-help,.hospital-patient-foot{color:#a0a0aa!important}
+.hospital-patient-foot{border-color:#36363d!important}
+.hospital-form-section-title,.hospital-patient-meta-preview b{color:#ededf0!important}
+.hospital-form-section-number{background:#303b33!important;color:#d0e5d4!important}
+.hospital-patient-preview{background:#19191d!important;border-color:#36363d!important}
+.hospital-patient-meta-preview .eyebrow,.hospital-patient-meta-preview small{color:#a0a0aa!important}
+.hospital-patient-card input[type=text],.hospital-patient-card input[type=url]{
+  background:#111113!important;color:#ededf0!important;border-color:#3b3b43!important;
+}
+.hospital-patient-card input::placeholder{color:#85858f!important}
+.hospital-patient-card input:focus{border-color:#718e79!important;background:#111113!important}
+.hospital-editor-heading{background:#202024!important;border-color:#36363d!important}
+.hospital-editor-heading h3{color:#ededf0!important}
+.hospital-editor-heading p,.hospital-editor-card .topic-identity small,.hospital-editor-card .topic-help{color:#a0a0aa!important}
+.hospital-editor-label{background:#303b33!important;color:#cce4d1!important}
+.hospital-editor-fields{background:#202024!important}
+.hospital-editor-card .topic-field-row{background:#202024!important;border-color:#36363d!important;color:#ededf0!important}
+.hospital-editor-card .topic-field-label,.hospital-editor-card .topic-field-value{color:#d6d6dc!important}
+.hospital-editor-card .topic-identity b{color:#ededf0!important}
+.hospital-editor-card .topic-reward-line{color:#9dc8a7!important}
+.hospital-editor-card .topic-role-choice label{background:#19191d!important;border-color:#3b3b43!important;color:#ededf0!important}
+/* Toolbar can be subdued, while the actual editable content/code stays white. */
+.hospital-editor-card .ed{background:#fff!important;color:#263c35!important;border-color:#36363d!important}
+.hospital-editor-card .ed-head,.hospital-editor-card .ed-foot{
+  background:#e9e9ed!important;color:#55555f!important;border-color:#d4d4da!important;
+}
+.hospital-editor-card .ed-title,.hospital-editor-card .ed-count{color:#355b4b!important}
+.hospital-editor-card .ed-bar{background:#dedee3!important;border-color:#c8c8cf!important;color:#33333a!important}
+.hospital-editor-card .ed-bar button,.hospital-editor-card .ed-c{color:#33333a!important}
+.hospital-editor-card .ed-bar select{background:#fff!important;color:#263c35!important;border-color:#c8c8cf!important}
+.hospital-editor-card .ed-area,
+.hospital-editor-card .ed-area.rich,
+.hospital-editor-card .ed-source-area,
+.hospital-editor-card .ed.html-source-mode .ed-area{
+  background:#fff!important;color:#263c35!important;
+}
+.hospital-editor-card .ed-area:empty:before{color:#a2aca5!important}
+.hospital-word-counter{color:#a0a0aa!important;border-color:#36363d!important}
+.hospital-word-counter b{background:#303b33!important;color:#d0e5d4!important;border-color:#45564a!important}
+.hospital-note-box{background:#242329!important;border-color:#45434b!important}
+.hospital-note-title{color:#d5c69b!important}
+.hospital-note-title small,.hospital-note-help{color:#aaa18a!important}
+.hospital-note-box textarea{background:#111113!important;color:#ededf0!important;border-color:#414149!important}
+.hospital-note-box textarea::placeholder{color:#85858f!important}
+.hospital-note-box textarea:focus{background:#111113!important;border-color:#8dad98!important}
+.hospital-editor-card .topic-actions{background:#202024!important;border-color:#36363d!important}
+.hospital-editor-card .topic-actions .btn{background:#19191d!important;border-color:#45454d!important;color:#e5e5ea!important}
+.hospital-editor-card .topic-actions .btn:last-child{background:#557b6b!important;border-color:#557b6b!important;color:#fff!important}
+.hospital-patient-meta{background:#19191d!important;border-color:#36363d!important;color:#ededf0!important}
+.hospital-patient-meta b{color:#ededf0!important}
+.hospital-patient-meta small{color:#a0a0aa!important}
+.hospital-post-note{background:#242329!important;border-left-color:#c8b98e!important;color:#e0d7c3!important}
+@media(max-width:850px){
+ .hospital-roleplay-layout{background:#19191d!important}
+}
+</style>
 </head>
 <body>
 <nav id="nav"></nav>
