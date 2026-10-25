@@ -2357,30 +2357,29 @@ nav{
 }
 </style>
 <style id="starlight-hospital-editor-styles">
-.hospital-composer-card{margin:12px 0 18px;padding:16px;border:1px solid #d9e4d8;border-radius:14px;background:#f5f8f2;color:#34483b}
-.hospital-composer-kicker{font-size:10px;letter-spacing:1.8px;color:#718a73;font-weight:800}
-.hospital-composer-title{font-size:16px;font-weight:750;margin:3px 0 12px}
-.hospital-patient-fields{display:grid;grid-template-columns:minmax(0,1fr) 94px;gap:14px;align-items:start}
-.hospital-patient-fields label,.hospital-note-box label{display:block;font-size:12px;font-weight:700;color:#506653;margin:7px 0 5px}
-.hospital-patient-fields input,.hospital-note-box input{width:100%;min-width:0;border:1px solid #d9e4d8;border-radius:9px;padding:9px 11px;background:#fff;color:#263c35}
-.hospital-photo-preview{width:94px;height:120px;border:1px solid #cbd9ca;border-radius:9px;overflow:hidden;background:#e7eee4;display:flex;align-items:center;justify-content:center;text-align:center;color:#7a8e7b;font-size:10px}
+.hospital-intake-row{margin:0}
+.hospital-intake-kicker{margin:0 0 10px;color:var(--mut);font-size:.72rem;font-weight:750;letter-spacing:1.4px}
+.hospital-intake-grid{display:grid;grid-template-columns:minmax(0,1fr) 84px;gap:12px;align-items:start}
+.hospital-intake-inputs{min-width:0}
+.hospital-intake-inputs label{display:block;margin:0 0 6px;color:var(--txt);font-size:.86rem;font-weight:600}
+.hospital-intake-inputs input{width:100%;max-width:none;margin:0 0 12px;background:var(--field);color:var(--txt)}
+.hospital-intake-input{width:100%;max-width:none}
+.hospital-photo-preview{width:84px;height:108px;margin-top:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--card2);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);font-size:10px;letter-spacing:.3px}
 .hospital-photo-preview img{width:100%;height:100%;object-fit:cover}
-.hospital-word-counter{display:flex;align-items:center;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid #dce6d9;font-size:12px;color:#617561}
-.hospital-word-counter b{font-size:15px;color:#355b4b;background:#e5eee1;padding:2px 8px;border-radius:7px}
-.hospital-note-box{margin-top:14px;padding:12px 14px;border:1px solid #e6dec9;border-radius:11px;background:#faf7ee}
-.hospital-note-box label{color:#766a4e;margin-top:0}
-.hospital-note-help{font-size:11px;color:#8d8167;margin:5px 0 0}
-.hospital-patient-meta{display:flex;gap:12px;align-items:center;padding:11px 13px;margin:0 0 14px;border:1px solid #dfe8dc;border-radius:11px;background:#f7faf5}
-.hospital-patient-meta img{width:58px;height:72px;object-fit:cover;border-radius:7px;border:1px solid #cbd9ca;background:#e7eee4}
-.hospital-patient-meta b{display:block;color:#355b4b;font-size:14px}
-.hospital-patient-meta small{display:block;color:#718078;font-size:11px;margin-top:3px}
-.hospital-post-note{margin-top:16px;padding:11px 14px;border-left:3px solid #c8b98e;border-radius:0 9px 9px 0;background:#faf7ee;color:#766b52;font-size:12px;line-height:1.8;white-space:pre-wrap}
-.hospital-post-note b{display:block;font-size:10px;letter-spacing:.08em;margin-bottom:3px}
+.hospital-intake-help{margin:0 0 10px}
+.hospital-word-counter{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0;padding:9px 0 0;border-top:1px solid var(--line);font-size:.78rem;color:var(--mut)}
+.hospital-word-counter b{font-size:.8rem;color:var(--txt);background:var(--card2);border:1px solid var(--line);padding:2px 7px;border-radius:5px}
+.hospital-note-row{margin:0}
+.hospital-note-row .topic-field-value>input{width:100%;max-width:none}
+.hospital-patient-meta{background:var(--card2);border-color:var(--line);color:var(--txt)}
+.hospital-patient-meta b{color:var(--txt)}
+.hospital-patient-meta small{color:var(--mut)}
+.hospital-post-note{border-left-color:var(--pri);background:var(--card2);color:var(--txt)}
 .side-sick .side-por{border:2px solid #bd7378!important;box-shadow:0 0 0 3px #bd73781c}
 .side-sick .side-por>img{filter:saturate(.65);opacity:.9}
 .sick-character-name a{color:#b64f56!important}
 .sick-character-subtitle{color:#b64f56!important;font-weight:750}
-@media(max-width:520px){.hospital-patient-fields{grid-template-columns:minmax(0,1fr) 76px;gap:10px}.hospital-photo-preview{width:76px;height:100px}.hospital-composer-card{padding:12px}}
+@media(max-width:600px){.hospital-intake-grid{grid-template-columns:minmax(0,1fr) 70px;gap:9px}.hospital-photo-preview{width:70px;height:94px}.hospital-intake-row,.hospital-note-row{grid-template-columns:1fr;gap:7px}.hospital-intake-row .topic-field-label,.hospital-note-row .topic-field-label{padding-top:0}}
 </style>
 </head>
 <body>
@@ -6254,8 +6253,30 @@ function pageThread(id,view=''){
  const hospitalNoteField='';
  const hospitalPhotoUrl=String(hospitalActiveChar?.portrait||hospitalActiveChar?.avatar||'').trim();
  const hospitalPhotoSrc=/^https?:\/\//i.test(hospitalPhotoUrl)?hospitalPhotoUrl:'';
- const hospitalPatientFields=hospitalKind?'<section class="hospital-composer-card"><div class="hospital-composer-kicker">STARLIGHT MEDICAL CENTER</div><div class="hospital-composer-title">ข้อมูลคนไข้ · ID PHOTO</div><div class="hospital-patient-fields"><div><label>ชื่อคนไข้</label><input name="hospitalPatientName" maxlength="100" required value="'+esc(hospitalActiveChar?.stageName||hospitalActiveChar?.name||'')+'" placeholder="ชื่อคนไข้"><label>ลิงก์รูปภาพ</label><input name="hospitalPatientPhoto" type="url" placeholder="https://.../photo.jpg" value="'+esc(hospitalPhotoUrl)+'"><p class="hospital-note-help">วางลิงก์รูปโดยตรง เช่น JPG, PNG หรือ WEBP</p></div><div class="hospital-photo-preview"><img data-hospital-photo-preview alt="ID Photo" src="'+esc(hospitalPhotoSrc)+'" style="'+(hospitalPhotoSrc?'':'display:none')+'"><span data-hospital-photo-placeholder style="'+(hospitalPhotoSrc?'display:none':'')+'">ID PHOTO</span></div></div><div class="hospital-word-counter">จำนวนคำโรล <b data-hospital-word-count>0</b><span>คำ · ไม่นับหมายเหตุหรือโค้ดตกแต่ง</span></div></section>':'';
- const hospitalNoteEditorField=hospitalKind?'<div class="hospital-note-box"><label>หมายเหตุสำหรับโรงพยาบาล</label><input name="postNote" maxlength="160" required value="'+(hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษ')+'" placeholder="'+(hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษ')+'"><p class="hospital-note-help">หมายเหตุอยู่ในตัวเขียนนี้และจะแสดงใต้โพสต์ ไม่รวมในการนับคำ</p></div>':'';
+ const hospitalPatientFields=hospitalKind?`<div class="topic-field-row hospital-intake-row">
+   <div class="topic-field-label">ข้อมูลคนไข้</div>
+   <div class="topic-field-value">
+    <div class="hospital-intake-kicker">STARLIGHT MEDICAL CENTER · ID PHOTO</div>
+    <div class="hospital-intake-grid">
+     <div class="hospital-intake-inputs">
+      <label for="hospitalPatientName">ชื่อคนไข้ *</label>
+      <input id="hospitalPatientName" class="topic-subject hospital-intake-input" name="hospitalPatientName" maxlength="100" required value="${esc(hospitalActiveChar?.stageName||hospitalActiveChar?.name||'')}" placeholder="ชื่อ-นามสกุลคนไข้">
+      <label for="hospitalPatientPhoto">ลิงก์รูปภาพ ID Photo (URL)</label>
+      <input id="hospitalPatientPhoto" class="topic-subject hospital-intake-input" name="hospitalPatientPhoto" type="url" placeholder="https://..." value="${esc(hospitalPhotoUrl)}">
+     </div>
+     <div class="hospital-photo-preview"><img data-hospital-photo-preview alt="ID Photo" src="${esc(hospitalPhotoSrc)}" style="${hospitalPhotoSrc?'':'display:none'}"><span data-hospital-photo-placeholder style="${hospitalPhotoSrc?'display:none':''}">ID PHOTO</span></div>
+    </div>
+    <p class="topic-help hospital-intake-help">ใส่ลิงก์รูปโดยตรง เช่น JPG, PNG หรือ WEBP · หากไม่ใส่รูป ระบบจะแสดงช่อง ID PHOTO</p>
+    <div class="hospital-word-counter"><span>จำนวนคำโรลเพลย์</span><b data-hospital-word-count>0</b><span>คำ · ต้องมากกว่า 70 คำ</span></div>
+   </div>
+  </div>` : '';
+ const hospitalNoteEditorField=hospitalKind?`<div class="topic-field-row hospital-note-row">
+   <label class="topic-field-label" for="postNote">หมายเหตุสำหรับระบบโรงพยาบาล</label>
+   <div class="topic-field-value">
+    <input id="postNote" name="postNote" class="topic-subject hospital-intake-input" maxlength="160" required value="${hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษา'}" placeholder="${hospitalKind==='queue'?'รับบัตรคิว':'รับการรักษา'}">
+    <p class="topic-help">หมายเหตุจะแสดงแยกท้ายโพสต์ และไม่รวมในการนับคำโรลเพลย์</p>
+   </div>
+  </div>` : '';
  const hospitalPanel=hospitalKind&&u?'<section class="card" style="margin:16px 0;border-color:#b9cbb8;background:#f4f8f2;color:#35483b"><div style="font-size:10px;letter-spacing:2px;color:#7b927c">STARLIGHT MEDICAL CENTER</div><h3 style="margin:7px 0;color:#35483b">'+(hospitalKind==='queue'?'แผนกรักษาทั่วไป · รับบัตรคิว':'ห้องตรวจ · ชำระค่ารักษา')+'</h3><p style="color:#68786b;line-height:1.8">'+(hospitalKind==='queue'?'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับบัตรคิว” แล้วกดปุ่มด้านล่าง':'สร้างโพสต์โรลเพลย์มากกว่า 70 คำ ใส่หมายเหตุ “รับการรักษา” แล้วแนบลิงก์เพื่อชำระค่ารักษา 1,000 won')+'</p><button class="btn" type="button" onclick="openHospitalModal(\''+(hospitalKind==='queue'?'queue':'treatment')+'\',\''+t.id+'\')">'+(hospitalKind==='queue'?'รับการรักษา · รับบัตรคิว':'ชำระค่ารักษา 1,000 won')+'</button></section>':'';
  const all=DB.get('posts'),posts=all.filter(p=>p.threadId===id).sort((a,b)=>a.createdAt-b.createdAt);
  const postsPerPage=15,totalPages=Math.max(1,Math.ceil(posts.length/postsPerPage));
