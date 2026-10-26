@@ -7331,7 +7331,7 @@ async function debutGroup(id){
  update('groups',id,x=>{x.status='debuted';x.debutAt=Date.now()});
  const a=agencyOf(g.agencyId),names=g.members.map(m=>{const c=cs.find(x=>x.id===m.charId);return `<li><b>${esc(c?(c.stageName||c.name):'?')}</b> — ${esc(m.role)}</li>`}).join('');
  const th=DB.get('threads');
- th.push({id:uid(),authorId:me().id,authorCharId:getActiveChar(me())?.id||null,title:`🎉 ${g.name} เดบิวต์อย่างเป็นทางการ!`,type:'event',forumId:'f_2',plotMode:'rich',
+ th.push({id:uid(),authorId:me().id,authorCharId:getActiveChar(me())?.id||null,title:`🎉 ${g.name} เดบิวต์อย่างเป็นทางการ!`,type:'event',forumId:(DB.get('forums').find(f=>String(f.name||'').trim()==='วงดนตรี/ศิลปิน')||DB.get('forums').find(f=>/วงดนตรี|ศิลปิน/.test(String(f.name||'')))||{id:'mvcrmyt5yyc94'}).id,plotMode:'rich',
   plot:`<p>${esc(a?a.name+' ':'')}ขอประกาศการเดบิวต์ของ${esc(g.type)} <b>"${esc(g.name)}"</b>${g.fandom?`<br>แฟนด้อม: ${esc(g.fandom)}`:''}</p><h3>สมาชิก</h3><ul>${names}</ul>`,
   rulesMode:'rich',rules:'<p>ร่วมแสดงความยินดี สัมภาษณ์ หรือโรลเพลย์งานเปิดตัวได้ในกระทู้นี้</p>',minStage:0,maxStage:STAGES.length-1,exp:5,won:500,train:[],statGain:0,agencyId:'',css:'',tpl:'',deadline:'',status:'open',pinned:false,createdAt:Date.now()});
  DB.set('threads',th);toast(`🎉 ${g.name} เดบิวต์แล้ว! สร้างกระทู้ประกาศให้แล้ว`);render();
