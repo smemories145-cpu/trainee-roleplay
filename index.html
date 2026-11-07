@@ -3420,8 +3420,7 @@ function codeFrame(html,css='',isolated=false){
  let source=String(html||''),head='',body=source,htmlAttrs='',bodyAttrs='';
  const hasFullDoc=/<html[\s>]/i.test(source)||/<!doctype\s+html/i.test(source)||/<head[\s>]/i.test(source)||/<body[\s>]/i.test(source);
  const fullDoc=hasFullDoc||isolated;
- if(isolated&&!hasFullDoc)source='<!doctype html><html lang="th"><head></head><body>'+source+'<script defer src="./global-search.js"></script>
-</body></html>';
+ if(isolated&&!hasFullDoc)source='<!doctype html><html lang="th"><head></head><body>'+source+'</body></html>';
  if(fullDoc){
   const hm=source.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
   const bm=source.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
